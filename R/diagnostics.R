@@ -27,6 +27,7 @@ coverage <- function(object, y_true) {
   UseMethod("coverage")
 }
 
+#' @rdname coverage
 #' @export
 coverage.predictset_reg <- function(object, y_true) {
   if (length(y_true) != length(object$pred)) {
@@ -35,6 +36,7 @@ coverage.predictset_reg <- function(object, y_true) {
   mean(y_true >= object$lower & y_true <= object$upper)
 }
 
+#' @rdname coverage
 #' @export
 coverage.predictset_class <- function(object, y_true) {
   y_true <- as.character(y_true)

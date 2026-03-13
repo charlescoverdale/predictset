@@ -1,5 +1,5 @@
 Package: predictset
-Title: Model-Agnostic Conformal Prediction and Uncertainty Quantification
+Title: Conformal Prediction and Uncertainty Quantification
 Version: 0.2.0
 Authors@R: person("Charles", "Coverdale", email = "charlesfcoverdale@gmail.com",
     role = c("aut", "cre"))
@@ -22,8 +22,7 @@ Description: Implements conformal prediction methods for constructing
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en-US
-URL: https://charlescoverdale.github.io/predictset/,
-    https://github.com/charlescoverdale/predictset
+URL: https://github.com/charlescoverdale/predictset
 BugReports: https://github.com/charlescoverdale/predictset/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

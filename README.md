@@ -56,45 +56,28 @@ devtools::install_github("charlescoverdale/predictset")
 
 ## Methods
 
-### Regression
-
-| Function | Method | Reference |
-|---|---|---|
-| `conformal_split()` | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_cv()` | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
-| `conformal_jackknife()` | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
-| `conformal_cqr()` | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
-
-### Classification
-
-| Function | Method | Reference |
-|---|---|---|
-| `conformal_class_split()` | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_aps()` | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
-| `conformal_raps()` | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
-| `conformal_lac()` | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
-
-### Advanced Methods
-
-| Function | Method | Reference |
-|---|---|---|
-| `conformal_mondrian()` | Mondrian (group-conditional) regression | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_mondrian_class()` | Mondrian (group-conditional) classification | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_weighted()` | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
-| `conformal_aci()` | Adaptive Conformal Inference (sequential) | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
-
-### Diagnostics
-
-| Function | Description |
-|---|---|
-| `coverage()` | Empirical coverage rate on held-out data |
-| `coverage_by_group()` | Coverage within subgroups (fairness/conditional diagnostics) |
-| `coverage_by_bin()` | Coverage by prediction quantile bin |
-| `interval_width()` | Width of prediction intervals (regression) |
-| `set_size()` | Size of prediction sets (classification) |
-| `conformal_pvalue()` | Conformal p-values for new observations |
-| `conformal_compare()` | Compare multiple methods on the same data |
-| `make_model()` | Wrap custom train/predict functions for use with any method |
+| Function | Type | Method | Reference |
+|---|---|---|---|
+| `conformal_split()` | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_cv()` | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_jackknife()` | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_cqr()` | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
+| `conformal_mondrian()` | Regression | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_weighted()` | Regression | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
+| `conformal_class_split()` | Classification | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_aps()` | Classification | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
+| `conformal_raps()` | Classification | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
+| `conformal_lac()` | Classification | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
+| `conformal_mondrian_class()` | Classification | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_aci()` | Sequential | Adaptive Conformal Inference | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
+| `coverage()` | Diagnostic | Empirical coverage rate | |
+| `coverage_by_group()` | Diagnostic | Coverage within subgroups | |
+| `coverage_by_bin()` | Diagnostic | Coverage by prediction quantile bin | |
+| `interval_width()` | Diagnostic | Width of prediction intervals | |
+| `set_size()` | Diagnostic | Size of prediction sets | |
+| `conformal_pvalue()` | Diagnostic | Conformal p-values | |
+| `conformal_compare()` | Diagnostic | Compare multiple methods | |
+| `make_model()` | Utility | Wrap custom train/predict functions | |
 
 ---
 

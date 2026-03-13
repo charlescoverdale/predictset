@@ -2,9 +2,15 @@
 % Please edit documentation in R/diagnostics.R
 \name{coverage}
 \alias{coverage}
+\alias{coverage.predictset_reg}
+\alias{coverage.predictset_class}
 \title{Empirical Coverage Rate}
 \usage{
 coverage(object, y_true)
+
+\method{coverage}{predictset_reg}(object, y_true)
+
+\method{coverage}{predictset_class}(object, y_true)
 }
 \arguments{
 \item{object}{A \code{predictset_reg} or \code{predictset_class} object.}
