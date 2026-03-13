@@ -11,6 +11,8 @@ conformal_split(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  score_type = c("absolute", "normalized"),
+  scale_model = NULL,
   seed = NULL
 )
 }
@@ -29,6 +31,16 @@ which to compute prediction intervals.}
 intervals.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
+
+\item{score_type}{Type of nonconformity score. \code{"absolute"} (default) uses
+absolute residuals and produces constant-width intervals. \code{"normalized"}
+divides residuals by a local scale estimate from \code{scale_model}, producing
+locally-adaptive interval widths.}
+
+\item{scale_model}{A \code{\link[=make_model]{make_model()}} specification for predicting absolute
+residuals (used only when \code{score_type = "normalized"}). Must return
+positive predictions. If \code{NULL} and \code{score_type = "normalized"}, a
+default model is fitted using \code{\link[=lm]{lm()}} on absolute residuals.}
 
 \item{seed}{Optional random seed for reproducible data splitting.}
 }

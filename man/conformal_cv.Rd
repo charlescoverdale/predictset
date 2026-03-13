@@ -27,12 +27,26 @@ intervals.}
 }
 \value{
 A \code{predictset_reg} object. See \code{\link[=conformal_split]{conformal_split()}} for details.
-The \code{method} component is \code{"cv_plus"}.
+The \code{method} component is \code{"cv_plus"}. The object also stores
+\code{fold_models} (list of K fitted models), \code{fold_ids} (integer vector
+mapping each observation to its fold), and \code{residuals} (leave-fold-out
+absolute residuals), which are needed by the \code{\link[=predict]{predict()}} method to
+compute CV+ intervals for new data.
 }
 \description{
 Constructs prediction intervals using the CV+ method of Barber et al. (2021).
-Cross-validation residuals are used to form prediction intervals with
-finite-sample coverage guarantees.
+Cross-validation residuals and fold-specific models are used to form
+observation-specific prediction intervals with finite-sample coverage
+guarantees.
+}
+\details{
+Unlike basic CV conformal prediction (which computes a single quantile of
+CV residuals), CV+ constructs intervals that vary per test point. For each
+test point, every training observation contributes a lower and upper value
+based on the fold model that excluded that observation, evaluated at the
+test point, plus or minus the leave-fold-out residual for that observation.
+The interval bounds are then taken as quantiles of these per-observation
+values.
 }
 \examples{
 set.seed(42)

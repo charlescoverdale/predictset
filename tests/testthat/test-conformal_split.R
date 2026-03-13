@@ -70,6 +70,13 @@ test_that("conformal_split validates inputs", {
   expect_error(conformal_split(data$x, data$y[1:5], test_reg_model, x_new))
 })
 
+test_that("conformal_quantile returns Inf for extreme alpha", {
+  scores <- c(1, 2, 3)
+  # alpha = 0.01 -> k = ceiling(4 * 0.99) = 4 > 3
+  q <- predictset:::conformal_quantile(scores, 0.01)
+  expect_equal(q, Inf)
+})
+
 test_that("conformal_split with single test point", {
   data <- make_regression_data(100, 3)
   x_new <- matrix(rnorm(3), ncol = 3)

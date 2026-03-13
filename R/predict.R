@@ -28,6 +28,44 @@ predict.predictset_reg <- function(object, newdata, ...) {
     pred <- (lo_pred + hi_pred) / 2
     lower <- lo_pred - object$quantile
     upper <- hi_pred + object$quantile
+  } else if (object$method == "jackknife_plus") {
+    # Jackknife+: use stored LOO models and residuals
+    pred <- object$model$predict_fun(object$fitted_model, newdata)
+    n <- length(object$loo_models)
+    n_new <- nrow(newdata)
+    lower <- numeric(n_new)
+    upper <- numeric(n_new)
+
+    for (j in seq_len(n_new)) {
+      loo_preds_at_j <- numeric(n)
+      for (i in seq_len(n)) {
+        loo_preds_at_j[i] <- object$model$predict_fun(
+          object$loo_models[[i]], newdata[j, , drop = FALSE]
+        )
+      }
+      lower_vals <- sort(loo_preds_at_j - object$loo_residuals)
+      upper_vals <- sort(loo_preds_at_j + object$loo_residuals)
+
+      k_lo <- floor(object$alpha * (n + 1))
+      k_hi <- ceiling((1 - object$alpha) * (n + 1))
+
+      lower[j] <- lower_vals[max(k_lo, 1)]
+      upper[j] <- upper_vals[min(k_hi, n)]
+    }
+  } else if (object$method == "cv_plus") {
+    # CV+: use stored fold models, fold_ids, and residuals
+    pred <- object$model$predict_fun(object$fitted_model, newdata)
+    intervals <- cv_plus_intervals(newdata, object$model, object$fold_models,
+                                    object$fold_ids, object$residuals,
+                                    object$alpha, object$n_train)
+    lower <- intervals$lower
+    upper <- intervals$upper
+  } else if (!is.null(object$score_type) && object$score_type == "normalized") {
+    pred <- object$model$predict_fun(object$fitted_model, newdata)
+    sigma <- object$scale_model$predict_fun(object$fitted_scale, newdata)
+    sigma <- pmax(sigma, 1e-6)
+    lower <- pred - object$quantile * sigma
+    upper <- pred + object$quantile * sigma
   } else {
     pred <- object$model$predict_fun(object$fitted_model, newdata)
     lower <- pred - object$quantile
@@ -82,7 +120,8 @@ predict.predictset_class <- function(object, newdata, ...) {
   if (object$method %in% c("aps")) {
     result <- build_aps_sets(probs_new, object$quantile)
   } else if (object$method == "raps") {
-    result <- build_raps_sets(probs_new, object$quantile)
+    result <- build_raps_sets(probs_new, object$quantile,
+                               k_reg = object$k_reg, lambda = object$lambda)
   } else {
     result <- build_lac_sets(probs_new, object$quantile)
   }

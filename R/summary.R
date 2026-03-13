@@ -34,12 +34,17 @@ summary.predictset_reg <- function(object, ...) {
   ))
   cli_text("")
   cli_text("Calibration scores:")
-  cli_bullets(c(
+  score_bullets <- c(
     " " = "Min: {.val {round(min(object$scores), 4)}}",
     " " = "Med: {.val {round(median(object$scores), 4)}}",
-    " " = "Max: {.val {round(max(object$scores), 4)}}",
-    " " = "Conformal quantile: {.val {round(object$quantile, 4)}}"
-  ))
+    " " = "Max: {.val {round(max(object$scores), 4)}}"
+  )
+  if (!object$method %in% c("cv_plus", "jackknife_plus")) {
+    score_bullets <- c(score_bullets,
+      " " = "Conformal quantile: {.val {round(object$quantile, 4)}}"
+    )
+  }
+  cli_bullets(score_bullets)
   invisible(object)
 }
 

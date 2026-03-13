@@ -4,7 +4,16 @@
 \alias{conformal_aps}
 \title{Adaptive Prediction Sets}
 \usage{
-conformal_aps(x, y, model, x_new, alpha = 0.1, cal_fraction = 0.5, seed = NULL)
+conformal_aps(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  randomize = FALSE,
+  seed = NULL
+)
 }
 \arguments{
 \item{x}{A numeric matrix or data frame of predictor variables.}
@@ -20,6 +29,9 @@ or a fitted model object that produces class probabilities.}
 \item{alpha}{Miscoverage level. Default \code{0.10} gives 90 percent prediction sets.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
+
+\item{randomize}{Logical. If \code{TRUE}, uses randomized scores for exact
+coverage (but prediction sets become stochastic). Default \code{FALSE}.}
 
 \item{seed}{Optional random seed.}
 }

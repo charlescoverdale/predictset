@@ -17,6 +17,8 @@
 #'   exempt from the penalty. Default `1` (only the top class is unpenalized).
 #' @param lambda Regularization strength. Default `0.01`. Larger values
 #'   produce smaller prediction sets at the potential cost of coverage.
+#' @param randomize Logical. If `TRUE`, uses randomized scores for exact
+#'   coverage (but prediction sets become stochastic). Default `FALSE`.
 #'
 #' @return A `predictset_class` object. See [conformal_class_split()] for
 #'   details. The `method` component is `"raps"`.
@@ -49,7 +51,7 @@
 #' @export
 conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
                             cal_fraction = 0.5, k_reg = 1, lambda = 0.01,
-                            seed = NULL) {
+                            randomize = FALSE, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -74,7 +76,8 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
     colnames(probs_cal) <- levels(y)
   }
 
-  scores <- raps_scores(probs_cal, y_cal, k_reg = k_reg, lambda = lambda)
+  scores <- raps_scores(probs_cal, y_cal, k_reg = k_reg, lambda = lambda,
+                         randomize = randomize)
   q <- conformal_quantile(scores, alpha)
 
   probs_new <- mod$predict_fun(fitted, x_new)
@@ -95,6 +98,8 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
     n_cal = length(split$cal),
     n_train = length(split$train),
     fitted_model = fitted,
-    model = mod
+    model = mod,
+    k_reg = k_reg,
+    lambda = lambda
   ), class = "predictset_class")
 }

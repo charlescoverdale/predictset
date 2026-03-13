@@ -13,6 +13,14 @@
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction
 #'   intervals.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
+#' @param score_type Type of nonconformity score. `"absolute"` (default) uses
+#'   absolute residuals and produces constant-width intervals. `"normalized"`
+#'   divides residuals by a local scale estimate from `scale_model`, producing
+#'   locally-adaptive interval widths.
+#' @param scale_model A [make_model()] specification for predicting absolute
+#'   residuals (used only when `score_type = "normalized"`). Must return
+#'   positive predictions. If `NULL` and `score_type = "normalized"`, a
+#'   default model is fitted using [lm()] on absolute residuals.
 #' @param seed Optional random seed for reproducible data splitting.
 #'
 #' @return A `predictset_reg` object (a list) with components:
@@ -42,11 +50,14 @@
 #'
 #' @export
 conformal_split <- function(x, y, model, x_new, alpha = 0.10,
-                             cal_fraction = 0.5, seed = NULL) {
+                             cal_fraction = 0.5,
+                             score_type = c("absolute", "normalized"),
+                             scale_model = NULL, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_reg(y)
   x_new <- validate_x(x_new, "x_new")
   alpha <- validate_alpha(alpha)
+  score_type <- match.arg(score_type)
 
   if (nrow(x) != length(y)) {
     cli_abort("{.arg x} and {.arg y} must have the same number of observations.")
@@ -64,27 +75,73 @@ conformal_split <- function(x, y, model, x_new, alpha = 0.10,
   # Train
   fitted <- mod$train_fun(x_train, y_train)
 
-  # Calibration scores
+  # Calibration predictions
   yhat_cal <- mod$predict_fun(fitted, x_cal)
-  scores <- regression_scores(y_cal, yhat_cal)
 
-  # Conformal quantile
-  q <- conformal_quantile(scores, alpha)
+  if (score_type == "normalized") {
+    # Fit scale model on training residuals
+    yhat_train <- mod$predict_fun(fitted, x_train)
+    abs_resid_train <- abs(y_train - yhat_train)
 
-  # Predictions on new data
-  yhat_new <- mod$predict_fun(fitted, x_new)
+    if (is.null(scale_model)) {
+      scale_mod <- make_model(
+        train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+        predict_fun = function(object, x_new) {
+          pmax(as.numeric(predict(object, newdata = as.data.frame(x_new))), 1e-6)
+        },
+        type = "regression"
+      )
+    } else {
+      scale_mod <- resolve_model(scale_model, type = "regression")
+    }
 
-  structure(list(
-    pred = yhat_new,
-    lower = yhat_new - q,
-    upper = yhat_new + q,
-    alpha = alpha,
-    method = "split",
-    scores = scores,
-    quantile = q,
-    n_cal = length(split$cal),
-    n_train = length(split$train),
-    fitted_model = fitted,
-    model = mod
-  ), class = "predictset_reg")
+    fitted_scale <- scale_mod$train_fun(x_train, abs_resid_train)
+    sigma_cal <- scale_mod$predict_fun(fitted_scale, x_cal)
+    sigma_cal <- pmax(sigma_cal, 1e-6)
+    scores <- abs(y_cal - yhat_cal) / sigma_cal
+    q <- conformal_quantile(scores, alpha)
+
+    # Predictions on new data
+    yhat_new <- mod$predict_fun(fitted, x_new)
+    sigma_new <- scale_mod$predict_fun(fitted_scale, x_new)
+    sigma_new <- pmax(sigma_new, 1e-6)
+
+    structure(list(
+      pred = yhat_new,
+      lower = yhat_new - q * sigma_new,
+      upper = yhat_new + q * sigma_new,
+      alpha = alpha,
+      method = "split",
+      score_type = "normalized",
+      scores = scores,
+      quantile = q,
+      n_cal = length(split$cal),
+      n_train = length(split$train),
+      fitted_model = fitted,
+      fitted_scale = fitted_scale,
+      model = mod,
+      scale_model = scale_mod
+    ), class = "predictset_reg")
+  } else {
+    scores <- regression_scores(y_cal, yhat_cal)
+    q <- conformal_quantile(scores, alpha)
+
+    # Predictions on new data
+    yhat_new <- mod$predict_fun(fitted, x_new)
+
+    structure(list(
+      pred = yhat_new,
+      lower = yhat_new - q,
+      upper = yhat_new + q,
+      alpha = alpha,
+      method = "split",
+      score_type = "absolute",
+      scores = scores,
+      quantile = q,
+      n_cal = length(split$cal),
+      n_train = length(split$train),
+      fitted_model = fitted,
+      model = mod
+    ), class = "predictset_reg")
+  }
 }

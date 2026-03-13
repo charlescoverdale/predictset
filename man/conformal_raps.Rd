@@ -13,6 +13,7 @@ conformal_raps(
   cal_fraction = 0.5,
   k_reg = 1,
   lambda = 0.01,
+  randomize = FALSE,
   seed = NULL
 )
 }
@@ -36,6 +37,9 @@ exempt from the penalty. Default \code{1} (only the top class is unpenalized).}
 
 \item{lambda}{Regularization strength. Default \code{0.01}. Larger values
 produce smaller prediction sets at the potential cost of coverage.}
+
+\item{randomize}{Logical. If \code{TRUE}, uses randomized scores for exact
+coverage (but prediction sets become stochastic). Default \code{FALSE}.}
 
 \item{seed}{Optional random seed.}
 }

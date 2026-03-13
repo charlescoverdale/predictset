@@ -17,12 +17,27 @@ print.predictset_reg <- function(x, ...) {
   method_label <- method_names[x$method]
 
   cli_h1("Conformal Prediction Intervals ({method_label})")
-  cli_bullets(c(
+  bullets <- c(
     "*" = "Coverage target: {.val {(1 - x$alpha) * 100}%}",
-    "*" = "Training: {.val {x$n_train}} | Calibration: {.val {x$n_cal}} | Predictions: {.val {length(x$pred)}}",
-    "*" = "Conformal quantile: {.val {round(x$quantile, 4)}}",
+    "*" = "Training: {.val {x$n_train}} | Calibration: {.val {x$n_cal}} | Predictions: {.val {length(x$pred)}}"
+  )
+  if (x$method == "cv_plus") {
+    bullets <- c(bullets,
+      "*" = "Median residual: {.val {round(stats::median(x$residuals), 4)}}"
+    )
+  } else if (x$method == "jackknife_plus") {
+    bullets <- c(bullets,
+      "*" = "Median LOO residual: {.val {round(stats::median(x$loo_residuals), 4)}}"
+    )
+  } else {
+    bullets <- c(bullets,
+      "*" = "Conformal quantile: {.val {round(x$quantile, 4)}}"
+    )
+  }
+  bullets <- c(bullets,
     "*" = "Median interval width: {.val {round(median(x$upper - x$lower), 4)}}"
-  ))
+  )
+  cli_bullets(bullets)
   invisible(x)
 }
 

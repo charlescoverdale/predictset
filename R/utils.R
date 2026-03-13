@@ -72,9 +72,9 @@ kfold_split <- function(n, n_folds, seed = NULL) {
 
 conformal_quantile <- function(scores, alpha) {
   n <- length(scores)
-  level <- ceiling((n + 1) * (1 - alpha)) / n
-  level <- min(level, 1)
-  as.numeric(quantile(scores, probs = level, type = 1))
+  k <- ceiling((n + 1) * (1 - alpha))
+  if (k > n) return(Inf)
+  sort(scores)[k]
 }
 
 regression_scores <- function(y, yhat) {
@@ -99,7 +99,7 @@ aps_scores <- function(probs, y_true, randomize = FALSE) {
     score <- cumprobs[rank_true]
     if (randomize && rank_true >= 1) {
       u <- stats::runif(1)
-      score <- score - (1 - u) * sorted_p[rank_true]
+      score <- score - u * sorted_p[rank_true]
     }
     scores[i] <- score
   }
@@ -124,7 +124,7 @@ raps_scores <- function(probs, y_true, k_reg = 1, lambda = 0.01,
     score <- cumprobs[rank_true] + penalty
     if (randomize && rank_true >= 1) {
       u <- stats::runif(1)
-      score <- score - (1 - u) * sorted_p[rank_true]
+      score <- score - u * sorted_p[rank_true]
     }
     scores[i] <- score
   }
@@ -132,13 +132,8 @@ raps_scores <- function(probs, y_true, k_reg = 1, lambda = 0.01,
 }
 
 lac_scores <- function(probs, y_true) {
-  n <- nrow(probs)
-  scores <- numeric(n)
-  for (i in seq_len(n)) {
-    true_class <- as.character(y_true[i])
-    scores[i] <- 1 - probs[i, true_class]
-  }
-  scores
+  y_idx <- match(as.character(y_true), colnames(probs))
+  1 - probs[cbind(seq_len(nrow(probs)), y_idx)]
 }
 
 build_aps_sets <- function(probs, threshold) {

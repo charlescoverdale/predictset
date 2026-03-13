@@ -36,11 +36,21 @@ If \code{FALSE}, uses the basic jackknife.}
 \value{
 A \code{predictset_reg} object. See \code{\link[=conformal_split]{conformal_split()}} for details.
 The \code{method} component is \code{"jackknife_plus"} or \code{"jackknife"}.
+Additional components include \code{loo_models} (list of n leave-one-out
+fitted models) and \code{loo_residuals} (numeric vector of LOO absolute
+residuals).
 }
 \description{
 Constructs prediction intervals using the Jackknife+ method of
-Barber et al. (2021). Uses leave-one-out residuals to form prediction
+Barber et al. (2021). Uses leave-one-out models to form prediction
 intervals with finite-sample coverage guarantees.
+}
+\details{
+The Jackknife+ method fits n leave-one-out models and uses each model's
+prediction at the test point, shifted by the corresponding LOO residual,
+to construct the interval. This is distinct from basic jackknife, which
+centres a single full-model prediction and adds a quantile of the LOO
+residuals.
 }
 \examples{
 set.seed(42)
@@ -54,4 +64,9 @@ result <- conformal_jackknife(x, y, model = y ~ ., x_new = x_new)
 print(result)
 }
 
+}
+\references{
+Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2021).
+Predictive inference with the jackknife+.
+\emph{Annals of Statistics}, 49(1), 486--507.
 }

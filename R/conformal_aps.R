@@ -13,6 +13,8 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction sets.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
+#' @param randomize Logical. If `TRUE`, uses randomized scores for exact
+#'   coverage (but prediction sets become stochastic). Default `FALSE`.
 #' @param seed Optional random seed.
 #'
 #' @return A `predictset_class` object. See [conformal_class_split()] for
@@ -44,7 +46,8 @@
 #'
 #' @export
 conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
-                           cal_fraction = 0.5, seed = NULL) {
+                           cal_fraction = 0.5, randomize = FALSE,
+                           seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -69,7 +72,7 @@ conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
     colnames(probs_cal) <- levels(y)
   }
 
-  scores <- aps_scores(probs_cal, y_cal)
+  scores <- aps_scores(probs_cal, y_cal, randomize = randomize)
   q <- conformal_quantile(scores, alpha)
 
   probs_new <- mod$predict_fun(fitted, x_new)
