@@ -56,6 +56,7 @@ conformal_split <- function(x, y, model, x_new, alpha = 0.10,
   x <- validate_x(x, "x")
   y <- validate_y_reg(y)
   x_new <- validate_x(x_new, "x_new")
+  validate_x_new(x, x_new)
   alpha <- validate_alpha(alpha)
   score_type <- match.arg(score_type)
 
@@ -87,7 +88,7 @@ conformal_split <- function(x, y, model, x_new, alpha = 0.10,
       scale_mod <- make_model(
         train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
         predict_fun = function(object, x_new) {
-          pmax(as.numeric(predict(object, newdata = as.data.frame(x_new))), 1e-6)
+          pmax(as.numeric(predict(object, newdata = as.data.frame(x_new))), MIN_SCALE)
         },
         type = "regression"
       )
@@ -97,14 +98,20 @@ conformal_split <- function(x, y, model, x_new, alpha = 0.10,
 
     fitted_scale <- scale_mod$train_fun(x_train, abs_resid_train)
     sigma_cal <- scale_mod$predict_fun(fitted_scale, x_cal)
-    sigma_cal <- pmax(sigma_cal, 1e-6)
+    if (any(sigma_cal < 0)) {
+      cli_warn("Scale model produced negative predictions. These will be clipped to {.val {MIN_SCALE}}.")
+    }
+    sigma_cal <- pmax(sigma_cal, MIN_SCALE)
     scores <- abs(y_cal - yhat_cal) / sigma_cal
     q <- conformal_quantile(scores, alpha)
 
     # Predictions on new data
     yhat_new <- mod$predict_fun(fitted, x_new)
     sigma_new <- scale_mod$predict_fun(fitted_scale, x_new)
-    sigma_new <- pmax(sigma_new, 1e-6)
+    if (any(sigma_new < 0)) {
+      cli_warn("Scale model produced negative predictions for new data. These will be clipped to {.val {MIN_SCALE}}.")
+    }
+    sigma_new <- pmax(sigma_new, MIN_SCALE)
 
     structure(list(
       pred = yhat_new,

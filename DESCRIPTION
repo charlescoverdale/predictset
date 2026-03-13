@@ -1,6 +1,6 @@
 Package: predictset
 Title: Model-Agnostic Conformal Prediction for Classification and Regression
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Charles", "Coverdale", email = "charlesfcoverdale@gmail.com",
     role = c("aut", "cre"))
 Description: Implements conformal prediction methods for constructing
@@ -10,10 +10,13 @@ Description: Implements conformal prediction methods for constructing
     'Conformalized Quantile Regression' (Romano et al. 2019)
     <doi:10.48550/arXiv.1905.03222>, 'Adaptive Prediction Sets'
     (Romano, Sesia, Candes 2020) <doi:10.48550/arXiv.2006.02544>,
-    and 'Regularized Adaptive Prediction Sets' (Angelopoulos et al. 2021)
-    <doi:10.48550/arXiv.2009.14193>. Works with any model that can produce
-    predictions from new data, including 'lm', 'glm', 'ranger', 'xgboost',
-    and custom user-defined models.
+    'Regularized Adaptive Prediction Sets' (Angelopoulos et al. 2021)
+    <doi:10.48550/arXiv.2009.14193>, Mondrian conformal prediction for
+    group-conditional coverage (Vovk et al. 2005), weighted conformal
+    prediction for covariate shift (Tibshirani et al. 2019), and adaptive
+    conformal inference for sequential prediction (Gibbs and Candes 2021).
+    Works with any model that can produce predictions from new data, including
+    'lm', 'glm', 'ranger', 'xgboost', and custom user-defined models.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en-US

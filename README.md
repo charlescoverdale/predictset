@@ -26,6 +26,10 @@ The key property is that this guarantee holds in finite samples. It's not asympt
 | Jackknife+ / CV+ | Yes | No | Yes | Yes |
 | CQR | Yes | Yes | Yes | Yes |
 | APS / RAPS | Yes | No | No | Yes |
+| Mondrian CP | Yes | No | No | Yes |
+| Weighted CP | Yes | No | No | Yes |
+| Adaptive CI | Yes | No | No | No |
+| Conditional diagnostics | Yes | No | No | Partial |
 | Dependencies | 2 | 14+ | 5 | N/A |
 | Last updated | 2026 | 2024 | 2019 | 2024 |
 
@@ -68,13 +72,26 @@ devtools::install_github("charlescoverdale/predictset")
 | `conformal_raps()` | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
 | `conformal_lac()` | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
 
+### Advanced Methods
+
+| Function | Method | Reference |
+|---|---|---|
+| `conformal_mondrian()` | Mondrian (group-conditional) regression | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_mondrian_class()` | Mondrian (group-conditional) classification | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_weighted()` | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
+| `conformal_aci()` | Adaptive Conformal Inference (sequential) | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
+
 ### Diagnostics
 
 | Function | Description |
 |---|---|
 | `coverage()` | Empirical coverage rate on held-out data |
+| `coverage_by_group()` | Coverage within subgroups (fairness/conditional diagnostics) |
+| `coverage_by_bin()` | Coverage by prediction quantile bin |
 | `interval_width()` | Width of prediction intervals (regression) |
 | `set_size()` | Size of prediction sets (classification) |
+| `conformal_pvalue()` | Conformal p-values for new observations |
+| `conformal_compare()` | Compare multiple methods on the same data |
 | `make_model()` | Wrap custom train/predict functions for use with any method |
 
 ---
@@ -231,6 +248,66 @@ result <- conformal_split(
 plot(result)
 ```
 
+### Mondrian conformal: group-conditional coverage
+
+Standard conformal prediction guarantees marginal coverage (across all test points), but coverage can vary wildly across subgroups. Mondrian conformal computes a separate quantile for each group, guaranteeing coverage within each subgroup. This is critical for fairness and regulatory compliance.
+
+No other R package on CRAN implements Mondrian conformal prediction.
+
+```r
+set.seed(42)
+n <- 600
+x <- matrix(rnorm(n * 3), ncol = 3)
+groups <- factor(ifelse(x[, 1] > 0, "high", "low"))
+y <- x[, 1] * 2 + ifelse(groups == "high", 3, 0.5) * rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+result <- conformal_mondrian(x, y, model = y ~ ., x_new = x_new,
+                              groups = groups, groups_new = groups_new)
+print(result)
+
+# Check per-group coverage
+y_new <- x_new[, 1] * 2 + ifelse(groups_new == "high", 3, 0.5) * rnorm(200)
+coverage_by_group(result, y_new, groups_new)
+```
+
+### Weighted conformal: handling covariate shift
+
+When the test distribution differs from the training distribution (covariate shift), standard conformal coverage guarantees break down. Weighted conformal prediction uses importance weights to correct for this shift.
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(100 * 3, mean = 1), ncol = 3)  # shifted test data
+
+# Importance weights (likelihood ratio of test vs training distributions)
+weights <- dnorm(x[, 1], mean = 1) / dnorm(x[, 1], mean = 0)
+
+result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
+                              weights = weights)
+print(result)
+```
+
+### Comparing methods
+
+Benchmark multiple conformal methods side-by-side:
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(200)
+
+comp <- conformal_compare(x, y, model = y ~ ., x_new = x_new, y_new = y_new,
+                           methods = c("split", "cv", "jackknife"))
+print(comp)
+```
+
 ### Conformalized Quantile Regression
 
 CQR combines conformal prediction with quantile regression to produce intervals that naturally adapt to heteroscedasticity. Instead of fitting a model for the mean and adding symmetric bands, CQR fits models for the lower and upper quantiles and then adjusts them to guarantee coverage.
@@ -271,9 +348,23 @@ mean(interval_width(result))
 table(set_size(result))
 #>  1  2  3
 #> 74 21  5
+
+# Coverage within subgroups
+coverage_by_group(result, y_test, groups = groups_test)
+#>   group coverage   n target
+#> 1  high    0.920  98    0.9
+#> 2   low    0.891 102    0.9
+
+# Coverage by prediction quantile bin
+coverage_by_bin(result, y_test, bins = 5)
+
+# Conformal p-values for outlier detection
+pvals <- conformal_pvalue(result$scores, new_scores)
 ```
 
 `coverage()` should be close to `1 - alpha`. If it's substantially lower, something has gone wrong (likely a violation of exchangeability). `interval_width()` and `set_size()` measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.
+
+`coverage_by_group()` and `coverage_by_bin()` diagnose conditional coverage. Marginal coverage can mask severe under-coverage in subgroups (e.g. by demographic group or by prediction magnitude). These diagnostics help identify where intervals fail, and are essential for fairness evaluation.
 
 ---
 
@@ -290,6 +381,8 @@ The recent explosion of interest in conformal prediction has been driven by seve
 - **Romano, Sesia, Candes (2020)**. Classification with valid and adaptive coverage. *NeurIPS 2020*. Introduces Adaptive Prediction Sets (APS) for classification.
 - **Angelopoulos, Bates, Malik, Jordan (2021)**. Uncertainty sets for image classifiers using conformal prediction. *ICLR 2021*. Introduces Regularized APS (RAPS) to reduce set sizes.
 - **Sadinle, Lei, Wasserman (2019)**. Least ambiguous set-valued classifiers with bounded error levels. *Journal of the American Statistical Association*, 114(525), 223–234. The LAC method for classification.
+- **Tibshirani, Barber, Candes, Ramdas (2019)**. Conformal prediction under covariate shift. *NeurIPS 2019*. Weighted conformal prediction for distribution shift.
+- **Gibbs, Candes (2021)**. Adaptive conformal inference under distribution shift. *NeurIPS 2021*. Online alpha adjustment for sequential prediction.
 
 For an accessible introduction to the field, see Angelopoulos and Bates (2023), [A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification](https://arxiv.org/abs/2107.07511).
 

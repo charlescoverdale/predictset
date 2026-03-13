@@ -20,6 +20,8 @@
 #'   intervals.
 #' @param plus Logical. If `TRUE` (default), uses the Jackknife+ method.
 #'   If `FALSE`, uses the basic jackknife.
+#' @param verbose Logical. If `TRUE`, shows a progress bar during LOO fitting.
+#'   Default `FALSE`.
 #' @param seed Optional random seed for reproducible data splitting.
 #'
 #' @return A `predictset_reg` object. See [conformal_split()] for details.
@@ -47,7 +49,7 @@
 #'
 #' @export
 conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
-                                 plus = TRUE, seed = NULL) {
+                                 plus = TRUE, verbose = FALSE, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_reg(y)
   alpha <- validate_alpha(alpha)
@@ -60,15 +62,24 @@ conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
   mod <- resolve_model(model, type = "regression")
   if (!is.null(seed)) set.seed(seed)
 
+  if (n > 500) {
+    cli_inform("Fitting {n} leave-one-out models...")
+  }
+
   # Leave-one-out: fit n models, compute LOO predictions at training points
   loo_models <- vector("list", n)
   loo_preds <- numeric(n)
 
+  if (verbose) {
+    cli_progress_bar("Fitting LOO models", total = n)
+  }
   for (i in seq_len(n)) {
     train_idx <- setdiff(seq_len(n), i)
     loo_models[[i]] <- mod$train_fun(x[train_idx, , drop = FALSE], y[train_idx])
     loo_preds[i] <- mod$predict_fun(loo_models[[i]], x[i, , drop = FALSE])
+    if (verbose) cli_progress_update()
   }
+  if (verbose) cli_progress_done()
 
   loo_residuals <- abs(y - loo_preds)
 

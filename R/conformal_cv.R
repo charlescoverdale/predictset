@@ -23,6 +23,8 @@
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction
 #'   intervals.
 #' @param n_folds Number of cross-validation folds. Default `10`.
+#' @param verbose Logical. If `TRUE`, shows a progress bar during fold fitting.
+#'   Default `FALSE`.
 #' @param seed Optional random seed for reproducible data splitting.
 #'
 #' @return A `predictset_reg` object. See [conformal_split()] for details.
@@ -46,7 +48,7 @@
 #'
 #' @export
 conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
-                          n_folds = 10, seed = NULL) {
+                          n_folds = 10, verbose = FALSE, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_reg(y)
   alpha <- validate_alpha(alpha)
@@ -72,13 +74,18 @@ conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
   fold_models <- vector("list", n_folds)
   loo_preds <- numeric(n)
 
+  if (verbose) {
+    cli_progress_bar("Fitting fold models", total = n_folds)
+  }
   for (k in seq_len(n_folds)) {
     test_idx <- folds[[k]]
     train_idx <- setdiff(seq_len(n), test_idx)
     fold_models[[k]] <- mod$train_fun(x[train_idx, , drop = FALSE], y[train_idx])
     loo_preds[test_idx] <- mod$predict_fun(fold_models[[k]],
                                             x[test_idx, , drop = FALSE])
+    if (verbose) cli_progress_update()
   }
+  if (verbose) cli_progress_done()
 
   residuals <- abs(y - loo_preds)
 

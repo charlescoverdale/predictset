@@ -13,7 +13,9 @@ summary.predictset_reg <- function(object, ...) {
     cv_plus = "CV+",
     jackknife_plus = "Jackknife+",
     jackknife = "Jackknife",
-    cqr = "Conformalized Quantile Regression"
+    cqr = "Conformalized Quantile Regression",
+    mondrian = "Mondrian (Group-Conditional)",
+    weighted = "Weighted Conformal"
   )
 
   cli_h1("Summary: {method_names[object$method]}")
@@ -62,7 +64,8 @@ summary.predictset_class <- function(object, ...) {
     split = "Split Conformal",
     aps = "Adaptive Prediction Sets",
     raps = "Regularized Adaptive Prediction Sets",
-    lac = "Least Ambiguous Classifier"
+    lac = "Least Ambiguous Classifier",
+    mondrian = "Mondrian (Group-Conditional)"
   )
 
   cli_h1("Summary: {method_names[object$method]}")

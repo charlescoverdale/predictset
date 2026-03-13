@@ -53,6 +53,7 @@ conformal_cqr <- function(x, y, model_lower, model_upper, x_new,
   x <- validate_x(x, "x")
   y <- validate_y_reg(y)
   x_new <- validate_x(x_new, "x_new")
+  validate_x_new(x, x_new)
   alpha <- validate_alpha(alpha)
 
   if (nrow(x) != length(y)) {

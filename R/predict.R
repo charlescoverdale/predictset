@@ -63,7 +63,7 @@ predict.predictset_reg <- function(object, newdata, ...) {
   } else if (!is.null(object$score_type) && object$score_type == "normalized") {
     pred <- object$model$predict_fun(object$fitted_model, newdata)
     sigma <- object$scale_model$predict_fun(object$fitted_scale, newdata)
-    sigma <- pmax(sigma, 1e-6)
+    sigma <- pmax(sigma, MIN_SCALE)
     lower <- pred - object$quantile * sigma
     upper <- pred + object$quantile * sigma
   } else {

@@ -12,7 +12,9 @@ print.predictset_reg <- function(x, ...) {
     cv_plus = "CV+",
     jackknife_plus = "Jackknife+",
     jackknife = "Jackknife",
-    cqr = "Conformalized Quantile Regression"
+    cqr = "Conformalized Quantile Regression",
+    mondrian = "Mondrian (Group-Conditional)",
+    weighted = "Weighted Conformal"
   )
   method_label <- method_names[x$method]
 
@@ -54,7 +56,8 @@ print.predictset_class <- function(x, ...) {
     split = "Split Conformal",
     aps = "Adaptive Prediction Sets",
     raps = "Regularized Adaptive Prediction Sets",
-    lac = "Least Ambiguous Classifier"
+    lac = "Least Ambiguous Classifier",
+    mondrian = "Mondrian (Group-Conditional)"
   )
   method_label <- method_names[x$method]
 

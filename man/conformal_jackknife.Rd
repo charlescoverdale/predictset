@@ -11,6 +11,7 @@ conformal_jackknife(
   x_new = NULL,
   alpha = 0.1,
   plus = TRUE,
+  verbose = FALSE,
   seed = NULL
 )
 }
@@ -30,6 +31,9 @@ intervals.}
 
 \item{plus}{Logical. If \code{TRUE} (default), uses the Jackknife+ method.
 If \code{FALSE}, uses the basic jackknife.}
+
+\item{verbose}{Logical. If \code{TRUE}, shows a progress bar during LOO fitting.
+Default \code{FALSE}.}
 
 \item{seed}{Optional random seed for reproducible data splitting.}
 }

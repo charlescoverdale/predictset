@@ -4,7 +4,16 @@
 \alias{conformal_cv}
 \title{CV+ Conformal Prediction Intervals}
 \usage{
-conformal_cv(x, y, model, x_new = NULL, alpha = 0.1, n_folds = 10, seed = NULL)
+conformal_cv(
+  x,
+  y,
+  model,
+  x_new = NULL,
+  alpha = 0.1,
+  n_folds = 10,
+  verbose = FALSE,
+  seed = NULL
+)
 }
 \arguments{
 \item{x}{A numeric matrix or data frame of predictor variables.}
@@ -22,6 +31,9 @@ leave-one-fold-out predictions.}
 intervals.}
 
 \item{n_folds}{Number of cross-validation folds. Default \code{10}.}
+
+\item{verbose}{Logical. If \code{TRUE}, shows a progress bar during fold fitting.
+Default \code{FALSE}.}
 
 \item{seed}{Optional random seed for reproducible data splitting.}
 }

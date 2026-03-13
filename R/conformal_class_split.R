@@ -62,6 +62,7 @@ conformal_class_split <- function(x, y, model, x_new, alpha = 0.10,
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
+  validate_x_new(x, x_new)
   alpha <- validate_alpha(alpha)
 
   if (nrow(x) != length(y)) {
@@ -83,6 +84,7 @@ conformal_class_split <- function(x, y, model, x_new, alpha = 0.10,
   if (is.null(colnames(probs_cal))) {
     colnames(probs_cal) <- levels(y)
   }
+  validate_probs_colnames(probs_cal, y, "calibration probability matrix")
 
   # LAC-style scores for basic split conformal
 
