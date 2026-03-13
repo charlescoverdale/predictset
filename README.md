@@ -1,6 +1,4 @@
 # predictset
-
-[![R-CMD-check](https://github.com/charlescoverdale/predictset/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/charlescoverdale/predictset/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](https://www.r-pkg.org/badges/version/predictset)](https://CRAN.R-project.org/package=predictset)
 [![Downloads](https://cranlogs.r-pkg.org/badges/predictset)](https://CRAN.R-project.org/package=predictset)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
