@@ -1,0 +1,33 @@
+Package: predictset
+Title: Model-Agnostic Conformal Prediction for Classification and Regression
+Version: 0.1.0
+Authors@R: person("Charles", "Coverdale", email = "charlesfcoverdale@gmail.com",
+    role = c("aut", "cre"))
+Description: Implements conformal prediction methods for constructing
+    prediction intervals (regression) and prediction sets (classification)
+    with finite-sample coverage guarantees. Methods include split conformal,
+    'CV+' and 'Jackknife+' (Barber et al. 2021) <doi:10.1214/20-AOS1965>,
+    'Conformalized Quantile Regression' (Romano et al. 2019)
+    <doi:10.48550/arXiv.1905.03222>, 'Adaptive Prediction Sets'
+    (Romano, Sesia, Candes 2020) <doi:10.48550/arXiv.2006.02544>,
+    and 'Regularized Adaptive Prediction Sets' (Angelopoulos et al. 2021)
+    <doi:10.48550/arXiv.2009.14193>. Works with any model that can produce
+    predictions from new data, including 'lm', 'glm', 'ranger', 'xgboost',
+    and custom user-defined models.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Language: en-US
+URL: https://github.com/charlescoverdale/predictset
+BugReports: https://github.com/charlescoverdale/predictset/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: R (>= 4.1.0)
+Imports:
+    cli (>= 3.6.0),
+    stats
+Suggests:
+    testthat (>= 3.0.0),
+    withr,
+    ranger,
+    ggplot2
+Config/testthat/edition: 3
