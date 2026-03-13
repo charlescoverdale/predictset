@@ -54,19 +54,19 @@ devtools::install_github("charlescoverdale/predictset")
 
 | Function | Method | Reference |
 |---|---|---|
-| `conformal_split()` | Split conformal | Vovk et al. (2005) |
-| `conformal_cv()` | CV+ | Barber et al. (2021) |
-| `conformal_jackknife()` | Jackknife+ | Barber et al. (2021) |
-| `conformal_cqr()` | Conformalized Quantile Regression | Romano et al. (2019) |
+| `conformal_split()` | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_cv()` | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_jackknife()` | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_cqr()` | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
 
 ### Classification
 
 | Function | Method | Reference |
 |---|---|---|
-| `conformal_class_split()` | Split conformal | Vovk et al. (2005) |
-| `conformal_aps()` | Adaptive Prediction Sets | Romano, Sesia & Candes (2020) |
-| `conformal_raps()` | Regularized APS | Angelopoulos et al. (2021) |
-| `conformal_lac()` | Least Ambiguous Classifier | Sadinle, Lei & Wasserman (2019) |
+| `conformal_class_split()` | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_aps()` | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
+| `conformal_raps()` | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
+| `conformal_lac()` | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
 
 ### Diagnostics
 
