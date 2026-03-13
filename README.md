@@ -6,11 +6,11 @@
 
 ## What is conformal prediction?
 
-Standard machine learning models produce point predictions — a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.
+Standard machine learning models produce point predictions: a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.
 
-The key property is that this guarantee holds in finite samples — it's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
+The key property is that this guarantee holds in finite samples. It's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
 
-**predictset** implements the main conformal methods from the recent literature — split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and split conformal, APS, RAPS, and LAC for classification — in a lightweight package with only two dependencies (`cli` and `stats`).
+**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and split conformal, APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
 
 ---
 
@@ -29,7 +29,7 @@ The key property is that this guarantee holds in finite samples — it's not asy
 | Dependencies | 2 | 14+ | 5 | N/A |
 | Last updated | 2026 | 2024 | 2019 | 2024 |
 
-**predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model — not just tidymodels workflows.
+**predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model, not just tidymodels workflows.
 
 `conformalInference` by Ryan Tibshirani was foundational research code, but it hasn't been updated since 2019, isn't on CRAN, and doesn't cover classification.
 
@@ -42,8 +42,8 @@ The key property is that this guarantee holds in finite samples — it's not asy
 install.packages("predictset")
 
 # Or install the development version from GitHub
-# install.packages("pak")
-pak::pak("charlescoverdale/predictset")
+# install.packages("devtools")
+devtools::install_github("charlescoverdale/predictset")
 ```
 
 ---
@@ -114,7 +114,7 @@ print(result)
 
 There are three ways to specify a model. This flexibility means **predictset** works with anything from a simple linear model to a custom deep learning wrapper.
 
-**1. Formula shorthand** — fits `lm` internally:
+**1. Formula shorthand** (fits `lm` internally):
 
 ```r
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
@@ -122,7 +122,7 @@ result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 
 This is the quickest way to get started. Pass a formula and **predictset** handles the fitting.
 
-**2. Fitted model** — auto-detected for `lm`, `glm`, and `ranger`:
+**2. Fitted model** (auto-detected for `lm`, `glm`, and `ranger`):
 
 ```r
 fit <- lm(y ~ ., data = data.frame(y = y, x))
@@ -131,7 +131,7 @@ result <- conformal_split(x, y, model = fit, x_new = x_new)
 
 If you've already fitted a model and want conformal intervals around its predictions, pass it directly. **predictset** recognises standard R model objects and extracts the training and prediction functions automatically.
 
-**3. Custom model** via `make_model()` — works with anything:
+**3. Custom model** via `make_model()` (works with anything):
 
 ```r
 xgb_model <- make_model(
@@ -156,7 +156,7 @@ result <- conformal_split(x, y, model = xgb_model, x_new = x_new)
 
 ### Classification with Adaptive Prediction Sets
 
-APS produces prediction sets that adapt to the difficulty of each observation — easy cases get small sets (often a single class), while ambiguous cases get larger sets. This is the recommended default for multi-class classification.
+APS produces prediction sets that adapt to the difficulty of each observation. Easy cases get small sets (often a single class), while ambiguous cases get larger sets. This is the recommended default for multi-class classification.
 
 ```r
 library(predictset)
@@ -213,7 +213,7 @@ plot(result)
 
 ### Normalised conformal for heteroscedastic data
 
-When the noise varies across the input space — e.g. predictions are more uncertain at extreme values — standard conformal intervals are too wide in low-noise regions and too narrow in high-noise ones. Normalised conformal scoring fixes this by scaling residuals by a local estimate of variability.
+When the noise varies across the input space (e.g. predictions are more uncertain at extreme values), standard conformal intervals are too wide in low-noise regions and too narrow in high-noise ones. Normalised conformal scoring fixes this by scaling residuals by a local estimate of variability.
 
 ```r
 set.seed(42)
@@ -273,7 +273,7 @@ table(set_size(result))
 #> 74 21  5
 ```
 
-`coverage()` should be close to `1 - alpha`. If it's substantially lower, something has gone wrong (likely a violation of exchangeability). `interval_width()` and `set_size()` measure efficiency — narrower intervals and smaller sets are better, conditional on achieving the target coverage.
+`coverage()` should be close to `1 - alpha`. If it's substantially lower, something has gone wrong (likely a violation of exchangeability). `interval_width()` and `set_size()` measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.
 
 ---
 
@@ -299,7 +299,7 @@ For an accessible introduction to the field, see Angelopoulos and Bates (2023), 
 
 - **Split methods halve the training data.** Split conformal, APS, RAPS, and LAC all divide the data into a training set and a calibration set. With small datasets, this can noticeably reduce model quality. Jackknife+ and CV+ avoid this at the cost of refitting the model multiple times.
 - **Jackknife+ and CV+ are computationally expensive.** Jackknife+ refits the model n times; CV+ refits it K times. For large datasets or expensive models, this may be impractical.
-- **The coverage guarantee requires exchangeability.** If the calibration data and test data come from different distributions — for example, if there is temporal drift — the coverage guarantee does not hold. This means conformal prediction is not directly applicable to time series forecasting without modification (e.g. conformal methods for time series exist but are not implemented here).
+- **The coverage guarantee requires exchangeability.** If the calibration data and test data come from different distributions (for example, if there is temporal drift) the coverage guarantee does not hold. This means conformal prediction is not directly applicable to time series forecasting without modification (e.g. conformal methods for time series exist but are not implemented here).
 - **Classification methods depend on probability estimates.** APS, RAPS, and LAC require the model to output well-calibrated class probabilities. If the probabilities are poorly calibrated, the prediction sets will still have valid coverage but may be unnecessarily large.
 
 ---
