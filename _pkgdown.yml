@@ -1,0 +1,45 @@
+url: https://charlescoverdale.github.io/predictset/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Regression Methods"
+    contents:
+      - conformal_split
+      - conformal_cv
+      - conformal_jackknife
+      - conformal_cqr
+      - conformal_mondrian
+      - conformal_weighted
+
+  - title: "Classification Methods"
+    contents:
+      - conformal_class_split
+      - conformal_aps
+      - conformal_raps
+      - conformal_lac
+      - conformal_mondrian_class
+
+  - title: "Sequential Methods"
+    contents:
+      - conformal_aci
+
+  - title: "Diagnostics"
+    contents:
+      - coverage
+      - coverage_by_group
+      - coverage_by_bin
+      - interval_width
+      - set_size
+      - conformal_pvalue
+      - conformal_compare
+
+  - title: "Model Interface"
+    contents:
+      - make_model
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]

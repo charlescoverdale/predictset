@@ -4,13 +4,14 @@
 \name{predictset-package}
 \alias{predictset}
 \alias{predictset-package}
-\title{predictset: Model-Agnostic Conformal Prediction for Classification and Regression}
+\title{predictset: Model-Agnostic Conformal Prediction and Uncertainty Quantification}
 \description{
-Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees. Methods include split conformal, 'CV+' and 'Jackknife+' (Barber et al. 2021) \doi{10.1214/20-AOS1965}, 'Conformalized Quantile Regression' (Romano et al. 2019) \doi{10.48550/arXiv.1905.03222}, 'Adaptive Prediction Sets' (Romano, Sesia, Candes 2020) \doi{10.48550/arXiv.2006.02544}, 'Regularized Adaptive Prediction Sets' (Angelopoulos et al. 2021) \doi{10.48550/arXiv.2009.14193}, Mondrian conformal prediction for group-conditional coverage (Vovk et al. 2005), weighted conformal prediction for covariate shift (Tibshirani et al. 2019), and adaptive conformal inference for sequential prediction (Gibbs and Candes 2021). Works with any model that can produce predictions from new data, including 'lm', 'glm', 'ranger', 'xgboost', and custom user-defined models.
+Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees. Methods include split conformal, 'CV+' and 'Jackknife+' (Barber et al. 2021) \doi{10.1214/20-AOS1965}, 'Conformalized Quantile Regression' (Romano et al. 2019) \doi{10.48550/arXiv.1905.03222}, 'Adaptive Prediction Sets' (Romano, Sesia, Candes 2020) \doi{10.48550/arXiv.2006.02544}, 'Regularized Adaptive Prediction Sets' (Angelopoulos et al. 2021) \doi{10.48550/arXiv.2009.14193}, Mondrian conformal prediction for group-conditional coverage (Vovk et al. 2005), weighted conformal prediction for covariate shift (Tibshirani et al. 2019), and adaptive conformal inference for sequential prediction (Gibbs and Candes 2021). All methods are distribution-free and provide calibrated uncertainty quantification without parametric assumptions. Works with any model that can produce predictions from new data, including 'lm', 'glm', 'ranger', 'xgboost', and custom user-defined models.
 }
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://charlescoverdale.github.io/predictset/}
   \item \url{https://github.com/charlescoverdale/predictset}
   \item Report bugs at \url{https://github.com/charlescoverdale/predictset/issues}
 }

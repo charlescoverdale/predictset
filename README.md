@@ -1,8 +1,12 @@
 # predictset
 
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![R-CMD-check](https://github.com/charlescoverdale/predictset/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/charlescoverdale/predictset/actions/workflows/R-CMD-check.yaml)
+[![CRAN status](https://www.r-pkg.org/badges/version/predictset)](https://CRAN.R-project.org/package=predictset)
+[![Downloads](https://cranlogs.r-pkg.org/badges/predictset)](https://CRAN.R-project.org/package=predictset)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**predictset** provides model-agnostic conformal prediction for R. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees.
+**predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees — no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
 
 ## What is conformal prediction?
 
@@ -415,3 +419,9 @@ For an accessible introduction to the field, see Angelopoulos and Bates (2023), 
 ## Issues
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/charlescoverdale/predictset/issues) on GitHub.
+
+---
+
+## Keywords
+
+conformal prediction, prediction intervals, prediction sets, uncertainty quantification, coverage guarantee, distribution-free inference, model-agnostic, split conformal, jackknife+, CV+, conformalized quantile regression, adaptive prediction sets, RAPS, Mondrian conformal, weighted conformal, covariate shift, fairness, conditional coverage, calibration, R package
