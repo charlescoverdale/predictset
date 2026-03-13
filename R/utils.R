@@ -251,13 +251,18 @@ build_lac_sets <- function(probs, threshold) {
   list(sets = sets, probs = set_probs)
 }
 
+# Weighted conformal quantile per Tibshirani et al. (2019), Eq. 5:
+# q = inf{q : sum_{i: s_i <= q} w_i / (sum_j w_j + w_{n+1}) >= 1 - alpha}
+# where w_{n+1} is the test-point weight (unknown at calibration time).
+# Following standard practice, we set w_{n+1} = mean(calibration weights).
 weighted_conformal_quantile <- function(scores, weights, alpha) {
   n <- length(scores)
   ord <- order(scores)
   sorted_scores <- scores[ord]
   sorted_weights <- weights[ord]
   total_weight <- sum(sorted_weights)
-  cumw <- cumsum(sorted_weights) / (total_weight + sorted_weights[1])
+  w_test <- mean(weights)
+  cumw <- cumsum(sorted_weights) / (total_weight + w_test)
   idx <- which(cumw >= 1 - alpha)[1]
   if (is.na(idx)) return(Inf)
   sorted_scores[idx]

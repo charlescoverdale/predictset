@@ -25,7 +25,9 @@ specification, or a formula (which will fit a linear model).}
 
 \item{x_new}{A numeric matrix or data frame of new predictor variables.
 If \code{NULL}, intervals are computed for the training data using
-leave-one-fold-out predictions.}
+leave-one-fold-out predictions. Note: when \code{x_new = NULL}, prediction
+intervals for training observations use a self-consistent approximation.
+For exact CV+ intervals on new data, provide \code{x_new}.}
 
 \item{alpha}{Miscoverage level. Default \code{0.10} gives 90 percent prediction
 intervals.}

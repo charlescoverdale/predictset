@@ -125,3 +125,69 @@ test_that("conformal_mondrian validates groups_new length", {
     "groups_new"
   )
 })
+
+test_that("conformal_mondrian works with 3+ groups", {
+  set.seed(42)
+  n <- 600
+  x <- matrix(rnorm(n * 3), ncol = 3)
+  groups <- factor(ifelse(x[, 1] > 0.5, "high",
+                   ifelse(x[, 1] < -0.5, "low", "mid")))
+  y <- x[, 1] * 2 + ifelse(groups == "high", 3, ifelse(groups == "mid", 1, 0.3)) * rnorm(n)
+  x_new <- matrix(rnorm(90 * 3), ncol = 3)
+  groups_new <- factor(ifelse(x_new[, 1] > 0.5, "high",
+                       ifelse(x_new[, 1] < -0.5, "low", "mid")))
+
+  result <- conformal_mondrian(x, y, model = test_reg_model,
+                                x_new = x_new, groups = groups,
+                                groups_new = groups_new, seed = 42)
+
+  expect_s3_class(result, "predictset_reg")
+  expect_true(all(c("high", "low", "mid") %in% names(result$group_quantiles)))
+  expect_length(result$pred, 90)
+})
+
+test_that("conformal_mondrian handles imbalanced groups", {
+  set.seed(42)
+  n <- 400
+  x <- matrix(rnorm(n * 3), ncol = 3)
+  # 90/10 split
+  groups <- factor(c(rep("majority", 360), rep("minority", 40)))
+  y <- x[, 1] * 2 + rnorm(n)
+  x_new <- matrix(rnorm(20 * 3), ncol = 3)
+  groups_new <- factor(c(rep("majority", 10), rep("minority", 10)))
+
+  result <- conformal_mondrian(x, y, model = test_reg_model,
+                                x_new = x_new, groups = groups,
+                                groups_new = groups_new, seed = 42)
+
+  expect_s3_class(result, "predictset_reg")
+  expect_true(all(result$lower <= result$upper))
+})
+
+test_that("conformal_mondrian achieves group-specific coverage", {
+  set.seed(42)
+  n <- 800
+  x <- matrix(rnorm(n * 3), ncol = 3)
+  groups <- factor(ifelse(x[, 1] > 0, "high", "low"))
+  # Different noise levels per group
+  y <- x[, 1] * 2 + ifelse(groups == "high", 3, 0.5) * rnorm(n)
+
+  n_test <- 400
+  x_new <- matrix(rnorm(n_test * 3), ncol = 3)
+  groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+  y_new <- x_new[, 1] * 2 + ifelse(groups_new == "high", 3, 0.5) * rnorm(n_test)
+
+  result <- conformal_mondrian(x, y, model = test_reg_model,
+                                x_new = x_new, groups = groups,
+                                groups_new = groups_new, alpha = 0.10,
+                                seed = 42)
+
+  # Check coverage per group
+  for (g in c("high", "low")) {
+    idx <- which(groups_new == g)
+    covered <- y_new[idx] >= result$lower[idx] & y_new[idx] <= result$upper[idx]
+    group_cov <- mean(covered)
+    expect_gt(group_cov, 0.75,
+              label = paste("Group", g, "coverage"))
+  }
+})

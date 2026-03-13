@@ -36,6 +36,7 @@ Suggests:
     ranger,
     ggplot2,
     knitr,
-    rmarkdown
+    rmarkdown,
+    probably
 VignetteBuilder: knitr
 Config/testthat/edition: 3

@@ -95,6 +95,7 @@ conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
     n_cal = length(split$cal),
     n_train = length(split$train),
     fitted_model = fitted,
-    model = mod
+    model = mod,
+    randomize = randomize
   ), class = "predictset_class")
 }

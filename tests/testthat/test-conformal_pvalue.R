@@ -64,3 +64,50 @@ test_that("conformal_aci adapts alpha over time", {
   # Alpha should change over time (not stay constant)
   expect_false(all(result$alphas == result$alphas[1]))
 })
+
+test_that("conformal_aci achieves long-run coverage near target", {
+  set.seed(123)
+  n <- 500
+  y_true <- rnorm(n)
+  y_pred <- c(0, y_true[-n])
+
+  result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.005)
+
+  # Long-run coverage should be close to 1 - alpha = 0.90
+  expect_gt(result$coverage, 0.80)
+  expect_lt(result$coverage, 0.99)
+})
+
+test_that("conformal_aci larger gamma adapts faster", {
+  set.seed(42)
+  n <- 300
+  # Distribution shift at midpoint
+  y_true <- c(rnorm(150, mean = 0), rnorm(150, mean = 5))
+  y_pred <- c(0, y_true[-n])
+
+  result_slow <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.001)
+  result_fast <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.05)
+
+  # Faster gamma should have more alpha variation
+  alpha_var_slow <- var(result_slow$alphas)
+  alpha_var_fast <- var(result_fast$alphas)
+  expect_gt(alpha_var_fast, alpha_var_slow)
+})
+
+test_that("conformal_aci responds to distribution shift via alpha", {
+  set.seed(42)
+  n <- 400
+  # Stable period then variance increase causes miscoverage
+  y_true <- c(rnorm(200, mean = 0, sd = 1), rnorm(200, mean = 0, sd = 2))
+  y_pred <- c(0, y_true[-n])
+
+  result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+
+  # During stable period, alpha_t drifts below target (coverage > 1-alpha)
+  alpha_early <- mean(result$alphas[150:200])
+  # After shift, miscoverage pushes alpha_t above target
+  alpha_late <- mean(result$alphas[350:400])
+
+  # Alpha should increase after the distribution shift
+  expect_gt(alpha_late, alpha_early)
+})

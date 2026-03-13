@@ -102,6 +102,7 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
     fitted_model = fitted,
     model = mod,
     k_reg = k_reg,
-    lambda = lambda
+    lambda = lambda,
+    randomize = randomize
   ), class = "predictset_class")
 }

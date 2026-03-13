@@ -19,7 +19,9 @@
 #'   specification, or a formula (which will fit a linear model).
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #'   If `NULL`, intervals are computed for the training data using
-#'   leave-one-fold-out predictions.
+#'   leave-one-fold-out predictions. Note: when `x_new = NULL`, prediction
+#'   intervals for training observations use a self-consistent approximation.
+#'   For exact CV+ intervals on new data, provide `x_new`.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction
 #'   intervals.
 #' @param n_folds Number of cross-validation folds. Default `10`.

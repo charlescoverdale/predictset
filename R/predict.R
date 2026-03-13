@@ -117,6 +117,21 @@ predict.predictset_class <- function(object, newdata, ...) {
     colnames(probs_new) <- object$classes
   }
 
+  # Validate probability matrix
+  missing_cls <- setdiff(object$classes, colnames(probs_new))
+  if (length(missing_cls) > 0) {
+    cli_abort(
+      "Predicted probability matrix is missing columns for class{?es}: {.val {missing_cls}}."
+    )
+  }
+  if (any(probs_new < 0 | probs_new > 1, na.rm = TRUE)) {
+    cli_abort("Predicted probabilities must be in [0, 1].")
+  }
+  row_sums <- rowSums(probs_new)
+  if (any(abs(row_sums - 1) > 0.01, na.rm = TRUE)) {
+    cli_warn("Some rows of the predicted probability matrix do not sum to 1.")
+  }
+
   if (object$method %in% c("aps")) {
     result <- build_aps_sets(probs_new, object$quantile)
   } else if (object$method == "raps") {
@@ -137,6 +152,7 @@ predict.predictset_class <- function(object, newdata, ...) {
     n_cal = object$n_cal,
     n_train = object$n_train,
     fitted_model = object$fitted_model,
-    model = object$model
+    model = object$model,
+    randomize = object$randomize
   ), class = "predictset_class")
 }
