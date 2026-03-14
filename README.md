@@ -4,7 +4,7 @@
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees — no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
+**predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees -no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
 
 ## Installation
 
@@ -20,7 +20,7 @@ devtools::install_github("charlescoverdale/predictset")
 ```r
 library(predictset)
 
-# Get 90% prediction intervals around any model — 3 lines of code
+# Get 90% prediction intervals around any model -3 lines of code
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 result$lower  # lower bounds
 result$upper  # upper bounds

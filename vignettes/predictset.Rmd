@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 ## What is conformal prediction?
 
-Machine learning models produce point predictions — a single number for regression, a single class for classification. But in practice, you need to know *how uncertain* that prediction is.
+Machine learning models produce point predictions -a single number for regression, a single class for classification. But in practice, you need to know *how uncertain* that prediction is.
 
 **Conformal prediction** wraps any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces:
 
@@ -136,10 +136,10 @@ After producing predictions, use diagnostic functions to evaluate calibration an
 # Empirical coverage (should be close to 1 - alpha)
 coverage(result, y_test)
 
-# Average interval width (regression) — narrower is better
+# Average interval width (regression) -narrower is better
 mean(interval_width(result))
 
-# Prediction set sizes (classification) — smaller is better
+# Prediction set sizes (classification) -smaller is better
 table(set_size(result))
 
 # Coverage within subgroups (fairness check)
