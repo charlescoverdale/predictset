@@ -6,6 +6,17 @@
 
 **predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees — no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
 
+## Installation
+
+```r
+# Install from CRAN
+install.packages("predictset")
+
+# Or install the development version from GitHub
+# install.packages("devtools")
+devtools::install_github("charlescoverdale/predictset")
+```
+
 ```r
 library(predictset)
 
@@ -17,16 +28,38 @@ result$upper  # upper bounds
 
 ---
 
-## Installation
+## What is conformal prediction?
 
-```r
-# Install from CRAN
-install.packages("predictset")
+Standard machine learning models produce point predictions: a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.
 
-# Or install the development version from GitHub
-# install.packages("devtools")
-devtools::install_github("charlescoverdale/predictset")
-```
+The key property is that this guarantee holds in finite samples. It's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
+
+**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
+
+---
+
+## How does predictset compare to other packages?
+
+| Feature | **predictset** | **probably** | **conformalInference** | **MAPIE** |
+|---|---|---|---|---|
+| Language | R | R | R | Python |
+| Regression | Yes | Yes | Yes | Yes |
+| Classification | Yes | No | No | Yes |
+| Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
+| On CRAN | Pending | Yes | No (GitHub only) | N/A |
+| Jackknife+ / CV+ | Yes | No | Yes | Yes |
+| CQR | Yes | Yes | Yes | Yes |
+| APS / RAPS | Yes | No | No | Yes |
+| Mondrian CP | Yes | No | No | Yes |
+| Weighted CP | Yes | No | No | Yes |
+| Adaptive CI | Yes | No | No | No |
+| Conditional diagnostics | Yes | No | No | Partial |
+| Dependencies | 2 | 14+ | 5 | N/A |
+| Last updated | 2026 | 2024 | 2019 | 2024 |
+
+**predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model, not just tidymodels workflows.
+
+`conformalInference` by Ryan Tibshirani was foundational research code, but it hasn't been updated since 2019, isn't on CRAN, and doesn't cover classification.
 
 ---
 
@@ -105,41 +138,6 @@ table(set_size(result))  # distribution of set sizes
 | Coverage must hold per subgroup | `conformal_mondrian()` / `conformal_mondrian_class()` | Group-conditional guarantees |
 | Covariate shift between train/test | `conformal_weighted()` | Importance-weighted calibration |
 | Sequential/online prediction | `conformal_aci()` | Adapts to distribution drift over time |
-
----
-
-## What is conformal prediction?
-
-Standard machine learning models produce point predictions: a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.
-
-The key property is that this guarantee holds in finite samples. It's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
-
-**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
-
----
-
-## How does predictset compare to other packages?
-
-| Feature | **predictset** | **probably** | **conformalInference** | **MAPIE** |
-|---|---|---|---|---|
-| Language | R | R | R | Python |
-| Regression | Yes | Yes | Yes | Yes |
-| Classification | Yes | No | No | Yes |
-| Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
-| On CRAN | Pending | Yes | No (GitHub only) | N/A |
-| Jackknife+ / CV+ | Yes | No | Yes | Yes |
-| CQR | Yes | Yes | Yes | Yes |
-| APS / RAPS | Yes | No | No | Yes |
-| Mondrian CP | Yes | No | No | Yes |
-| Weighted CP | Yes | No | No | Yes |
-| Adaptive CI | Yes | No | No | No |
-| Conditional diagnostics | Yes | No | No | Partial |
-| Dependencies | 2 | 14+ | 5 | N/A |
-| Last updated | 2026 | 2024 | 2019 | 2024 |
-
-**predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model, not just tidymodels workflows.
-
-`conformalInference` by Ryan Tibshirani was foundational research code, but it hasn't been updated since 2019, isn't on CRAN, and doesn't cover classification.
 
 ---
 
