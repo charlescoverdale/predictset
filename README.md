@@ -6,13 +6,115 @@
 
 **predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees — no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
 
+```r
+library(predictset)
+
+# Get 90% prediction intervals around any model — 3 lines of code
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
+result$lower  # lower bounds
+result$upper  # upper bounds
+```
+
+---
+
+## Installation
+
+```r
+# Install from CRAN
+install.packages("predictset")
+
+# Or install the development version from GitHub
+# install.packages("devtools")
+devtools::install_github("charlescoverdale/predictset")
+```
+
+---
+
+## Quick start
+
+### Regression: prediction intervals with coverage verification
+
+```r
+library(predictset)
+
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 5), ncol = 5)
+y <- x[, 1] * 2 + x[, 2] + rnorm(n)
+x_new <- matrix(rnorm(100 * 5), ncol = 5)
+y_new <- x_new[, 1] * 2 + x_new[, 2] + rnorm(100)  # true values (for evaluation)
+
+# Fit conformal intervals
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
+print(result)
+#> ── Conformal Prediction Intervals (Split Conformal) ──
+#> • Coverage target: "90%"
+#> • Training: 250 | Calibration: 250 | Predictions: 100
+#> • Conformal quantile: 1.876
+#> • Median interval width: 3.7519
+
+# Extract intervals as a data frame
+head(data.frame(pred = result$pred, lower = result$lower, upper = result$upper))
+
+# Verify coverage: should be ≥ 90%
+coverage(result, y_new)
+
+# Predict on new data later (fit once, predict many times)
+future_data <- matrix(rnorm(50 * 5), ncol = 5)
+predict(result, newdata = future_data)
+```
+
+### Classification: prediction sets
+
+```r
+set.seed(42)
+n <- 400
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(ifelse(x[, 1] + x[, 2] > 0, "A", "B"))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = 1 - p, B = p)
+  },
+  type = "classification"
+)
+
+result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
+result$sets[[1]]   # prediction set for first observation: e.g. c("A")
+result$sets[[10]]  # ambiguous case might include: c("A", "B")
+table(set_size(result))  # distribution of set sizes
+```
+
+---
+
+## Choosing a method
+
+| Scenario | Recommended method | Why |
+|---|---|---|
+| **Default for regression** | `conformal_split()` | Fast, single model fit |
+| Small dataset, need tight intervals | `conformal_cv()` or `conformal_jackknife()` | Uses all data for both training and calibration |
+| Heteroscedastic data | `conformal_split(..., score_type = "normalized")` or `conformal_cqr()` | Adaptive interval widths |
+| **Default for classification** | `conformal_aps()` | Adaptive set sizes, well-calibrated |
+| Many classes, want small sets | `conformal_raps()` | Regularized APS, penalises large sets |
+| Coverage must hold per subgroup | `conformal_mondrian()` / `conformal_mondrian_class()` | Group-conditional guarantees |
+| Covariate shift between train/test | `conformal_weighted()` | Importance-weighted calibration |
+| Sequential/online prediction | `conformal_aci()` | Adapts to distribution drift over time |
+
+---
+
 ## What is conformal prediction?
 
 Standard machine learning models produce point predictions: a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.
 
 The key property is that this guarantee holds in finite samples. It's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
 
-**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and split conformal, APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
+**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
 
 ---
 
@@ -38,69 +140,6 @@ The key property is that this guarantee holds in finite samples. It's not asympt
 **predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model, not just tidymodels workflows.
 
 `conformalInference` by Ryan Tibshirani was foundational research code, but it hasn't been updated since 2019, isn't on CRAN, and doesn't cover classification.
-
----
-
-## Installation
-
-```r
-# Install from CRAN
-install.packages("predictset")
-
-# Or install the development version from GitHub
-# install.packages("devtools")
-devtools::install_github("charlescoverdale/predictset")
-```
-
----
-
-## Methods
-
-| Function | Type | Method | Reference |
-|---|---|---|---|
-| `conformal_split()` | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_cv()` | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
-| `conformal_jackknife()` | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
-| `conformal_cqr()` | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
-| `conformal_mondrian()` | Regression | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_weighted()` | Regression | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
-| `conformal_aps()` | Classification | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
-| `conformal_raps()` | Classification | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
-| `conformal_lac()` | Classification | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
-| `conformal_mondrian_class()` | Classification | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
-| `conformal_aci()` | Sequential | Adaptive Conformal Inference | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
-| `coverage()` | Diagnostic | Empirical coverage rate | |
-| `coverage_by_group()` | Diagnostic | Coverage within subgroups | |
-| `coverage_by_bin()` | Diagnostic | Coverage by prediction quantile bin | |
-| `interval_width()` | Diagnostic | Width of prediction intervals | |
-| `set_size()` | Diagnostic | Size of prediction sets | |
-| `conformal_pvalue()` | Diagnostic | Conformal p-values | |
-| `conformal_compare()` | Diagnostic | Compare multiple methods | |
-| `make_model()` | Utility | Wrap custom train/predict functions | |
-
----
-
-## Quick start
-
-### Regression: split conformal with lm
-
-```r
-library(predictset)
-
-set.seed(42)
-n <- 500
-x <- matrix(rnorm(n * 5), ncol = 5)
-y <- x[, 1] * 2 + x[, 2] + rnorm(n)
-x_new <- matrix(rnorm(100 * 5), ncol = 5)
-
-result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
-print(result)
-#> ── Conformal Prediction Intervals (Split Conformal) ──
-#> • Coverage target: "90%"
-#> • Training: 250 | Calibration: 250 | Predictions: 100
-#> • Conformal quantile: 1.876
-#> • Median interval width: 3.7519
-```
 
 ---
 
@@ -146,38 +185,33 @@ result <- conformal_split(x, y, model = xgb_model, x_new = x_new)
 
 ---
 
-## Examples
+## Methods
 
-### Classification with Adaptive Prediction Sets
+| Function | Type | Method | Reference |
+|---|---|---|---|
+| `conformal_split()` | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_cv()` | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_jackknife()` | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| `conformal_cqr()` | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
+| `conformal_mondrian()` | Regression | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_weighted()` | Regression | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
+| `conformal_aps()` | Classification | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
+| `conformal_raps()` | Classification | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
+| `conformal_lac()` | Classification | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
+| `conformal_mondrian_class()` | Classification | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_aci()` | Sequential | Adaptive Conformal Inference | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
+| `coverage()` | Diagnostic | Empirical coverage rate | |
+| `coverage_by_group()` | Diagnostic | Coverage within subgroups | |
+| `coverage_by_bin()` | Diagnostic | Coverage by prediction quantile bin | |
+| `interval_width()` | Diagnostic | Width of prediction intervals | |
+| `set_size()` | Diagnostic | Size of prediction sets | |
+| `conformal_pvalue()` | Diagnostic | Conformal p-values | |
+| `conformal_compare()` | Diagnostic | Compare multiple methods | |
+| `make_model()` | Utility | Wrap custom train/predict functions | |
 
-APS produces prediction sets that adapt to the difficulty of each observation. Easy cases get small sets (often a single class), while ambiguous cases get larger sets. This is the recommended default for multi-class classification.
+---
 
-```r
-library(predictset)
-
-# Simulate 3-class classification
-set.seed(42)
-n <- 600
-x <- matrix(rnorm(n * 4), ncol = 4)
-y <- factor(ifelse(x[, 1] > 0.5, "A", ifelse(x[, 2] > 0, "B", "C")))
-x_new <- matrix(rnorm(100 * 4), ncol = 4)
-
-clf <- make_model(
-  train_fun = function(x, y) {
-    ranger::ranger(y ~ ., data = data.frame(y = y, x), probability = TRUE)
-  },
-  predict_fun = function(object, x_new) {
-    predict(object, data = as.data.frame(x_new))$predictions
-  },
-  type = "classification"
-)
-
-result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
-print(result)
-
-# Most predictions are a single class; ambiguous ones include 2-3
-table(set_size(result))
-```
+## More examples
 
 ### Jackknife+ with ranger
 
@@ -268,23 +302,6 @@ result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
 print(result)
 ```
 
-### Comparing methods
-
-Benchmark multiple conformal methods side-by-side:
-
-```r
-set.seed(42)
-n <- 500
-x <- matrix(rnorm(n * 3), ncol = 3)
-y <- x[, 1] * 2 + rnorm(n)
-x_new <- matrix(rnorm(200 * 3), ncol = 3)
-y_new <- x_new[, 1] * 2 + rnorm(200)
-
-comp <- conformal_compare(x, y, model = y ~ ., x_new = x_new, y_new = y_new,
-                           methods = c("split", "cv", "jackknife"))
-print(comp)
-```
-
 ### Conformalized Quantile Regression
 
 CQR combines conformal prediction with quantile regression to produce intervals that naturally adapt to heteroscedasticity. Instead of fitting a model for the mean and adding symmetric bands, CQR fits models for the lower and upper quantiles and then adjusts them to guarantee coverage.
@@ -327,6 +344,23 @@ y_pred <- c(0, y_true[-n])                         # naive lag-1 predictor
 result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
 print(result)
 plot(result)  # intervals + adaptive alpha trace
+```
+
+### Comparing methods
+
+Benchmark multiple conformal methods side-by-side:
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(200)
+
+comp <- conformal_compare(x, y, model = y ~ ., x_new = x_new, y_new = y_new,
+                           methods = c("split", "cv", "jackknife"))
+print(comp)
 ```
 
 ---
