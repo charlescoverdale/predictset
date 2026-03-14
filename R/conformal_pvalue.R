@@ -20,6 +20,7 @@
 #' pvals <- conformal_pvalue(cal_scores, new_scores)
 #' print(pvals)
 #'
+#' @family diagnostics
 #' @export
 conformal_pvalue <- function(scores, new_scores) {
   if (!is.numeric(scores) || length(scores) == 0) {
@@ -42,6 +43,12 @@ conformal_pvalue <- function(scores, new_scores) {
 #' prediction. The miscoverage level alpha is adjusted online based on
 #' whether previous predictions covered the true values, maintaining
 #' long-run coverage even under distribution shift.
+#'
+#' @details
+#' ACI provides asymptotic coverage guarantees under distribution drift, not
+#' the finite-sample guarantees of split conformal prediction. The long-run
+#' average coverage converges to \eqn{1 - \alpha} as the sequence length
+#' grows (Gibbs and Candes, 2021).
 #'
 #' @param y_pred A numeric vector of point predictions (sequential).
 #' @param y_true A numeric vector of true values (sequential).
@@ -73,6 +80,7 @@ conformal_pvalue <- function(scores, new_scores) {
 #' result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
 #' print(result$coverage)
 #'
+#' @family regression methods
 #' @export
 conformal_aci <- function(y_pred, y_true, alpha = 0.10, gamma = 0.005) {
   if (!is.numeric(y_pred) || !is.numeric(y_true)) {

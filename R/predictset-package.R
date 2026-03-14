@@ -1,3 +1,10 @@
+#' @concept conformal prediction
+#' @concept prediction intervals
+#' @concept prediction sets
+#' @concept uncertainty quantification
+#' @concept coverage guarantee
+#' @concept distribution-free inference
+#' @concept model-agnostic
 #' @keywords internal
 "_PACKAGE"
 

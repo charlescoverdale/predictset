@@ -13,6 +13,12 @@
 #' The interval bounds are then taken as quantiles of these per-observation
 #' values.
 #'
+#' @details
+#' The CV+ theoretical coverage guarantee is \eqn{1 - 2\alpha}, not
+#' \eqn{1 - \alpha} (Barber et al. 2021, Theorem 2). This is weaker than
+#' split conformal's \eqn{1 - \alpha} guarantee. In practice, CV+ coverage
+#' is typically much closer to \eqn{1 - \alpha}.
+#'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A numeric vector of response values.
 #' @param model A fitted model object (e.g., from [lm()]), a [make_model()]
@@ -54,6 +60,7 @@
 #' print(result)
 #' }
 #'
+#' @family regression methods
 #' @export
 conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
                           n_folds = 10, verbose = FALSE, seed = NULL) {
@@ -186,11 +193,11 @@ cv_plus_intervals <- function(x_new, mod, fold_models, fold_ids, residuals,
 
 #' Compute CV+ intervals for training data
 #'
-#' For training observation i in fold k(i), the fold prediction at x_i is
-#' already stored as loo_preds[i]. For the interval contribution from
-#' observation j (in fold k(j)), we need yhat_{-k(j)}(x_i). Since we are
-#' computing intervals at x_i (a training point), the fold prediction for
-#' observation j at point x_i comes from model k(j).
+#' For training observation `i` in fold `k(i)`, the fold prediction at `x_i` is
+#' already stored in `loo_preds[i]`. For the interval contribution from
+#' observation `j` (in fold `k(j)`), we need `yhat_{-k(j)}(x_i)`. Since we are
+#' computing intervals at `x_i` (a training point), the fold prediction for
+#' observation `j` at point `x_i` comes from model `k(j)`.
 #'
 #' However, recomputing all n*K predictions would be expensive. Instead, for
 #' training data, we use a simplification: observation i gets its interval

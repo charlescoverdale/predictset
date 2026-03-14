@@ -70,3 +70,13 @@ print(result)
 Vovk, V., Gammerman, A. and Shafer, G. (2005).
 \emph{Algorithmic Learning in a Random World}. Springer.
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_split}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

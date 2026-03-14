@@ -122,6 +122,17 @@ plot.predictset_class <- function(x, ...) {
 #'
 #' @return The input object, invisibly.
 #'
+#' @examples
+#' set.seed(42)
+#' n <- 100
+#' y_true <- cumsum(rnorm(n, sd = 0.1)) + rnorm(n)
+#' y_pred <- c(0, y_true[-n])
+#'
+#' \donttest{
+#' result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+#' plot(result)
+#' }
+#'
 #' @export
 plot.predictset_aci <- function(x, max_points = 500, ...) {
   n <- x$n

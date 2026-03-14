@@ -76,3 +76,10 @@ print(result)
 }
 
 }
+\seealso{
+Other classification methods: 
+\code{\link{conformal_aps}()},
+\code{\link{conformal_lac}()},
+\code{\link{conformal_raps}()}
+}
+\concept{classification methods}

@@ -55,6 +55,11 @@ prediction at the test point, shifted by the corresponding LOO residual,
 to construct the interval. This is distinct from basic jackknife, which
 centres a single full-model prediction and adds a quantile of the LOO
 residuals.
+
+The Jackknife+ theoretical coverage guarantee is \eqn{1 - 2\alpha}, not
+\eqn{1 - \alpha} (Barber et al. 2021, Theorem 1). This is weaker than
+split conformal's \eqn{1 - \alpha} guarantee. In practice, Jackknife+
+coverage is typically much closer to \eqn{1 - \alpha}.
 }
 \examples{
 set.seed(42)
@@ -74,3 +79,13 @@ Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2021).
 Predictive inference with the jackknife+.
 \emph{Annals of Statistics}, 49(1), 486--507.
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_split}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

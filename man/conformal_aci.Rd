@@ -33,6 +33,12 @@ prediction. The miscoverage level alpha is adjusted online based on
 whether previous predictions covered the true values, maintaining
 long-run coverage even under distribution shift.
 }
+\details{
+ACI provides asymptotic coverage guarantees under distribution drift, not
+the finite-sample guarantees of split conformal prediction. The long-run
+average coverage converges to \eqn{1 - \alpha} as the sequence length
+grows (Gibbs and Candes, 2021).
+}
 \examples{
 set.seed(42)
 n <- 200
@@ -48,3 +54,13 @@ Gibbs, I. and Candes, E. (2021).
 Adaptive conformal inference under distribution shift.
 \emph{Advances in Neural Information Processing Systems}, 34.
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_split}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

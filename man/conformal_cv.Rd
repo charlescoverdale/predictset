@@ -61,6 +61,11 @@ based on the fold model that excluded that observation, evaluated at the
 test point, plus or minus the leave-fold-out residual for that observation.
 The interval bounds are then taken as quantiles of these per-observation
 values.
+
+The CV+ theoretical coverage guarantee is \eqn{1 - 2\alpha}, not
+\eqn{1 - \alpha} (Barber et al. 2021, Theorem 2). This is weaker than
+split conformal's \eqn{1 - \alpha} guarantee. In practice, CV+ coverage
+is typically much closer to \eqn{1 - \alpha}.
 }
 \examples{
 set.seed(42)
@@ -81,3 +86,13 @@ Predictive inference with the Jackknife+.
 \emph{Annals of Statistics}, 49(1), 486-507.
 \doi{10.1214/20-AOS1965}
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_split}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

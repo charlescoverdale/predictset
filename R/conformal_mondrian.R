@@ -42,6 +42,7 @@
 #' print(result)
 #' }
 #'
+#' @family regression methods
 #' @export
 conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
                                 alpha = 0.10, cal_fraction = 0.5,
@@ -181,6 +182,7 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
 #' print(result)
 #' }
 #'
+#' @family classification methods
 #' @export
 conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
                                       alpha = 0.10, cal_fraction = 0.5,

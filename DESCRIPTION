@@ -2,7 +2,7 @@ Package: predictset
 Title: Conformal Prediction and Uncertainty Quantification
 Version: 0.3.0
 Authors@R: person("Charles", "Coverdale", email = "charlesfcoverdale@gmail.com",
-    role = c("aut", "cre"))
+    role = c("aut", "cre", "cph"))
 Description: Implements conformal prediction methods for constructing
     prediction intervals (regression) and prediction sets (classification)
     with finite-sample coverage guarantees. Methods include split conformal,
@@ -29,14 +29,18 @@ RoxygenNote: 7.3.3
 Depends: R (>= 4.1.0)
 Imports:
     cli (>= 3.6.0),
+    grDevices,
+    graphics,
     stats
 Suggests:
     testthat (>= 3.0.0),
-    withr,
     ranger,
     ggplot2,
     knitr,
     rmarkdown,
-    probably
+    parsnip (>= 1.0.0),
+    probably,
+    rsample,
+    workflows
 VignetteBuilder: knitr
 Config/testthat/edition: 3

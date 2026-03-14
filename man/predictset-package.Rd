@@ -17,7 +17,14 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Charles Coverdale \email{charlesfcoverdale@gmail.com}
+\strong{Maintainer}: Charles Coverdale \email{charlesfcoverdale@gmail.com} [copyright holder]
 
 }
+\concept{conformal prediction}
+\concept{coverage guarantee}
+\concept{distribution-free inference}
+\concept{model-agnostic}
+\concept{prediction intervals}
+\concept{prediction sets}
+\concept{uncertainty quantification}
 \keyword{internal}

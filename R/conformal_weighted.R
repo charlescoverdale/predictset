@@ -45,6 +45,7 @@
 #' print(result)
 #' }
 #'
+#' @family regression methods
 #' @export
 conformal_weighted <- function(x, y, model, x_new, weights = NULL,
                                 alpha = 0.10, cal_fraction = 0.5,

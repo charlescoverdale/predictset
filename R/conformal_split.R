@@ -54,6 +54,7 @@
 #' result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 #' print(result)
 #'
+#' @family regression methods
 #' @export
 conformal_split <- function(x, y, model, x_new, alpha = 0.10,
                              cal_fraction = 0.5,

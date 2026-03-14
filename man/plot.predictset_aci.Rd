@@ -20,3 +20,15 @@ The input object, invisibly.
 Creates a two-panel base R plot. The top panel shows prediction intervals
 over time; the bottom panel shows the adaptive alpha trace.
 }
+\examples{
+set.seed(42)
+n <- 100
+y_true <- cumsum(rnorm(n, sd = 0.1)) + rnorm(n)
+y_pred <- c(0, y_true[-n])
+
+\donttest{
+result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+plot(result)
+}
+
+}

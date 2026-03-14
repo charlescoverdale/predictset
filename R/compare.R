@@ -40,6 +40,7 @@
 #' print(comp)
 #' }
 #'
+#' @family diagnostics
 #' @export
 conformal_compare <- function(x, y, model, x_new, y_new,
                                methods = c("split", "cv"),

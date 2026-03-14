@@ -31,3 +31,13 @@ pvals <- conformal_pvalue(cal_scores, new_scores)
 print(pvals)
 
 }
+\seealso{
+Other diagnostics: 
+\code{\link{conformal_compare}()},
+\code{\link{coverage}()},
+\code{\link{coverage_by_bin}()},
+\code{\link{coverage_by_group}()},
+\code{\link{interval_width}()},
+\code{\link{set_size}()}
+}
+\concept{diagnostics}

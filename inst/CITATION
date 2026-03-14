@@ -3,6 +3,6 @@ bibentry(
   title   = "predictset: Model-Agnostic Conformal Prediction for Classification and Regression",
   author  = person("Charles", "Coverdale"),
   year    = "2026",
-  note    = "R package version 0.2.0",
+  note    = "R package version 0.3.0",
   url     = "https://github.com/charlescoverdale/predictset"
 )

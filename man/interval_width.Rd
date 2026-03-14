@@ -26,3 +26,13 @@ widths <- interval_width(result)
 summary(widths)
 
 }
+\seealso{
+Other diagnostics: 
+\code{\link{conformal_compare}()},
+\code{\link{conformal_pvalue}()},
+\code{\link{coverage}()},
+\code{\link{coverage_by_bin}()},
+\code{\link{coverage_by_group}()},
+\code{\link{set_size}()}
+}
+\concept{diagnostics}

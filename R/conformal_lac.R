@@ -58,6 +58,7 @@
 #' result <- conformal_lac(x, y, model = clf, x_new = x_new)
 #' print(result)
 #'
+#' @family classification methods
 #' @export
 conformal_lac <- function(x, y, model, x_new, alpha = 0.10,
                            cal_fraction = 0.5, seed = NULL) {

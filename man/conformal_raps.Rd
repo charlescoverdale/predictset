@@ -84,3 +84,10 @@ Uncertainty sets for image classifiers using conformal prediction.
 \emph{International Conference on Learning Representations}.
 \doi{10.48550/arXiv.2009.14193}
 }
+\seealso{
+Other classification methods: 
+\code{\link{conformal_aps}()},
+\code{\link{conformal_lac}()},
+\code{\link{conformal_mondrian_class}()}
+}
+\concept{classification methods}

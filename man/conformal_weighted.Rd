@@ -71,3 +71,13 @@ Tibshirani, R.J., Barber, R.F., Candes, E.J. and Ramdas, A. (2019).
 Conformal prediction under covariate shift.
 \emph{Advances in Neural Information Processing Systems}, 32.
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_split}()}
+}
+\concept{regression methods}

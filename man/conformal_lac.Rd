@@ -74,3 +74,10 @@ Least ambiguous set-valued classifiers with bounded error levels.
 \emph{Journal of the American Statistical Association}, 114(525), 223-234.
 \doi{10.1080/01621459.2018.1449837}
 }
+\seealso{
+Other classification methods: 
+\code{\link{conformal_aps}()},
+\code{\link{conformal_mondrian_class}()},
+\code{\link{conformal_raps}()}
+}
+\concept{classification methods}

@@ -82,3 +82,13 @@ Distribution-free predictive inference for regression.
 \emph{Journal of the American Statistical Association}, 113(523), 1094-1111.
 \doi{10.1080/01621459.2017.1307116}
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cqr}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

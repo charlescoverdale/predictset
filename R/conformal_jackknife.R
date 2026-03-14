@@ -10,6 +10,12 @@
 #' centres a single full-model prediction and adds a quantile of the LOO
 #' residuals.
 #'
+#' @details
+#' The Jackknife+ theoretical coverage guarantee is \eqn{1 - 2\alpha}, not
+#' \eqn{1 - \alpha} (Barber et al. 2021, Theorem 1). This is weaker than
+#' split conformal's \eqn{1 - \alpha} guarantee. In practice, Jackknife+
+#' coverage is typically much closer to \eqn{1 - \alpha}.
+#'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A numeric vector of response values.
 #' @param model A fitted model object (e.g., from [lm()]), a [make_model()]
@@ -47,6 +53,7 @@
 #' print(result)
 #' }
 #'
+#' @family regression methods
 #' @export
 conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
                                  plus = TRUE, verbose = FALSE, seed = NULL) {

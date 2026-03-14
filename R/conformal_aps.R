@@ -5,6 +5,13 @@
 #' decreasing predicted probability until the cumulative probability exceeds
 #' the conformal threshold.
 #'
+#' @details
+#' When \code{randomize = FALSE} (the default), this implementation uses the
+#' deterministic variant of APS, which provides conservative coverage (at
+#' least \eqn{1 - \alpha}). The randomized variant (\code{randomize = TRUE})
+#' achieves exact \eqn{1 - \alpha} coverage but produces non-reproducible
+#' prediction sets.
+#'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A factor (or character/integer vector coerced to factor) of class
 #'   labels.
@@ -50,6 +57,7 @@
 #' print(result)
 #' }
 #'
+#' @family classification methods
 #' @export
 conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
                            cal_fraction = 0.5, randomize = FALSE,

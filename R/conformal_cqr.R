@@ -5,6 +5,12 @@
 #' one for the upper quantile. The conformal step adjusts these quantile
 #' predictions to achieve valid coverage.
 #'
+#' @details
+#' Interval quality depends on the underlying quantile models. Poorly
+#' calibrated quantile models produce valid but potentially wide intervals.
+#' For best results, use proper quantile regression models (e.g.
+#' \code{quantreg::rq()}) rather than shifted mean predictions.
+#'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A numeric vector of response values.
 #' @param model_lower A [make_model()] specification for the lower quantile
@@ -54,6 +60,7 @@
 #' result <- conformal_cqr(x, y, model_lo, model_hi, x_new = x_new)
 #' print(result)
 #'
+#' @family regression methods
 #' @export
 conformal_cqr <- function(x, y, model_lower, model_upper, x_new,
                             alpha = 0.10, cal_fraction = 0.5,

@@ -22,6 +22,7 @@
 #' result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 #' coverage(result, y_new)
 #'
+#' @family diagnostics
 #' @export
 coverage <- function(object, y_true) {
   UseMethod("coverage")
@@ -67,6 +68,7 @@ coverage.predictset_class <- function(object, y_true) {
 #' widths <- interval_width(result)
 #' summary(widths)
 #'
+#' @family diagnostics
 #' @export
 interval_width <- function(object) {
   if (!inherits(object, "predictset_reg")) {
@@ -106,6 +108,7 @@ interval_width <- function(object) {
 #' sizes <- set_size(result)
 #' table(sizes)
 #'
+#' @family diagnostics
 #' @export
 set_size <- function(object) {
   if (!inherits(object, "predictset_class")) {
@@ -139,6 +142,7 @@ set_size <- function(object) {
 #' result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 #' coverage_by_group(result, y_new, groups)
 #'
+#' @family diagnostics
 #' @export
 coverage_by_group <- function(object, y_true, groups) {
   groups <- as.factor(groups)
@@ -215,6 +219,7 @@ coverage_by_group <- function(object, y_true, groups) {
 #' result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 #' coverage_by_bin(result, y_new, bins = 5)
 #'
+#' @family diagnostics
 #' @export
 coverage_by_bin <- function(object, y_true, bins = 10) {
   if (!inherits(object, "predictset_reg")) {

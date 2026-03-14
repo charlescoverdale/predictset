@@ -39,3 +39,13 @@ result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 coverage(result, y_new)
 
 }
+\seealso{
+Other diagnostics: 
+\code{\link{conformal_compare}()},
+\code{\link{conformal_pvalue}()},
+\code{\link{coverage_by_bin}()},
+\code{\link{coverage_by_group}()},
+\code{\link{interval_width}()},
+\code{\link{set_size}()}
+}
+\concept{diagnostics}

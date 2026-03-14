@@ -47,6 +47,12 @@ Constructs prediction intervals using Conformalized Quantile Regression
 one for the upper quantile. The conformal step adjusts these quantile
 predictions to achieve valid coverage.
 }
+\details{
+Interval quality depends on the underlying quantile models. Poorly
+calibrated quantile models produce valid but potentially wide intervals.
+For best results, use proper quantile regression models (e.g.
+\code{quantreg::rq()}) rather than shifted mean predictions.
+}
 \examples{
 set.seed(42)
 n <- 200
@@ -82,3 +88,13 @@ Conformalized quantile regression.
 \emph{Advances in Neural Information Processing Systems}, 32.
 \doi{10.48550/arXiv.1905.03222}
 }
+\seealso{
+Other regression methods: 
+\code{\link{conformal_aci}()},
+\code{\link{conformal_cv}()},
+\code{\link{conformal_jackknife}()},
+\code{\link{conformal_mondrian}()},
+\code{\link{conformal_split}()},
+\code{\link{conformal_weighted}()}
+}
+\concept{regression methods}

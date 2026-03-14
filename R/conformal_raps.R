@@ -54,6 +54,7 @@
 #' print(result)
 #' }
 #'
+#' @family classification methods
 #' @export
 conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
                             cal_fraction = 0.5, k_reg = 1, lambda = 0.01,

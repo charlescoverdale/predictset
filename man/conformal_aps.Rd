@@ -45,6 +45,13 @@ of Romano, Sesia, and Candes (2020). Classes are included in order of
 decreasing predicted probability until the cumulative probability exceeds
 the conformal threshold.
 }
+\details{
+When \code{randomize = FALSE} (the default), this implementation uses the
+deterministic variant of APS, which provides conservative coverage (at
+least \eqn{1 - \alpha}). The randomized variant (\code{randomize = TRUE})
+achieves exact \eqn{1 - \alpha} coverage but produces non-reproducible
+prediction sets.
+}
 \examples{
 set.seed(42)
 n <- 300
@@ -76,3 +83,10 @@ Classification with valid and adaptive coverage.
 \emph{Advances in Neural Information Processing Systems}, 33.
 \doi{10.48550/arXiv.2006.02544}
 }
+\seealso{
+Other classification methods: 
+\code{\link{conformal_lac}()},
+\code{\link{conformal_mondrian_class}()},
+\code{\link{conformal_raps}()}
+}
+\concept{classification methods}

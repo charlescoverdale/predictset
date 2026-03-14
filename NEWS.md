@@ -1,3 +1,16 @@
+# predictset 0.3.0
+
+## Documentation
+- Documented Jackknife+ and CV+ theoretical coverage guarantee (1-2alpha) per Barber et al. (2021)
+- Documented ACI asymptotic (not finite-sample) coverage guarantee per Gibbs and Candes (2021)
+- Documented CQR dependence on quantile model quality
+- Documented deterministic vs randomized APS variants
+- Added coverage guarantee footnotes to README and vignette method tables
+
+## Internal
+- Added `graphics` and `grDevices` to DESCRIPTION Imports
+- Added missing test dependencies to Suggests
+
 # predictset 0.2.0
 
 ## New features

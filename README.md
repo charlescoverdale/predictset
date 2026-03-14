@@ -131,13 +131,16 @@ table(set_size(result))  # distribution of set sizes
 | Scenario | Recommended method | Why |
 |---|---|---|
 | **Default for regression** | `conformal_split()` | Fast, single model fit |
-| Small dataset, need tight intervals | `conformal_cv()` or `conformal_jackknife()` | Uses all data for both training and calibration |
+| Small dataset, need tight intervals | `conformal_cv()` or `conformal_jackknife()`* | Uses all data for both training and calibration |
 | Heteroscedastic data | `conformal_split(..., score_type = "normalized")` or `conformal_cqr()` | Adaptive interval widths |
 | **Default for classification** | `conformal_aps()` | Adaptive set sizes, well-calibrated |
 | Many classes, want small sets | `conformal_raps()` | Regularized APS, penalises large sets |
 | Coverage must hold per subgroup | `conformal_mondrian()` / `conformal_mondrian_class()` | Group-conditional guarantees |
 | Covariate shift between train/test | `conformal_weighted()` | Importance-weighted calibration |
-| Sequential/online prediction | `conformal_aci()` | Adapts to distribution drift over time |
+| Sequential/online prediction | `conformal_aci()`** | Adapts to distribution drift over time |
+
+\*Jackknife+ and CV+ have a theoretical coverage guarantee of 1-2α (Barber et al. 2021), weaker than split conformal's 1-α. In practice, coverage is typically near 1-α.
+\*\*ACI provides asymptotic (not finite-sample) coverage guarantees.
 
 ---
 
