@@ -64,7 +64,6 @@ devtools::install_github("charlescoverdale/predictset")
 | `conformal_cqr()` | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
 | `conformal_mondrian()` | Regression | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
 | `conformal_weighted()` | Regression | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
-| `conformal_class_split()` | Classification | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
 | `conformal_aps()` | Classification | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
 | `conformal_raps()` | Classification | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
 | `conformal_lac()` | Classification | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2018.1449837) |
@@ -96,18 +95,11 @@ x_new <- matrix(rnorm(100 * 5), ncol = 5)
 
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 print(result)
-#>
-#> ── Split Conformal Prediction ──
-#>
-#> Coverage level: 90% (alpha = 0.1)
-#> Training set:   250 observations
-#> Calibration set: 250 observations
-#> Predictions:    100 new observations
-#> Score type:     absolute
-#>
-#> Prediction intervals:
-#>   Median width: 3.42
-#>   Mean width:   3.42
+#> ── Conformal Prediction Intervals (Split Conformal) ──
+#> • Coverage target: "90%"
+#> • Training: 250 | Calibration: 250 | Predictions: 100
+#> • Conformal quantile: 1.876
+#> • Median interval width: 3.7519
 ```
 
 ---
@@ -304,14 +296,37 @@ x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] + x[, 2]^2 + rnorm(n, sd = 0.5 + abs(x[, 1]))
 x_new <- matrix(rnorm(100 * 3), ncol = 3)
 
-result <- conformal_cqr(x, y, x_new = x_new, alpha = 0.10)
+# In practice, use quantile regression (e.g. quantreg::rq).
+# Here we approximate with shifted linear models for illustration.
+model_lo <- make_model(
+  train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+  predict_fun = function(obj, x_new) predict(obj, newdata = as.data.frame(x_new)) - 1.5,
+  type = "regression"
+)
+model_hi <- make_model(
+  train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+  predict_fun = function(obj, x_new) predict(obj, newdata = as.data.frame(x_new)) + 1.5,
+  type = "regression"
+)
+
+result <- conformal_cqr(x, y, model_lo, model_hi, x_new = x_new, alpha = 0.10)
 print(result)
 plot(result)
+```
 
-# Compare to standard split conformal
-result_split <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
-mean(interval_width(result))      # CQR: adaptive widths
-mean(interval_width(result_split)) # Split: constant width
+### Adaptive Conformal Inference (sequential prediction)
+
+ACI adapts the miscoverage level online based on observed coverage, maintaining long-run coverage even under distribution shift. No other R package implements ACI.
+
+```r
+set.seed(42)
+n <- 500
+y_true <- cumsum(rnorm(n, sd = 0.1)) + rnorm(n)  # drifting process
+y_pred <- c(0, y_true[-n])                         # naive lag-1 predictor
+
+result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+print(result)
+plot(result)  # intervals + adaptive alpha trace
 ```
 
 ---
