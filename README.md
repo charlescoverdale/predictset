@@ -450,9 +450,3 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 ## Issues
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/charlescoverdale/predictset/issues) on GitHub.
-
----
-
-## Keywords
-
-conformal prediction, prediction intervals, prediction sets, uncertainty quantification, coverage guarantee, distribution-free inference, model-agnostic, split conformal, jackknife+, CV+, conformalized quantile regression, adaptive prediction sets, RAPS, Mondrian conformal, weighted conformal, covariate shift, fairness, conditional coverage, calibration, R package
