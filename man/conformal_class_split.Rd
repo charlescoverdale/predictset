@@ -70,5 +70,5 @@ suppressWarnings(
 Sadinle, M., Lei, J. and Wasserman, L. (2019).
 Least ambiguous set-valued classifiers with bounded error levels.
 \emph{Journal of the American Statistical Association}, 114(525), 223-234.
-\doi{10.1080/01621459.2018.1449837}
+\doi{10.1080/01621459.2017.1395341}
 }

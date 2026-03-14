@@ -11,8 +11,11 @@
 
 - **NOTE**: New submission.
 
-This is a new submission. The package implements conformal prediction methods
-for constructing prediction intervals and prediction sets with finite-sample
-coverage guarantees. All methods are distribution-free and model-agnostic.
+## Resubmission
+
+Fixed incorrect DOI for Sadinle, Lei & Wasserman (2019) in README.md,
+conformal_class_split.Rd, and conformal_lac.Rd. The wrong DOI
+(10.1080/01621459.2018.1449837) has been replaced with the correct one
+(10.1080/01621459.2017.1395341).
 
 318 tests pass across all environments.
