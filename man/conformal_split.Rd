@@ -76,3 +76,9 @@ result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 print(result)
 
 }
+\references{
+Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R.J. and Wasserman, L. (2018).
+Distribution-free predictive inference for regression.
+\emph{Journal of the American Statistical Association}, 113(523), 1094-1111.
+\doi{10.1080/01621459.2017.1307116}
+}

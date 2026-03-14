@@ -40,7 +40,7 @@ observation in \code{x_new}.}
 \item{seed}{Optional random seed.}
 }
 \value{
-A \code{predictset_class} object. See \code{\link[=conformal_class_split]{conformal_class_split()}} for
+A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for
 details. The \code{method} component is \code{"mondrian"}. Additional components
 include \code{groups_new} and \code{group_quantiles}.
 }

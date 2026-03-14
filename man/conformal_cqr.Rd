@@ -54,7 +54,9 @@ x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] * 2 + rnorm(n)
 x_new <- matrix(rnorm(20 * 3), ncol = 3)
 
-# Using simple linear models as stand-in for quantile regression
+# Approximating quantile regression with shifted linear models.
+# In practice, use quantile regression models, e.g.:
+#   quantreg::rq(y ~ ., data = df, tau = 0.05)
 model_lo <- make_model(
   train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
   predict_fun = function(obj, x_new) {
@@ -73,4 +75,10 @@ model_hi <- make_model(
 result <- conformal_cqr(x, y, model_lo, model_hi, x_new = x_new)
 print(result)
 
+}
+\references{
+Romano, Y., Patterson, E. and Candes, E.J. (2019).
+Conformalized quantile regression.
+\emph{Advances in Neural Information Processing Systems}, 32.
+\doi{10.48550/arXiv.1905.03222}
 }

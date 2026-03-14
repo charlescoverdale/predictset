@@ -21,6 +21,11 @@
 #' @return A `predictset_reg` object. See [conformal_split()] for details.
 #'   The `method` component is `"weighted"`.
 #'
+#' @details
+#' The test-point weight \eqn{w_{n+1}} is set to the mean of calibration
+#' weights, following standard practice when the true test weight is unknown.
+#' See Tibshirani et al. (2019), Equation 5.
+#'
 #' @references
 #' Tibshirani, R.J., Barber, R.F., Candes, E.J. and Ramdas, A. (2019).
 #' Conformal prediction under covariate shift.

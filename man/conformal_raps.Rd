@@ -44,7 +44,7 @@ coverage (but prediction sets become stochastic). Default \code{FALSE}.}
 \item{seed}{Optional random seed.}
 }
 \value{
-A \code{predictset_class} object. See \code{\link[=conformal_class_split]{conformal_class_split()}} for
+A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for
 details. The \code{method} component is \code{"raps"}.
 }
 \description{
@@ -77,4 +77,10 @@ result <- conformal_raps(x, y, model = clf, x_new = x_new,
 print(result)
 }
 
+}
+\references{
+Angelopoulos, A.N., Bates, S., Malik, J. and Jordan, M.I. (2021).
+Uncertainty sets for image classifiers using conformal prediction.
+\emph{International Conference on Learning Representations}.
+\doi{10.48550/arXiv.2009.14193}
 }

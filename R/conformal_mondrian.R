@@ -150,7 +150,7 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
 #' @param seed Optional random seed.
 #'
-#' @return A `predictset_class` object. See [conformal_class_split()] for
+#' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"mondrian"`. Additional components
 #'   include `groups_new` and `group_quantiles`.
 #'

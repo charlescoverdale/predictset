@@ -32,28 +32,11 @@ or a fitted model object that produces class probabilities.}
 \item{seed}{Optional random seed.}
 }
 \value{
-A \code{predictset_class} object (a list) with components:
-\describe{
-\item{sets}{A list of character vectors, one per new observation, each
-containing the predicted class labels.}
-\item{probs}{A list of named numeric vectors with the predicted
-probabilities for included classes.}
-\item{alpha}{The miscoverage level used.}
-\item{method}{Character string identifying the method.}
-\item{scores}{Numeric vector of calibration scores.}
-\item{quantile}{The conformal quantile used.}
-\item{classes}{Character vector of all class labels.}
-\item{n_cal}{Number of calibration observations.}
-\item{n_train}{Number of training observations.}
-\item{fitted_model}{The fitted model object.}
-\item{model}{The \code{predictset_model} specification.}
-}
+A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for details.
 }
 \description{
-Constructs prediction sets using split conformal inference for
-classification. Uses the simple threshold method: includes all classes
-whose predicted probability exceeds \code{1 - q}, where \code{q} is the conformal
-quantile.
+\strong{[Deprecated]} \code{conformal_class_split()} is identical to
+\code{\link[=conformal_lac]{conformal_lac()}} and is deprecated. Use \code{\link[=conformal_lac]{conformal_lac()}} instead.
 }
 \examples{
 set.seed(42)
@@ -76,7 +59,16 @@ clf <- make_model(
   type = "classification"
 )
 
-result <- conformal_class_split(x, y, model = clf, x_new = x_new)
-print(result)
+\donttest{
+suppressWarnings(
+  result <- conformal_class_split(x, y, model = clf, x_new = x_new)
+)
+}
 
+}
+\references{
+Sadinle, M., Lei, J. and Wasserman, L. (2019).
+Least ambiguous set-valued classifiers with bounded error levels.
+\emph{Journal of the American Statistical Association}, 114(525), 223-234.
+\doi{10.1080/01621459.2018.1449837}
 }

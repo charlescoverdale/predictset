@@ -38,6 +38,12 @@
 #'   \item{model}{The `predictset_model` specification.}
 #' }
 #'
+#' @references
+#' Lei, J., G'Sell, M., Rinaldo, A., Tibshirani, R.J. and Wasserman, L. (2018).
+#' Distribution-free predictive inference for regression.
+#' *Journal of the American Statistical Association*, 113(523), 1094-1111.
+#' \doi{10.1080/01621459.2017.1307116}
+#'
 #' @examples
 #' set.seed(42)
 #' n <- 200

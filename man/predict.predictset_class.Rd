@@ -11,7 +11,9 @@
 
 \item{newdata}{A numeric matrix or data frame of new predictor variables.}
 
-\item{...}{Additional arguments (currently unused).}
+\item{...}{Additional arguments. For Mondrian objects, pass
+\code{groups_new} (a factor or character vector of group labels for each
+observation in \code{newdata}).}
 }
 \value{
 A \code{predictset_class} object with updated sets and probabilities.

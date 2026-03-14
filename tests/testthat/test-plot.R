@@ -68,3 +68,44 @@ test_that("plot.predictset_class handles APS method", {
   ret <- plot(result)
   expect_s3_class(ret, "predictset_class")
 })
+
+test_that("plot.predictset_reg handles Mondrian method (no NA title)", {
+  data <- make_regression_data(400, 3)
+  groups <- factor(ifelse(data$x[, 1] > 0, "high", "low"))
+  x_new <- matrix(rnorm(50 * 3), ncol = 3)
+  groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+  result <- conformal_mondrian(data$x, data$y, model = test_reg_model,
+                                x_new = x_new, groups = groups,
+                                groups_new = groups_new, seed = 42)
+
+  ret <- plot(result)
+  expect_s3_class(ret, "predictset_reg")
+})
+
+test_that("plot.predictset_reg handles weighted method (no NA title)", {
+  data <- make_regression_data(400, 3)
+  x_new <- matrix(rnorm(30 * 3), ncol = 3)
+  weights <- rep(1, nrow(data$x))
+
+  result <- conformal_weighted(data$x, data$y, model = test_reg_model,
+                                x_new = x_new, weights = weights, seed = 42)
+
+  ret <- plot(result)
+  expect_s3_class(ret, "predictset_reg")
+})
+
+test_that("plot.predictset_class handles Mondrian method (no NA title)", {
+  data <- make_classification_data(400, 4, n_classes = 2)
+  groups <- factor(ifelse(data$x[, 1] > 0, "high", "low"))
+  x_new <- matrix(rnorm(50 * 4), ncol = 4)
+  groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+  result <- conformal_mondrian_class(data$x, data$y,
+                                      model = test_class_model_binary,
+                                      x_new = x_new, groups = groups,
+                                      groups_new = groups_new, seed = 42)
+
+  ret <- plot(result)
+  expect_s3_class(ret, "predictset_class")
+})

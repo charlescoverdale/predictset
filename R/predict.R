@@ -5,7 +5,9 @@
 #'
 #' @param object A `predictset_reg` object.
 #' @param newdata A numeric matrix or data frame of new predictor variables.
-#' @param ... Additional arguments (currently unused).
+#' @param ... Additional arguments. For Mondrian objects, pass
+#'   `groups_new` (a factor or character vector of group labels for each
+#'   observation in `newdata`).
 #'
 #' @return A data frame with columns `pred`, `lower`, and `upper`.
 #'
@@ -21,6 +23,7 @@
 #' @export
 predict.predictset_reg <- function(object, newdata, ...) {
   newdata <- validate_x(newdata, "newdata")
+  dots <- list(...)
 
   if (object$method == "cqr") {
     lo_pred <- object$model$lower$predict_fun(object$fitted_model$lower, newdata)
@@ -28,6 +31,29 @@ predict.predictset_reg <- function(object, newdata, ...) {
     pred <- (lo_pred + hi_pred) / 2
     lower <- lo_pred - object$quantile
     upper <- hi_pred + object$quantile
+  } else if (object$method == "mondrian") {
+    pred <- object$model$predict_fun(object$fitted_model, newdata)
+    groups_new <- dots$groups_new
+    if (is.null(groups_new)) {
+      cli_abort("Mondrian predict requires {.arg groups_new} to be passed via {.code predict(object, newdata, groups_new = ...)}.")
+    }
+    groups_new <- as.factor(groups_new)
+    if (length(groups_new) != nrow(newdata)) {
+      cli_abort("{.arg groups_new} must have length equal to {.code nrow(newdata)} ({nrow(newdata)}).")
+    }
+    n_new <- nrow(newdata)
+    lower <- numeric(n_new)
+    upper <- numeric(n_new)
+    for (i in seq_len(n_new)) {
+      g <- as.character(groups_new[i])
+      if (g %in% names(object$group_quantiles)) {
+        q_i <- object$group_quantiles[g]
+      } else {
+        q_i <- object$quantile
+      }
+      lower[i] <- pred[i] - q_i
+      upper[i] <- pred[i] + q_i
+    }
   } else if (object$method == "jackknife_plus") {
     # Jackknife+: use stored LOO models and residuals
     pred <- object$model$predict_fun(object$fitted_model, newdata)
@@ -82,7 +108,9 @@ predict.predictset_reg <- function(object, newdata, ...) {
 #'
 #' @param object A `predictset_class` object.
 #' @param newdata A numeric matrix or data frame of new predictor variables.
-#' @param ... Additional arguments (currently unused).
+#' @param ... Additional arguments. For Mondrian objects, pass
+#'   `groups_new` (a factor or character vector of group labels for each
+#'   observation in `newdata`).
 #'
 #' @return A `predictset_class` object with updated sets and probabilities.
 #'
@@ -111,6 +139,7 @@ predict.predictset_reg <- function(object, newdata, ...) {
 #' @export
 predict.predictset_class <- function(object, newdata, ...) {
   newdata <- validate_x(newdata, "newdata")
+  dots <- list(...)
 
   probs_new <- object$model$predict_fun(object$fitted_model, newdata)
   if (is.null(colnames(probs_new))) {
@@ -132,7 +161,36 @@ predict.predictset_class <- function(object, newdata, ...) {
     cli_warn("Some rows of the predicted probability matrix do not sum to 1.")
   }
 
-  if (object$method %in% c("aps")) {
+  if (object$method == "mondrian") {
+    groups_new <- dots$groups_new
+    if (is.null(groups_new)) {
+      cli_abort("Mondrian predict requires {.arg groups_new} to be passed via {.code predict(object, newdata, groups_new = ...)}.")
+    }
+    groups_new <- as.factor(groups_new)
+    if (length(groups_new) != nrow(newdata)) {
+      cli_abort("{.arg groups_new} must have length equal to {.code nrow(newdata)} ({nrow(newdata)}).")
+    }
+    n_new <- nrow(newdata)
+    classes <- colnames(probs_new)
+    sets <- vector("list", n_new)
+    set_probs <- vector("list", n_new)
+    for (i in seq_len(n_new)) {
+      g <- as.character(groups_new[i])
+      if (g %in% names(object$group_quantiles)) {
+        q_i <- object$group_quantiles[g]
+      } else {
+        q_i <- object$quantile
+      }
+      p <- probs_new[i, ]
+      included <- classes[p >= 1 - q_i]
+      if (length(included) == 0) {
+        included <- classes[which.max(p)]
+      }
+      sets[[i]] <- included
+      set_probs[[i]] <- setNames(p[included], included)
+    }
+    result <- list(sets = sets, probs = set_probs)
+  } else if (object$method %in% c("aps")) {
     result <- build_aps_sets(probs_new, object$quantile)
   } else if (object$method == "raps") {
     result <- build_raps_sets(probs_new, object$quantile,

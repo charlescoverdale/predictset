@@ -73,6 +73,26 @@ print.predictset_class <- function(x, ...) {
   invisible(x)
 }
 
+#' Print Method for ACI Objects
+#'
+#' @param x A `predictset_aci` object.
+#' @param ... Additional arguments (currently unused).
+#'
+#' @return The input object, invisibly.
+#'
+#' @export
+print.predictset_aci <- function(x, ...) {
+  cli_h1("Adaptive Conformal Inference")
+  cli_bullets(c(
+    "*" = "Target coverage: {.val {(1 - x$alpha) * 100}%}",
+    "*" = "Observations: {.val {x$n}}",
+    "*" = "Learning rate (gamma): {.val {x$gamma}}",
+    "*" = "Empirical coverage: {.val {round(x$coverage * 100, 1)}%}",
+    "*" = "Alpha range: [{.val {round(min(x$alphas), 4)}}, {.val {round(max(x$alphas), 4)}}]"
+  ))
+  invisible(x)
+}
+
 #' Print Method for Model Specifications
 #'
 #' @param x A `predictset_model` object.

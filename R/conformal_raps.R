@@ -20,8 +20,14 @@
 #' @param randomize Logical. If `TRUE`, uses randomized scores for exact
 #'   coverage (but prediction sets become stochastic). Default `FALSE`.
 #'
-#' @return A `predictset_class` object. See [conformal_class_split()] for
+#' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"raps"`.
+#'
+#' @references
+#' Angelopoulos, A.N., Bates, S., Malik, J. and Jordan, M.I. (2021).
+#' Uncertainty sets for image classifiers using conformal prediction.
+#' *International Conference on Learning Representations*.
+#' \doi{10.48550/arXiv.2009.14193}
 #'
 #' @examples
 #' set.seed(42)

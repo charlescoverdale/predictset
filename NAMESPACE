@@ -2,10 +2,12 @@
 
 S3method(coverage,predictset_class)
 S3method(coverage,predictset_reg)
+S3method(plot,predictset_aci)
 S3method(plot,predictset_class)
 S3method(plot,predictset_reg)
 S3method(predict,predictset_class)
 S3method(predict,predictset_reg)
+S3method(print,predictset_aci)
 S3method(print,predictset_class)
 S3method(print,predictset_compare)
 S3method(print,predictset_model)

@@ -20,7 +20,7 @@ test_that("conformal_pvalue validates inputs", {
   expect_error(conformal_pvalue("bad", c(1)), "numeric")
 })
 
-test_that("conformal_aci returns correct structure", {
+test_that("conformal_aci returns predictset_aci class", {
   set.seed(42)
   n <- 100
   y_true <- rnorm(n)
@@ -28,12 +28,15 @@ test_that("conformal_aci returns correct structure", {
 
   result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
 
-  expect_type(result, "list")
+  expect_s3_class(result, "predictset_aci")
   expect_length(result$lower, n)
   expect_length(result$upper, n)
   expect_length(result$covered, n)
   expect_length(result$alphas, n)
   expect_true(result$coverage >= 0 && result$coverage <= 1)
+  expect_equal(result$alpha, 0.10)
+  expect_equal(result$gamma, 0.01)
+  expect_equal(result$n, n)
 })
 
 test_that("conformal_aci first interval is infinite", {
@@ -110,4 +113,25 @@ test_that("conformal_aci responds to distribution shift via alpha", {
 
   # Alpha should increase after the distribution shift
   expect_gt(alpha_late, alpha_early)
+})
+
+test_that("print.predictset_aci works", {
+  set.seed(42)
+  y_true <- rnorm(50)
+  y_pred <- c(0, y_true[-50])
+
+  result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+
+  expect_no_error(print(result))
+})
+
+test_that("plot.predictset_aci works", {
+  set.seed(42)
+  y_true <- rnorm(50)
+  y_pred <- c(0, y_true[-50])
+
+  result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+
+  ret <- plot(result)
+  expect_s3_class(ret, "predictset_aci")
 })

@@ -1,6 +1,6 @@
 Package: predictset
 Title: Conformal Prediction and Uncertainty Quantification
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: person("Charles", "Coverdale", email = "charlesfcoverdale@gmail.com",
     role = c("aut", "cre"))
 Description: Implements conformal prediction methods for constructing

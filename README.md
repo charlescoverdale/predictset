@@ -24,7 +24,7 @@ The key property is that this guarantee holds in finite samples. It's not asympt
 | Regression | Yes | Yes | Yes | Yes |
 | Classification | Yes | No | No | Yes |
 | Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
-| On CRAN | Yes | Yes | No (GitHub only) | N/A |
+| On CRAN | Pending | Yes | No (GitHub only) | N/A |
 | Jackknife+ / CV+ | Yes | No | Yes | Yes |
 | CQR | Yes | Yes | Yes | Yes |
 | APS / RAPS | Yes | No | No | Yes |

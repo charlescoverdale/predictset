@@ -17,8 +17,14 @@
 #'   coverage (but prediction sets become stochastic). Default `FALSE`.
 #' @param seed Optional random seed.
 #'
-#' @return A `predictset_class` object. See [conformal_class_split()] for
+#' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"aps"`.
+#'
+#' @references
+#' Romano, Y., Sesia, M. and Candes, E.J. (2020).
+#' Classification with valid and adaptive coverage.
+#' *Advances in Neural Information Processing Systems*, 33.
+#' \doi{10.48550/arXiv.2006.02544}
 #'
 #' @examples
 #' set.seed(42)

@@ -10,8 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -43,17 +42,6 @@ x_new <- matrix(rnorm(100 * 5), ncol = 5)
 
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 print(result)
-# ── Split Conformal Prediction ──
-#
-# Coverage level: 90% (alpha = 0.1)
-# Training set:   250 observations
-# Calibration set: 250 observations
-# Predictions:    100 new observations
-# Score type:     absolute
-#
-# Prediction intervals:
-#   Median width: 3.42
-#   Mean width:   3.42
 ```
 
 The `alpha` parameter controls the miscoverage rate: `alpha = 0.10` targets 90% coverage.
@@ -77,7 +65,7 @@ result <- conformal_split(x, y, model = fit, x_new = x_new)
 
 **3. Custom model** via `make_model()` (works with anything):
 
-```{r}
+```{r, eval = FALSE}
 rf <- make_model(
   train_fun = function(x, y) {
     ranger::ranger(y ~ ., data = data.frame(y = y, x))
@@ -95,7 +83,7 @@ result <- conformal_split(x, y, model = rf, x_new = x_new)
 
 APS produces prediction sets that adapt to the difficulty of each observation. Easy cases get small sets (often a single class), while ambiguous cases get larger sets.
 
-```{r}
+```{r, eval = FALSE}
 set.seed(42)
 n <- 600
 x <- matrix(rnorm(n * 4), ncol = 4)
@@ -117,8 +105,6 @@ print(result)
 
 # Most predictions are a single class; ambiguous ones include 2-3
 table(set_size(result))
-# 1  2  3
-# 74 21  5
 ```
 
 ## Mondrian conformal: group-conditional coverage
@@ -140,16 +126,13 @@ result <- conformal_mondrian(x, y, model = y ~ ., x_new = x_new,
 # Check per-group coverage
 y_new <- x_new[, 1] * 2 + ifelse(groups_new == "high", 3, 0.5) * rnorm(200)
 coverage_by_group(result, y_new, groups_new)
-#   group coverage   n target
-# 1  high    0.920  98    0.9
-# 2   low    0.891 102    0.9
 ```
 
 ## Diagnostics
 
 After producing predictions, use diagnostic functions to evaluate calibration and efficiency:
 
-```{r}
+```{r, eval = FALSE}
 # Empirical coverage (should be close to 1 - alpha)
 coverage(result, y_test)
 
@@ -174,6 +157,13 @@ pvals <- conformal_pvalue(result$scores, new_scores)
 Benchmark multiple conformal methods side-by-side with `conformal_compare()`:
 
 ```{r}
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(200)
+
 comp <- conformal_compare(x, y, model = y ~ ., x_new = x_new, y_new = y_new,
                            methods = c("split", "cv", "jackknife"))
 print(comp)

@@ -14,8 +14,27 @@
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
 #' @param seed Optional random seed.
 #'
-#' @return A `predictset_class` object. See [conformal_class_split()] for
-#'   details. The `method` component is `"lac"`.
+#' @return A `predictset_class` object with components:
+#' \describe{
+#'   \item{sets}{A list of character vectors, one per new observation.}
+#'   \item{probs}{A list of named numeric vectors with predicted probabilities
+#'     for included classes.}
+#'   \item{alpha}{The miscoverage level used.}
+#'   \item{method}{Character string `"lac"`.}
+#'   \item{scores}{Numeric vector of calibration scores.}
+#'   \item{quantile}{The conformal quantile used.}
+#'   \item{classes}{Character vector of all class labels.}
+#'   \item{n_cal}{Number of calibration observations.}
+#'   \item{n_train}{Number of training observations.}
+#'   \item{fitted_model}{The fitted model object.}
+#'   \item{model}{The `predictset_model` specification.}
+#' }
+#'
+#' @references
+#' Sadinle, M., Lei, J. and Wasserman, L. (2019).
+#' Least ambiguous set-valued classifiers with bounded error levels.
+#' *Journal of the American Statistical Association*, 114(525), 223-234.
+#' \doi{10.1080/01621459.2018.1449837}
 #'
 #' @examples
 #' set.seed(42)

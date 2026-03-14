@@ -36,7 +36,7 @@ coverage (but prediction sets become stochastic). Default \code{FALSE}.}
 \item{seed}{Optional random seed.}
 }
 \value{
-A \code{predictset_class} object. See \code{\link[=conformal_class_split]{conformal_class_split()}} for
+A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for
 details. The \code{method} component is \code{"aps"}.
 }
 \description{
@@ -69,4 +69,10 @@ result <- conformal_aps(x, y, model = clf, x_new = x_new)
 print(result)
 }
 
+}
+\references{
+Romano, Y., Sesia, M. and Candes, E.J. (2020).
+Classification with valid and adaptive coverage.
+\emph{Advances in Neural Information Processing Systems}, 33.
+\doi{10.48550/arXiv.2006.02544}
 }

@@ -36,6 +36,12 @@
 #'   absolute residuals), which are needed by the [predict()] method to
 #'   compute CV+ intervals for new data.
 #'
+#' @references
+#' Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2021).
+#' Predictive inference with the Jackknife+.
+#' *Annals of Statistics*, 49(1), 486-507.
+#' \doi{10.1214/20-AOS1965}
+#'
 #' @examples
 #' set.seed(42)
 #' n <- 200

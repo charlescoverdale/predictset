@@ -20,6 +20,12 @@
 #' @return A `predictset_reg` object. See [conformal_split()] for details.
 #'   The `method` component is `"cqr"`.
 #'
+#' @references
+#' Romano, Y., Patterson, E. and Candes, E.J. (2019).
+#' Conformalized quantile regression.
+#' *Advances in Neural Information Processing Systems*, 32.
+#' \doi{10.48550/arXiv.1905.03222}
+#'
 #' @examples
 #' set.seed(42)
 #' n <- 200
@@ -27,7 +33,9 @@
 #' y <- x[, 1] * 2 + rnorm(n)
 #' x_new <- matrix(rnorm(20 * 3), ncol = 3)
 #'
-#' # Using simple linear models as stand-in for quantile regression
+#' # Approximating quantile regression with shifted linear models.
+#' # In practice, use quantile regression models, e.g.:
+#' #   quantreg::rq(y ~ ., data = df, tau = 0.05)
 #' model_lo <- make_model(
 #'   train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
 #'   predict_fun = function(obj, x_new) {

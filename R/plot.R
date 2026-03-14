@@ -38,7 +38,9 @@ plot.predictset_reg <- function(x, max_points = 200, ...) {
     cv_plus = "CV+",
     jackknife_plus = "Jackknife+",
     jackknife = "Jackknife",
-    cqr = "CQR"
+    cqr = "CQR",
+    mondrian = "Mondrian",
+    weighted = "Weighted Conformal"
   )
 
   plot(seq_along(pred), pred,
@@ -95,7 +97,8 @@ plot.predictset_class <- function(x, ...) {
     split = "Split Conformal",
     aps = "APS",
     raps = "RAPS",
-    lac = "LAC"
+    lac = "LAC",
+    mondrian = "Mondrian"
   )
 
   graphics::barplot(tab,
@@ -104,6 +107,51 @@ plot.predictset_class <- function(x, ...) {
           main = paste0(method_names[x$method],
                         " (", (1 - x$alpha) * 100, "% sets)"),
           col = "steelblue", ...)
+
+  invisible(x)
+}
+
+#' Plot Method for ACI Objects
+#'
+#' Creates a two-panel base R plot. The top panel shows prediction intervals
+#' over time; the bottom panel shows the adaptive alpha trace.
+#'
+#' @param x A `predictset_aci` object.
+#' @param max_points Maximum number of points to display. Default `500`.
+#' @param ... Additional arguments (currently unused).
+#'
+#' @return The input object, invisibly.
+#'
+#' @export
+plot.predictset_aci <- function(x, max_points = 500, ...) {
+  n <- x$n
+  if (n > max_points) {
+    idx <- sort(sample.int(n, max_points))
+  } else {
+    idx <- seq_len(n)
+  }
+
+  old_par <- graphics::par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
+  on.exit(graphics::par(old_par))
+
+  # Top panel: intervals
+  finite_lower <- x$lower[idx]
+  finite_upper <- x$upper[idx]
+  finite_lower[!is.finite(finite_lower)] <- NA
+  finite_upper[!is.finite(finite_upper)] <- NA
+
+  plot(idx, rep(NA, length(idx)),
+       ylim = range(c(finite_lower, finite_upper), na.rm = TRUE),
+       xlab = "Time", ylab = "Value",
+       main = paste0("ACI (", (1 - x$alpha) * 100, "% intervals)"))
+  segments(idx, finite_lower, idx, finite_upper,
+           col = grDevices::adjustcolor("steelblue", alpha.f = 0.3))
+
+  # Bottom panel: alpha trace
+  plot(idx, x$alphas[idx], type = "l", col = "darkred",
+       xlab = "Time", ylab = expression(alpha[t]),
+       main = "Adaptive alpha")
+  graphics::abline(h = x$alpha, lty = 2, col = "grey50")
 
   invisible(x)
 }

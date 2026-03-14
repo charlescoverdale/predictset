@@ -95,27 +95,26 @@ conformal_aci <- function(y_pred, y_true, alpha = 0.10, gamma = 0.005) {
   upper <- numeric(n)
   covered <- logical(n)
   alphas <- numeric(n)
+  residuals <- numeric(n)
 
-  # Initialize: first prediction uses the target alpha with initial width 0
   alpha_t <- alpha
-  residuals <- numeric(0)
 
   for (t in seq_len(n)) {
     alphas[t] <- alpha_t
 
-    if (length(residuals) == 0) {
+    if (t == 1L) {
       # No calibration data yet; use Inf interval
       lower[t] <- -Inf
       upper[t] <- Inf
     } else {
-      q <- conformal_quantile(residuals, alpha_t)
+      q <- conformal_quantile(residuals[seq_len(t - 1L)], alpha_t)
       lower[t] <- y_pred[t] - q
       upper[t] <- y_pred[t] + q
     }
 
     # Check coverage
     covered[t] <- (y_true[t] >= lower[t]) && (y_true[t] <= upper[t])
-    residuals <- c(residuals, abs(y_true[t] - y_pred[t]))
+    residuals[t] <- abs(y_true[t] - y_pred[t])
 
     # Update alpha: increase if covered (tighten), decrease if not (widen)
     err_t <- if (covered[t]) 0 else 1
@@ -123,11 +122,16 @@ conformal_aci <- function(y_pred, y_true, alpha = 0.10, gamma = 0.005) {
     alpha_t <- max(0.001, min(0.999, alpha_t))
   }
 
-  list(
+  result <- list(
     lower = lower,
     upper = upper,
     covered = covered,
     alphas = alphas,
-    coverage = mean(covered)
+    coverage = mean(covered),
+    alpha = alpha,
+    gamma = gamma,
+    n = n
   )
+  class(result) <- "predictset_aci"
+  result
 }
