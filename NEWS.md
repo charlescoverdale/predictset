@@ -1,3 +1,7 @@
+# predictset 0.3.1
+
+* Add DOI links for all DESCRIPTION references per CRAN reviewer feedback.
+
 # predictset 0.3.0
 
 ## Documentation
