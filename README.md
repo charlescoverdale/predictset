@@ -1,8 +1,5 @@
 # predictset
-[![CRAN status](https://www.r-pkg.org/badges/version/predictset)](https://CRAN.R-project.org/package=predictset)
-[![Downloads](https://cranlogs.r-pkg.org/badges/predictset)](https://CRAN.R-project.org/package=predictset)
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CRAN status](https://www.r-pkg.org/badges/version/predictset)](https://CRAN.R-project.org/package=predictset) [![CRAN downloads](https://cranlogs.r-pkg.org/badges/predictset)](https://CRAN.R-project.org/package=predictset) [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 **predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees - no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
 
