@@ -211,6 +211,6 @@ predict.predictset_class <- function(object, newdata, ...) {
     n_train = object$n_train,
     fitted_model = object$fitted_model,
     model = object$model,
-    randomize = object$randomize
+    randomize = if (!is.null(object$randomize)) object$randomize else FALSE
   ), class = "predictset_class")
 }

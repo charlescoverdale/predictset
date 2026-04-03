@@ -1,3 +1,8 @@
+# predictset 0.3.2
+
+* Fixed `predict()` for LAC and Mondrian classification objects: `randomize`
+  field now defaults to `FALSE` when not set by the fitting method.
+
 # predictset 0.3.1
 
 * Add DOI links for all DESCRIPTION references per CRAN reviewer feedback.
