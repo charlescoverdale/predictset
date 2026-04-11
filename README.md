@@ -431,16 +431,11 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 
 ## Related packages
 
-| Package | Description |
+| Package | What it covers |
 |---|---|
-| [probably](https://probably.tidymodels.org/) | Conformal regression within the tidymodels ecosystem |
-| [conformalInference](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only) |
-| [ons](https://github.com/charlescoverdale/ons) | UK Office for National Statistics data |
-| [boe](https://github.com/charlescoverdale/boe) | Bank of England data |
-| [fred](https://github.com/charlescoverdale/fred) | Federal Reserve Economic Data (FRED) |
-| [readecb](https://github.com/charlescoverdale/readecb) | European Central Bank data |
-| [readoecd](https://github.com/charlescoverdale/readoecd) | OECD data |
-| [inflateR](https://github.com/charlescoverdale/inflateR) | Inflation adjustment |
+| [`probably`](https://probably.tidymodels.org/) | Conformal regression within the tidymodels ecosystem |
+| [`conformalInference`](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only) |
+| [`nowcast`](https://github.com/charlescoverdale/nowcast) | Economic nowcasting (pairs with predictset for prediction intervals) |
 
 ---
 
