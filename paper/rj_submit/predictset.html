@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+  <meta name="generator" content="distill" />
+
+  <style type="text/css">
+  /* Hide doc at startup (prevent jankiness while JS renders/transforms) */
+  body {
+    visibility: hidden;
+  }
+  </style>
+
+ <!--radix_placeholder_import_source-->
+ <!--/radix_placeholder_import_source-->
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  { color: #00769e; background-color: #f1f3f5; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #00769e; } /* Normal */
+code span.al { color: #ad0000; } /* Alert */
+code span.an { color: #5e5e5e; } /* Annotation */
+code span.at { color: #657422; } /* Attribute */
+code span.bn { color: #ad0000; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #00769e; } /* ControlFlow */
+code span.ch { color: #20794d; } /* Char */
+code span.cn { color: #8f5902; } /* Constant */
+code span.co { color: #5e5e5e; } /* Comment */
+code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+code span.dt { color: #ad0000; } /* DataType */
+code span.dv { color: #ad0000; } /* DecVal */
+code span.er { color: #ad0000; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #ad0000; } /* Float */
+code span.fu { color: #4758ab; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #5e5e5e; } /* Information */
+code span.kw { color: #00769e; } /* Keyword */
+code span.op { color: #5e5e5e; } /* Operator */
+code span.ot { color: #00769e; } /* Other */
+code span.pp { color: #ad0000; } /* Preprocessor */
+code span.sc { color: #5e5e5e; } /* SpecialChar */
+code span.ss { color: #20794d; } /* SpecialString */
+code span.st { color: #20794d; } /* String */
+code span.va { color: #111111; } /* Variable */
+code span.vs { color: #20794d; } /* VerbatimString */
+code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+</style>
+
+<style>
+  div.csl-bib-body { }
+  div.csl-entry {
+    clear: both;
+      margin-bottom: 0em;
+    }
+  .hanging div.csl-entry {
+    margin-left:2em;
+    text-indent:-2em;
+  }
+  div.csl-left-margin {
+    min-width:2em;
+    float:left;
+  }
+  div.csl-right-inline {
+    margin-left:2em;
+    padding-left:1em;
+  }
+  div.csl-indent {
+    margin-left: 2em;
+  }
+</style>
+
+  <!--radix_placeholder_meta_tags-->
+  <title>Predictset: Conformal Prediction and Uncertainty Quantification in R</title>
+
+  <meta property="description" itemprop="description" content="The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN."/>
+
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/"/>
+
+  <!--  https://schema.org/Article -->
+  <meta property="article:published" itemprop="datePublished" content="2026-04-19"/>
+  <meta property="article:created" itemprop="dateCreated" content="2026-04-19"/>
+  <meta name="article:author" content="Charles Coverdale"/>
+
+  <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
+  <meta property="og:title" content="Predictset: Conformal Prediction and Uncertainty Quantification in R"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:description" content="The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN."/>
+  <meta property="og:locale" content="en_US"/>
+
+  <!--  https://dev.twitter.com/cards/types/summary -->
+  <meta property="twitter:card" content="summary"/>
+  <meta property="twitter:title" content="Predictset: Conformal Prediction and Uncertainty Quantification in R"/>
+  <meta property="twitter:description" content="The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN."/>
+
+  <!--  https://scholar.google.com/intl/en/scholar/inclusion.html#indexing -->
+  <meta name="citation_title" content="Predictset: Conformal Prediction and Uncertainty Quantification in R"/>
+  <meta name="citation_pdf_url" content="predictset.pdf"/>
+  <meta name="citation_journal_title" content="The R Journal"/>
+  <meta name="citation_issn" content="2073-4859"/>
+  <meta name="citation_firstpage" content="1"/>
+  <meta name="citation_fulltext_world_readable" content=""/>
+  <meta name="citation_online_date" content="2026/04/19"/>
+  <meta name="citation_publication_date" content="2026/04/19"/>
+  <meta name="citation_author" content="Charles Coverdale"/>
+  <meta name="citation_author_institution" content="Independent"/>
+  <!--/radix_placeholder_meta_tags-->
+  
+  <meta name="citation_reference" content="citation_title=Algorithmic learning in a random world;citation_publisher=Springer;citation_doi=10.1007/b106715;citation_author=Vladimir Vovk;citation_author=Alexander Gammerman;citation_author=Glenn Shafer"/>
+  <meta name="citation_reference" content="citation_title=Distribution-free predictive inference for regression;citation_volume=113;citation_doi=10.1080/01621459.2017.1307116;citation_author=Jing Lei;citation_author=Max G’Sell;citation_author=Alessandro Rinaldo;citation_author=Ryan J. Tibshirani;citation_author=Larry Wasserman"/>
+  <meta name="citation_reference" content="citation_title=Predictive inference with the jackknife+;citation_volume=49;citation_doi=10.1214/20-AOS1965;citation_author=Rina Foygel Barber;citation_author=Emmanuel J. Candes;citation_author=Aaditya Ramdas;citation_author=Ryan J. Tibshirani"/>
+  <meta name="citation_reference" content="citation_title=Conformalized quantile regression;citation_volume=32;citation_doi=10.48550/arXiv.1905.03222;citation_author=Yaniv Romano;citation_author=Evan Patterson;citation_author=Emmanuel J. Candes"/>
+  <meta name="citation_reference" content="citation_title=Classification with valid and adaptive coverage;citation_volume=33;citation_doi=10.48550/arXiv.2006.02544;citation_author=Yaniv Romano;citation_author=Matteo Sesia;citation_author=Emmanuel J. Candes"/>
+  <meta name="citation_reference" content="citation_title=Uncertainty sets for image classifiers using conformal prediction;citation_doi=10.48550/arXiv.2009.14193;citation_author=Anastasios N. Angelopoulos;citation_author=Stephen Bates;citation_author=Jitendra Malik;citation_author=Michael I. Jordan"/>
+  <meta name="citation_reference" content="citation_title=Least ambiguous set-valued classifiers with bounded error levels;citation_volume=114;citation_doi=10.1080/01621459.2017.1395341;citation_author=Mauricio Sadinle;citation_author=Jing Lei;citation_author=Larry Wasserman"/>
+  <meta name="citation_reference" content="citation_title=Conformal prediction under covariate shift;citation_volume=32;citation_doi=10.48550/arXiv.1904.06019;citation_author=Ryan J. Tibshirani;citation_author=Rina Foygel Barber;citation_author=Emmanuel J. Candes;citation_author=Aaditya Ramdas"/>
+  <meta name="citation_reference" content="citation_title=Adaptive conformal inference under distribution shift;citation_volume=34;citation_doi=10.48550/arXiv.2106.00170;citation_author=Isaac Gibbs;citation_author=Emmanuel J. Candes"/>
+  <meta name="citation_reference" content="citation_title=Machine bias: There’s software used across the country to predict future criminals. And it’s biased against blacks;citation_publisher=ProPublica;citation_author=Julia Angwin;citation_author=Jeff Larson;citation_author=Surya Mattu;citation_author=Lauren Kirchner"/>
+  <meta name="citation_reference" content="citation_title=With malice toward none: Assessing uncertainty via equalized coverage;citation_volume=2;citation_doi=10.1162/99608f92.03f00592;citation_author=Yaniv Romano;citation_author=Rina Foygel Barber;citation_author=Chiara Sabatti;citation_author=Emmanuel J. Candes"/>
+  <meta name="citation_reference" content="citation_title=A gentle introduction to conformal prediction and distribution-free uncertainty quantification;citation_volume=16;citation_doi=10.1561/2200000101;citation_author=Anastasios N. Angelopoulos;citation_author=Stephen Bates"/>
+  <!--radix_placeholder_rmarkdown_metadata-->
+
+  <script type="text/json" id="radix-rmarkdown-metadata">
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","date","description","draft","author","type","journal","output","header-includes","bibliography","slug","pdf_url","creative_commons","packages","CTV","csl"]}},"value":[{"type":"character","attributes":{},"value":["Predictset: Conformal Prediction and Uncertainty Quantification in R"]},{"type":"character","attributes":{},"value":["2026-04-19"]},{"type":"character","attributes":{},"value":["The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN.\n"]},{"type":"logical","attributes":{},"value":[false]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","affiliation","address","url","email"]}},"value":[{"type":"character","attributes":{},"value":["Charles Coverdale"]},{"type":"character","attributes":{},"value":["Independent"]},{"type":"character","attributes":{},"value":["London, United Kingdom"]},{"type":"character","attributes":{},"value":["https://github.com/charlescoverdale/predictset"]},{"type":"character","attributes":{},"value":["charles.f.coverdale@gmail.com"]}]}]},{"type":"character","attributes":{},"value":["package"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","issn","firstpage","lastpage"]}},"value":[{"type":"character","attributes":{},"value":["The R Journal"]},{"type":"character","attributes":{},"value":["2073-4859"]},{"type":"double","attributes":{},"value":[1]},{"type":"NULL"}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained","toc"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[false]}]}]},{"type":"character","attributes":{},"value":["\\renewcommand{\\address}[1]{}"]},{"type":"character","attributes":{},"value":["RJreferences.bib"]},{"type":"character","attributes":{},"value":["predictset"]},{"type":"character","attributes":{},"value":["predictset.pdf"]},{"type":"character","attributes":{},"value":["CC BY"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["cran","bioc"]}},"value":[{"type":"character","attributes":{},"value":["predictset","ranger","xgboost","probably","tidymodels","cli","ggplot2","parsnip","rsample","workflows","keras","lightgbm","quantreg","rstanarm","brms"]},{"type":"list","attributes":{},"value":[]}]},{"type":"character","attributes":{},"value":["Bayesian","ChemPhys","Databases","Econometrics","Environmetrics","HighPerformanceComputing","MachineLearning","MetaAnalysis","MixedModels","ModelDeployment","NetworkAnalysis","Optimization","Phylogenetics","ReproducibleResearch","Robust","Spatial","Survival","TeachingStatistics"]},{"type":"character","attributes":{},"value":["/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/library/rjtools/rjournal.csl"]}]}
+  </script>
+  <!--/radix_placeholder_rmarkdown_metadata-->
+  
+  <script type="text/json" id="radix-resource-manifest">
+  {"type":"character","attributes":{},"value":["figures/fig1_heteroscedastic.pdf","figures/fig2_compare.pdf","figures/fig3_aps_sets.pdf","figures/fig4_mondrian.pdf","figures/fig5_weighted.pdf","figures/fig6_compas.pdf","motivation-letter/motivation-letter.md","predictset.log","predictset.pdf","predictset.tex","RJournal.sty","RJreferences.bib","RJwrapper.log","RJwrapper.tex"]}
+  </script>
+  <!--radix_placeholder_navigation_in_header-->
+  <!--/radix_placeholder_navigation_in_header-->
+  <!--radix_placeholder_distill-->
+
+  <style type="text/css">
+
+  body {
+    background-color: white;
+  }
+
+  .pandoc-table {
+    width: 100%;
+  }
+
+  .pandoc-table>caption {
+    margin-bottom: 10px;
+  }
+
+  .pandoc-table th:not([align]) {
+    text-align: left;
+  }
+
+  .pagedtable-footer {
+    font-size: 15px;
+  }
+
+  d-byline .byline {
+    grid-template-columns: 2fr 2fr;
+  }
+
+  d-byline .byline h3 {
+    margin-block-start: 1.5em;
+  }
+
+  d-byline .byline .authors-affiliations h3 {
+    margin-block-start: 0.5em;
+  }
+
+  .authors-affiliations .orcid-id {
+    width: 16px;
+    height:16px;
+    margin-left: 4px;
+    margin-right: 4px;
+    vertical-align: middle;
+    padding-bottom: 2px;
+  }
+
+  d-title .dt-tags {
+    margin-top: 1em;
+    grid-column: text;
+  }
+
+  .dt-tags .dt-tag {
+    text-decoration: none;
+    display: inline-block;
+    color: rgba(0,0,0,0.6);
+    padding: 0em 0.4em;
+    margin-right: 0.5em;
+    margin-bottom: 0.4em;
+    font-size: 70%;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  d-article table.gt_table td,
+  d-article table.gt_table th {
+    border-bottom: none;
+    font-size: 100%;
+  }
+
+  .html-widget {
+    margin-bottom: 2.0em;
+  }
+
+  .l-screen-inset {
+    padding-right: 16px;
+  }
+
+  .l-screen .caption {
+    margin-left: 10px;
+  }
+
+  .shaded {
+    background: rgb(247, 247, 247);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .shaded .html-widget {
+    margin-bottom: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .shaded .shaded-content {
+    background: white;
+  }
+
+  .text-output {
+    margin-top: 0;
+    line-height: 1.5em;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  hr.section-separator {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 0px;
+  }
+
+
+  d-byline {
+    border-top: none;
+  }
+
+  d-article {
+    padding-top: 2.5rem;
+    padding-bottom: 30px;
+    border-top: none;
+  }
+
+  d-appendix {
+    padding-top: 30px;
+  }
+
+  d-article>p>img {
+    width: 100%;
+  }
+
+  d-article h2 {
+    margin: 1rem 0 1.5rem 0;
+  }
+
+  d-article h3 {
+    margin-top: 1.5rem;
+  }
+
+  d-article iframe {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 2.0em;
+    width: 100%;
+  }
+
+  /* Tweak code blocks */
+
+  d-article div.sourceCode code,
+  d-article pre code {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  }
+
+  d-article pre,
+  d-article div.sourceCode,
+  d-article div.sourceCode pre {
+    overflow: auto;
+  }
+
+  d-article div.sourceCode {
+    background-color: white;
+  }
+
+  d-article div.sourceCode pre {
+    padding-left: 10px;
+    font-size: 12px;
+    border-left: 2px solid rgba(0,0,0,0.1);
+  }
+
+  d-article pre {
+    font-size: 12px;
+    color: black;
+    background: none;
+    margin-top: 0;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+
+  d-article pre a {
+    border-bottom: none;
+  }
+
+  d-article pre a:hover {
+    border-bottom: none;
+    text-decoration: underline;
+  }
+
+  d-article details {
+    grid-column: text;
+    margin-bottom: 0.8em;
+  }
+
+  @media(min-width: 768px) {
+
+  d-article pre,
+  d-article div.sourceCode,
+  d-article div.sourceCode pre {
+    overflow: visible !important;
+  }
+
+  d-article div.sourceCode pre {
+    padding-left: 18px;
+    font-size: 14px;
+  }
+
+  /* tweak for Pandoc numbered line within distill */
+  d-article pre.numberSource code > span {
+      left: -2em;
+  }
+
+  d-article pre {
+    font-size: 14px;
+  }
+
+  }
+
+  figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+
+  /* CSS for d-contents */
+
+  .d-contents {
+    grid-column: text;
+    color: rgba(0,0,0,0.8);
+    font-size: 0.9em;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+    padding-left: 0.25em;
+    justify-self: start;
+  }
+
+  @media(min-width: 1000px) {
+    .d-contents.d-contents-float {
+      height: 0;
+      grid-column-start: 1;
+      grid-column-end: 4;
+      justify-self: center;
+      padding-right: 3em;
+      padding-left: 2em;
+    }
+  }
+
+  .d-contents nav h3 {
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+
+  .d-contents li {
+    list-style-type: none
+  }
+
+  .d-contents nav > ul {
+    padding-left: 0;
+  }
+
+  .d-contents ul {
+    padding-left: 1em
+  }
+
+  .d-contents nav ul li {
+    margin-top: 0.6em;
+    margin-bottom: 0.2em;
+  }
+
+  .d-contents nav a {
+    font-size: 13px;
+    border-bottom: none;
+    text-decoration: none
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .d-contents nav a:hover {
+    text-decoration: underline solid rgba(0, 0, 0, 0.6)
+  }
+
+  .d-contents nav > ul > li > a {
+    font-weight: 600;
+  }
+
+  .d-contents nav > ul > li > ul {
+    font-weight: inherit;
+  }
+
+  .d-contents nav > ul > li > ul > li {
+    margin-top: 0.2em;
+  }
+
+
+  .d-contents nav ul {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+  }
+
+  .d-article-with-toc h2:nth-child(2) {
+    margin-top: 0;
+  }
+
+
+  /* Figure */
+
+  .figure {
+    position: relative;
+    margin-bottom: 2.5em;
+    margin-top: 1.5em;
+  }
+
+  .figure .caption {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 12px;
+    line-height: 1.5em;
+  }
+
+  .figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+
+  .figure .caption a {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .figure .caption b,
+  .figure .caption strong, {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 1.0);
+  }
+
+  /* Citations */
+
+  d-article .citation {
+    color: inherit;
+    cursor: inherit;
+  }
+
+  div.hanging-indent{
+    margin-left: 1em; text-indent: -1em;
+  }
+
+  /* Citation hover box */
+
+  .tippy-box[data-theme~=light-border] {
+    background-color: rgba(250, 250, 250, 0.95);
+  }
+
+  .tippy-content > p {
+    margin-bottom: 0;
+    padding: 2px;
+  }
+
+
+  /* Tweak 1000px media break to show more text */
+
+  @media(min-width: 1000px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 80px [middle-start] 50px [text-start kicker-end] 65px 65px 65px 65px 65px 65px 65px 65px [text-end gutter-start] 65px [middle-end] 65px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 16px;
+    }
+
+    .grid {
+      grid-column-gap: 16px;
+    }
+
+    d-article {
+      font-size: 1.06rem;
+      line-height: 1.7em;
+    }
+    figure .caption, .figure .caption, figure figcaption {
+      font-size: 13px;
+    }
+  }
+
+  @media(min-width: 1180px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 60px [middle-start] 60px [text-start kicker-end] 60px 60px 60px 60px 60px 60px 60px 60px [text-end gutter-start] 60px [middle-end] 60px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 32px;
+    }
+
+    .grid {
+      grid-column-gap: 32px;
+    }
+  }
+
+
+  /* Get the citation styles for the appendix (not auto-injected on render since
+     we do our own rendering of the citation appendix) */
+
+  d-appendix .citation-appendix,
+  .d-appendix .citation-appendix {
+    font-size: 11px;
+    line-height: 15px;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    padding-left: 18px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.02);
+    padding: 10px 18px;
+    border-radius: 3px;
+    color: rgba(150, 150, 150, 1);
+    overflow: hidden;
+    margin-top: -12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Include appendix styles here so they can be overridden */
+
+  d-appendix {
+    contain: layout style;
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-top: 60px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    color: rgba(0,0,0,0.5);
+    padding-top: 60px;
+    padding-bottom: 48px;
+  }
+
+  d-appendix h3 {
+    grid-column: page-start / text-start;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 1em;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.65);
+  }
+
+  d-appendix h3 + * {
+    margin-top: 1em;
+  }
+
+  d-appendix ol {
+    padding: 0 0 0 15px;
+  }
+
+  @media (min-width: 768px) {
+    d-appendix ol {
+      padding: 0 0 0 30px;
+      margin-left: -30px;
+    }
+  }
+
+  d-appendix li {
+    margin-bottom: 1em;
+  }
+
+  d-appendix a {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  d-appendix > * {
+    grid-column: text;
+  }
+
+  d-appendix > d-footnote-list,
+  d-appendix > d-citation-list,
+  d-appendix > distill-appendix {
+    grid-column: screen;
+  }
+
+  /* Include footnote styles here so they can be overridden */
+
+  d-footnote-list {
+    contain: layout style;
+  }
+
+  d-footnote-list > * {
+    grid-column: text;
+  }
+
+  d-footnote-list a.footnote-backlink {
+    color: rgba(0,0,0,0.3);
+    padding-left: 0.5em;
+  }
+
+
+
+  /* Anchor.js */
+
+  .anchorjs-link {
+    /*transition: all .25s linear; */
+    text-decoration: none;
+    border-bottom: none;
+  }
+  *:hover > .anchorjs-link {
+    margin-left: -1.125em !important;
+    text-decoration: none;
+    border-bottom: none;
+  }
+
+  /* Social footer */
+
+  .social_footer {
+    margin-top: 30px;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.67);
+  }
+
+  .disqus-comments {
+    margin-right: 30px;
+  }
+
+  .disqus-comment-count {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+
+  #disqus_thread {
+    margin-top: 30px;
+  }
+
+  .article-sharing a {
+    border-bottom: none;
+    margin-right: 8px;
+  }
+
+  .article-sharing a:hover {
+    border-bottom: none;
+  }
+
+  .sidebar-section.subscribe {
+    font-size: 12px;
+    line-height: 1.6em;
+  }
+
+  .subscribe p {
+    margin-bottom: 0.5em;
+  }
+
+
+  .article-footer .subscribe {
+    font-size: 15px;
+    margin-top: 45px;
+  }
+
+
+  .sidebar-section.custom {
+    font-size: 12px;
+    line-height: 1.6em;
+  }
+
+  .custom p {
+    margin-bottom: 0.5em;
+  }
+
+  /* Styles for listing layout (hide title) */
+  .layout-listing d-title, .layout-listing .d-title {
+    display: none;
+  }
+
+  /* Styles for posts lists (not auto-injected) */
+
+
+  .posts-with-sidebar {
+    padding-left: 45px;
+    padding-right: 45px;
+  }
+
+  .posts-list .description h2,
+  .posts-list .description p {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .posts-list .description h2 {
+    font-weight: 700;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .posts-list h2.post-tag {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    padding-bottom: 12px;
+  }
+  .posts-list {
+    margin-top: 60px;
+    margin-bottom: 24px;
+  }
+
+  .posts-list .post-preview {
+    text-decoration: none;
+    overflow: hidden;
+    display: block;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 24px 0;
+  }
+
+  .post-preview-last {
+    border-bottom: none !important;
+  }
+
+  .posts-list .posts-list-caption {
+    grid-column: screen;
+    font-weight: 400;
+  }
+
+  .posts-list .post-preview h2 {
+    margin: 0 0 6px 0;
+    line-height: 1.2em;
+    font-style: normal;
+    font-size: 24px;
+  }
+
+  .posts-list .post-preview p {
+    margin: 0 0 12px 0;
+    line-height: 1.4em;
+    font-size: 16px;
+  }
+
+  .posts-list .post-preview .thumbnail {
+    box-sizing: border-box;
+    margin-bottom: 24px;
+    position: relative;
+    max-width: 500px;
+  }
+  .posts-list .post-preview img {
+    width: 100%;
+    display: block;
+  }
+
+  .posts-list .metadata {
+    font-size: 12px;
+    line-height: 1.4em;
+    margin-bottom: 18px;
+  }
+
+  .posts-list .metadata > * {
+    display: inline-block;
+  }
+
+  .posts-list .metadata .publishedDate {
+    margin-right: 2em;
+  }
+
+  .posts-list .metadata .dt-authors {
+    display: block;
+    margin-top: 0.3em;
+    margin-right: 2em;
+  }
+
+  .posts-list .dt-tags {
+    display: block;
+    line-height: 1em;
+  }
+
+  .posts-list .dt-tags .dt-tag {
+    display: inline-block;
+    color: rgba(0,0,0,0.6);
+    padding: 0.3em 0.4em;
+    margin-right: 0.2em;
+    margin-bottom: 0.4em;
+    font-size: 60%;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .posts-list img {
+    opacity: 1;
+  }
+
+  .posts-list img[data-src] {
+    opacity: 0;
+  }
+
+  .posts-more {
+    clear: both;
+  }
+
+
+  .posts-sidebar {
+    font-size: 16px;
+  }
+
+  .posts-sidebar h3 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  .sidebar-section {
+    margin-bottom: 30px;
+  }
+
+  .categories ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .categories li {
+    color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 0;
+  }
+
+  .categories li>a {
+    border-bottom: none;
+  }
+
+  .categories li>a:hover {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  }
+
+  .categories .active {
+    font-weight: 600;
+  }
+
+  .categories .category-count {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+
+  @media(min-width: 768px) {
+    .posts-list .post-preview h2 {
+      font-size: 26px;
+    }
+    .posts-list .post-preview .thumbnail {
+      float: right;
+      width: 30%;
+      margin-bottom: 0;
+    }
+    .posts-list .post-preview .description {
+      float: left;
+      width: 45%;
+    }
+    .posts-list .post-preview .metadata {
+      float: left;
+      width: 20%;
+      margin-top: 8px;
+    }
+    .posts-list .post-preview p {
+      margin: 0 0 12px 0;
+      line-height: 1.5em;
+      font-size: 16px;
+    }
+    .posts-with-sidebar .posts-list {
+      float: left;
+      width: 75%;
+    }
+    .posts-with-sidebar .posts-sidebar {
+      float: right;
+      width: 20%;
+      margin-top: 60px;
+      padding-top: 24px;
+      padding-bottom: 24px;
+    }
+  }
+
+
+  /* Improve display for browsers without grid (IE/Edge <= 15) */
+
+  .downlevel {
+    line-height: 1.6em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+  }
+
+  .downlevel .d-title {
+    padding-top: 6rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .downlevel .d-title h1 {
+    font-size: 50px;
+    font-weight: 700;
+    line-height: 1.1em;
+    margin: 0 0 0.5rem;
+  }
+
+  .downlevel .d-title p {
+    font-weight: 300;
+    font-size: 1.2rem;
+    line-height: 1.55em;
+    margin-top: 0;
+  }
+
+  .downlevel .d-byline {
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
+    font-size: 0.8rem;
+    line-height: 1.8em;
+  }
+
+  .downlevel .section-separator {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .downlevel .d-article {
+    font-size: 1.06rem;
+    line-height: 1.7em;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
+
+
+  .downlevel .d-appendix {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.5);
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+
+  .downlevel .footnotes ol {
+    padding-left: 13px;
+  }
+
+  .downlevel .base-grid,
+  .downlevel .distill-header,
+  .downlevel .d-title,
+  .downlevel .d-abstract,
+  .downlevel .d-article,
+  .downlevel .d-appendix,
+  .downlevel .distill-appendix,
+  .downlevel .d-byline,
+  .downlevel .d-footnote-list,
+  .downlevel .d-citation-list,
+  .downlevel .distill-footer,
+  .downlevel .appendix-bottom,
+  .downlevel .posts-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  @media(min-width: 768px) {
+    .downlevel .base-grid,
+    .downlevel .distill-header,
+    .downlevel .d-title,
+    .downlevel .d-abstract,
+    .downlevel .d-article,
+    .downlevel .d-appendix,
+    .downlevel .distill-appendix,
+    .downlevel .d-byline,
+    .downlevel .d-footnote-list,
+    .downlevel .d-citation-list,
+    .downlevel .distill-footer,
+    .downlevel .appendix-bottom,
+    .downlevel .posts-container {
+    padding-left: 150px;
+    padding-right: 150px;
+    max-width: 900px;
+  }
+  }
+
+  .downlevel pre code {
+    display: block;
+    border-left: 2px solid rgba(0, 0, 0, .1);
+    padding: 0 0 0 20px;
+    font-size: 14px;
+  }
+
+  .downlevel code, .downlevel pre {
+    color: black;
+    background: none;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+
+  .downlevel .posts-list .post-preview {
+    color: inherit;
+  }
+
+
+
+  </style>
+
+  <script type="application/javascript">
+
+  function is_downlevel_browser() {
+    if (bowser.isUnsupportedBrowser({ msie: "12", msedge: "16"},
+                                   window.navigator.userAgent)) {
+      return true;
+    } else {
+      return window.load_distill_framework === undefined;
+    }
+  }
+
+  // show body when load is complete
+  function on_load_complete() {
+
+    // add anchors
+    if (window.anchors) {
+      window.anchors.options.placement = 'left';
+      window.anchors.add('d-article > h2, d-article > h3, d-article > h4, d-article > h5');
+    }
+
+
+    // set body to visible
+    document.body.style.visibility = 'visible';
+
+    // force redraw for leaflet widgets
+    if (window.HTMLWidgets) {
+      var maps = window.HTMLWidgets.findAll(".leaflet");
+      $.each(maps, function(i, el) {
+        var map = this.getMap();
+        map.invalidateSize();
+        map.eachLayer(function(layer) {
+          if (layer instanceof L.TileLayer)
+            layer.redraw();
+        });
+      });
+    }
+
+    // trigger 'shown' so htmlwidgets resize
+    $('d-article').trigger('shown');
+  }
+
+  function init_distill() {
+
+    init_common();
+
+    // create front matter
+    var front_matter = $('<d-front-matter></d-front-matter>');
+    $('#distill-front-matter').wrap(front_matter);
+
+    // create d-title
+    $('.d-title').changeElementType('d-title');
+
+    // separator
+    var separator = '<hr class="section-separator" style="clear: both"/>';
+    // prepend separator above appendix
+    $('.d-byline').before(separator);
+    $('.d-article').before(separator);
+
+    // create d-byline
+    var byline = $('<d-byline></d-byline>');
+    $('.d-byline').replaceWith(byline);
+
+    // create d-article
+    var article = $('<d-article></d-article>');
+    $('.d-article').wrap(article).children().unwrap();
+
+    // move posts container into article
+    $('.posts-container').appendTo($('d-article'));
+
+    // create d-appendix
+    $('.d-appendix').changeElementType('d-appendix');
+
+    // flag indicating that we have appendix items
+    var appendix = $('.appendix-bottom').children('h3').length > 0;
+
+    // replace footnotes with <d-footnote>
+    $('.footnote-ref').each(function(i, val) {
+      appendix = true;
+      var href = $(this).attr('href');
+      var id = href.replace('#', '');
+      var fn = $('#' + id);
+      var fn_p = $('#' + id + '>p');
+      fn_p.find('.footnote-back').remove();
+      var text = fn_p.html();
+      var dtfn = $('<d-footnote></d-footnote>');
+      dtfn.html(text);
+      $(this).replaceWith(dtfn);
+    });
+    // remove footnotes
+    $('.footnotes').remove();
+
+    // move refs into #references-listing
+    $('#references-listing').replaceWith($('#refs'));
+
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      var id = $(this).attr('id');
+      $('.d-contents a[href="#' + id + '"]').parent().remove();
+      appendix = true;
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('d-appendix'));
+    });
+
+    // show d-appendix if we have appendix content
+    $("d-appendix").css('display', appendix ? 'grid' : 'none');
+
+    // localize layout chunks to just output
+    $('.layout-chunk').each(function(i, val) {
+
+      // capture layout
+      var layout = $(this).attr('data-layout');
+
+      // apply layout to markdown level block elements
+      var elements = $(this).children().not('details, div.sourceCode, pre, script');
+      elements.each(function(i, el) {
+        var layout_div = $('<div class="' + layout + '"></div>');
+        if (layout_div.hasClass('shaded')) {
+          var shaded_content = $('<div class="shaded-content"></div>');
+          $(this).wrap(shaded_content);
+          $(this).parent().wrap(layout_div);
+        } else {
+          $(this).wrap(layout_div);
+        }
+      });
+
+
+      // unwrap the layout-chunk div
+      $(this).children().unwrap();
+    });
+
+    // remove code block used to force  highlighting css
+    $('.distill-force-highlighting-css').parent().remove();
+
+    // remove empty line numbers inserted by pandoc when using a
+    // custom syntax highlighting theme, except when numbering line
+    // in code chunk
+    $('pre:not(.numberLines) code.sourceCode a:empty').remove();
+
+    // load distill framework
+    load_distill_framework();
+
+    // wait for window.distillRunlevel == 4 to do post processing
+    function distill_post_process() {
+
+      if (!window.distillRunlevel || window.distillRunlevel < 4)
+        return;
+
+      // hide author/affiliations entirely if we have no authors
+      var front_matter = JSON.parse($("#distill-front-matter").html());
+      var have_authors = front_matter.authors && front_matter.authors.length > 0;
+      if (!have_authors)
+        $('d-byline').addClass('hidden');
+
+      // article with toc class
+      $('.d-contents').parent().addClass('d-article-with-toc');
+
+      // strip links that point to #
+      $('.authors-affiliations').find('a[href="#"]').removeAttr('href');
+
+      // add orcid ids
+      $('.authors-affiliations').find('.author').each(function(i, el) {
+        var orcid_id = front_matter.authors[i].orcidID;
+        var author_name = front_matter.authors[i].author
+        if (orcid_id) {
+          var a = $('<a></a>');
+          a.attr('href', 'https://orcid.org/' + orcid_id);
+          var img = $('<img></img>');
+          img.addClass('orcid-id');
+          img.attr('alt', author_name ? 'ORCID ID for ' + author_name : 'ORCID ID');
+          img.attr('src','data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==');
+          a.append(img);
+          $(this).append(a);
+        }
+      });
+
+      // hide elements of author/affiliations grid that have no value
+      function hide_byline_column(caption) {
+        $('d-byline').find('h3:contains("' + caption + '")').parent().css('visibility', 'hidden');
+      }
+
+      // affiliations
+      var have_affiliations = false;
+      for (var i = 0; i<front_matter.authors.length; ++i) {
+        var author = front_matter.authors[i];
+        if (author.affiliation !== "&nbsp;") {
+          have_affiliations = true;
+          break;
+        }
+      }
+      if (!have_affiliations)
+        $('d-byline').find('h3:contains("Affiliations")').css('visibility', 'hidden');
+
+      // published date
+      if (!front_matter.publishedDate)
+        hide_byline_column("Published");
+
+      // document object identifier
+      var doi = $('d-byline').find('h3:contains("DOI")');
+      var doi_p = doi.next().empty();
+      if (!front_matter.doi) {
+        // if we have a citation and valid citationText then link to that
+        if ($('#citation').length > 0 && front_matter.citationText) {
+          doi.html('Citation');
+          $('<a href="#citation"></a>')
+            .text(front_matter.citationText)
+            .appendTo(doi_p);
+        } else {
+          hide_byline_column("DOI");
+        }
+      } else {
+        $('<a></a>')
+           .attr('href', "https://doi.org/" + front_matter.doi)
+           .html(front_matter.doi)
+           .appendTo(doi_p);
+      }
+
+       // change plural form of authors/affiliations
+      if (front_matter.authors.length === 1) {
+        var grid = $('.authors-affiliations');
+        grid.children('h3:contains("Authors")').text('Author');
+        grid.children('h3:contains("Affiliations")').text('Affiliation');
+      }
+
+      // remove d-appendix and d-footnote-list local styles
+      $('d-appendix > style:first-child').remove();
+      $('d-footnote-list > style:first-child').remove();
+
+      // move appendix-bottom entries to the bottom
+      $('.appendix-bottom').appendTo('d-appendix').children().unwrap();
+      $('.appendix-bottom').remove();
+
+      // hoverable references
+      $('span.citation[data-cites]').each(function() {
+        const citeChild = $(this).children()[0]
+        // Do not process if @xyz has been used without escaping and without bibliography activated
+        // https://github.com/rstudio/distill/issues/466
+        if (citeChild === undefined) return true
+
+        if (citeChild.nodeName == "D-FOOTNOTE") {
+          var fn = citeChild
+          $(this).html(fn.shadowRoot.querySelector("sup"))
+          $(this).id = fn.id
+          fn.remove()
+        }
+        var refs = $(this).attr('data-cites').split(" ");
+        var refHtml = refs.map(function(ref) {
+          // Could use CSS.escape too here, we insure backward compatibility in navigator
+          return "<p>" + $('div[id="ref-' + ref + '"]').html() + "</p>";
+        }).join("\n");
+        window.tippy(this, {
+          allowHTML: true,
+          content: refHtml,
+          maxWidth: 500,
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'light-border',
+          placement: 'bottom-start'
+        });
+      });
+
+      // fix footnotes in tables (#411)
+      // replacing broken distill.pub feature
+      $('table d-footnote').each(function() {
+        // we replace internal showAtNode methode which is triggered when hovering a footnote
+        this.hoverBox.showAtNode = function(node) {
+          // ported from https://github.com/distillpub/template/pull/105/files
+          calcOffset = function(elem) {
+              let x = elem.offsetLeft;
+              let y = elem.offsetTop;
+              // Traverse upwards until an `absolute` element is found or `elem`
+              // becomes null.
+              while (elem = elem.offsetParent && elem.style.position != 'absolute') {
+                  x += elem.offsetLeft;
+                  y += elem.offsetTop;
+              }
+
+              return { left: x, top: y };
+          }
+          // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetTop
+          const bbox = node.getBoundingClientRect();
+          const offset = calcOffset(node);
+          this.show([offset.left + bbox.width, offset.top + bbox.height]);
+        }
+      })
+
+      // clear polling timer
+      clearInterval(tid);
+
+      // show body now that everything is ready
+      on_load_complete();
+    }
+
+    var tid = setInterval(distill_post_process, 50);
+    distill_post_process();
+
+  }
+
+  function init_downlevel() {
+
+    init_common();
+
+     // insert hr after d-title
+    $('.d-title').after($('<hr class="section-separator"/>'));
+
+    // check if we have authors
+    var front_matter = JSON.parse($("#distill-front-matter").html());
+    var have_authors = front_matter.authors && front_matter.authors.length > 0;
+
+    // manage byline/border
+    if (!have_authors)
+      $('.d-byline').remove();
+    $('.d-byline').after($('<hr class="section-separator"/>'));
+    $('.d-byline a').remove();
+
+    // remove toc
+    $('.d-contents').remove();
+
+    // move appendix elements
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('.d-appendix'));
+    });
+
+
+    // inject headers into references and footnotes
+    var refs_header = $('<h3></h3>');
+    refs_header.text('References');
+    $('#refs').prepend(refs_header);
+
+    var footnotes_header = $('<h3></h3');
+    footnotes_header.text('Footnotes');
+    $('.footnotes').children('hr').first().replaceWith(footnotes_header);
+
+    // move appendix-bottom entries to the bottom
+    $('.appendix-bottom').appendTo('.d-appendix').children().unwrap();
+    $('.appendix-bottom').remove();
+
+    // remove appendix if it's empty
+    if ($('.d-appendix').children().length === 0)
+      $('.d-appendix').remove();
+
+    // prepend separator above appendix
+    $('.d-appendix').before($('<hr class="section-separator" style="clear: both"/>'));
+
+    // trim code
+    $('pre>code').each(function(i, val) {
+      $(this).html($.trim($(this).html()));
+    });
+
+    // move posts-container right before article
+    $('.posts-container').insertBefore($('.d-article'));
+
+    $('body').addClass('downlevel');
+
+    on_load_complete();
+  }
+
+
+  function init_common() {
+
+    // jquery plugin to change element types
+    (function($) {
+      $.fn.changeElementType = function(newType) {
+        var attrs = {};
+
+        $.each(this[0].attributes, function(idx, attr) {
+          attrs[attr.nodeName] = attr.nodeValue;
+        });
+
+        this.replaceWith(function() {
+          return $("<" + newType + "/>", attrs).append($(this).contents());
+        });
+      };
+    })(jQuery);
+
+    // prevent underline for linked images
+    $('a > img').parent().css({'border-bottom' : 'none'});
+
+    // mark non-body figures created by knitr chunks as 100% width
+    $('.layout-chunk').each(function(i, val) {
+      var figures = $(this).find('img, .html-widget');
+      // ignore leaflet img layers (#106)
+      figures = figures.filter(':not(img[class*="leaflet"])')
+      if ($(this).attr('data-layout') !== "l-body") {
+        figures.css('width', '100%');
+      } else {
+        figures.css('max-width', '100%');
+        figures.filter("[width]").each(function(i, val) {
+          var fig = $(this);
+          fig.css('width', fig.attr('width') + 'px');
+        });
+
+      }
+    });
+
+    // auto-append index.html to post-preview links in file: protocol
+    // and in rstudio ide preview
+    $('.post-preview').each(function(i, val) {
+      if (window.location.protocol === "file:")
+        $(this).attr('href', $(this).attr('href') + "index.html");
+    });
+
+    // get rid of index.html references in header
+    if (window.location.protocol !== "file:") {
+      $('.distill-site-header a[href]').each(function(i,val) {
+        $(this).attr('href', $(this).attr('href').replace(/^index[.]html/, "./"));
+      });
+    }
+
+    // add class to pandoc style tables
+    $('tr.header').parent('thead').parent('table').addClass('pandoc-table');
+    $('.kable-table').children('table').addClass('pandoc-table');
+
+    // add figcaption style to table captions
+    $('caption').parent('table').addClass("figcaption");
+
+    // initialize posts list
+    if (window.init_posts_list)
+      window.init_posts_list();
+
+    // implmement disqus comment link
+    $('.disqus-comment-count').click(function() {
+      window.headroom_prevent_pin = true;
+      $('#disqus_thread').toggleClass('hidden');
+      if (!$('#disqus_thread').hasClass('hidden')) {
+        var offset = $(this).offset();
+        $(window).resize();
+        $('html, body').animate({
+          scrollTop: offset.top - 35
+        });
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (is_downlevel_browser())
+      init_downlevel();
+    else
+      window.addEventListener('WebComponentsReady', init_distill);
+  });
+
+  </script>
+
+  <!--/radix_placeholder_distill-->
+  <script src="predictset_files/header-attrs-2.30/header-attrs.js"></script>
+  <script src="predictset_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+  <script src="predictset_files/popper-2.6.0/popper.min.js"></script>
+  <link href="predictset_files/tippy-6.2.7/tippy.css" rel="stylesheet" />
+  <link href="predictset_files/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />
+  <script src="predictset_files/tippy-6.2.7/tippy.umd.min.js"></script>
+  <script src="predictset_files/anchor-4.2.2/anchor.min.js"></script>
+  <script src="predictset_files/bowser-1.9.3/bowser.min.js"></script>
+  <script src="predictset_files/webcomponents-2.0.0/webcomponents.js"></script>
+  <script src="predictset_files/distill-2.2.21/template.v2.js"></script>
+  <!--radix_placeholder_site_in_header-->
+  <!--/radix_placeholder_site_in_header-->
+  <script>
+    $(function() {
+      console.log("Starting...")
+
+      // Mathjax config (add automatic linebreaks when supported)
+      // MathJax = {
+      //    tex: {
+      //        inlineMath: [['$', '$'], ['\\(', '\\)']],
+      //        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      //        tags: 'ams',
+      //        multline: true,
+      //    },
+      //    options: {
+      //        linebreaks: { automatic: true },
+      //    },
+      // };
+
+      // Always show Published - distill hides it if not set
+      function show_byline_column(caption) {
+        $('d-byline').find('h3:contains("' + caption + '")').parent().css('visibility', 'visible');
+      }
+
+      show_byline_column('Published')
+
+      // tweak function
+      var rmd_meta = JSON.parse($("#radix-rmarkdown-metadata").html());
+      function get_meta(name, meta) {
+        var ind = meta.attributes.names.value.findIndex((e) => e == name)
+        var val = meta.value[ind]
+        if (val.type != 'list') {
+          return val.value.toString()
+        }
+        return val
+      }
+
+      // tweak description
+      // Add clickable tags
+      const slug = get_meta('slug', rmd_meta)
+      const cite_url = get_meta('citation_url', rmd_meta)
+
+      var title = $("d-title").text
+
+      const buttons = $('<div class="dt-tags" style="grid-column: page;">')
+      buttons.append('<a href="#citation" class="dt-tag"><i class="fas fa-quote-left"></i> Cite</a>')
+      buttons.append('<a href="' + slug + '.pdf" class="dt-tag"><i class="fas fa-file-pdf"></i> PDF</a>')
+      buttons.append('<a href="' + slug + '.zip" class="dt-tag"><i class="fas fa-file-zipper"></i> Supplement</a>')
+
+      // adds Abstract: in front of the first <p> in the title section --
+      // unless it happens to be the subtitle (FIXME: this is a bad hack - can't distill do this?)
+      var tpar = $("d-title p:not(:empty)").filter(function() {
+        return !$(this).hasClass("subtitle");
+      }).first();
+      if (tpar) {
+        const abstract = $('<d-abstract>')
+        abstract.append('<b>Abstract:</b><br>')
+        abstract.append(tpar) // Move description to d-abstract
+        $("d-title p:empty").remove() // Remove empty paragraphs after title
+        abstract.append(buttons)
+        abstract.insertAfter($('d-title')) // Add abstract section after title */
+      }
+
+      // tweak by-line
+      var byline = $("d-byline div.byline")
+      ind = rmd_meta.attributes.names.value.findIndex((e) => e == "journal")
+      const journal = get_meta('journal', rmd_meta)
+      const volume = get_meta('volume', rmd_meta)
+      const issue = get_meta('issue', rmd_meta)
+      const jrtitle = get_meta('title', journal)
+      const year = ((jrtitle == "R News") ? 2000 : 2008) + parseInt(volume)
+      const firstpage = get_meta('firstpage', journal)
+      const lastpage = get_meta('lastpage', journal)
+      byline.append('<div class="rjournal grid">')
+      $('div.rjournal').append('<h3>Volume</h3>')
+      $('div.rjournal').append('<h3>Pages</h3>')
+      $('div.rjournal').append('<a class="volume" href="../../issues/'+year+'-'+issue+'">'+volume+'/'+issue+'</a>')
+      $('div.rjournal').append('<p class="pages">'+firstpage+' - '+lastpage+'</p>')
+
+      const received_date = new Date(get_meta('date_received', rmd_meta))
+      byline.find('h3:contains("Published")').parent().append('<h3>Received</h3><p>'+received_date.toLocaleDateString('en-US', {month: 'short'})+' '+received_date.getDate()+', '+received_date.getFullYear()+'</p>')
+
+    })
+  </script>
+
+  <style>
+      /*
+    .nav-dropdown-content .nav-dropdown-header {
+      text-transform: lowercase;
+    }
+    */
+
+    d-byline .byline {
+      grid-template-columns: 2fr 2fr 2fr 2fr;
+    }
+
+    d-byline .rjournal {
+      grid-column-end: span 2;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 0;
+    }
+
+    d-title h1, d-title p, d-title figure,
+    d-abstract p, d-abstract b {
+      grid-column: page;
+    }
+
+    d-title .dt-tags {
+      grid-column: page;
+    }
+
+    .dt-tags .dt-tag {
+      text-transform: lowercase;
+    }
+
+    d-article h1 {
+      line-height: 1.1em;
+    }
+
+    d-abstract p, d-article p {
+      text-align: justify;
+    }
+
+    @media(min-width: 1000px) {
+      .d-contents.d-contents-float {
+        justify-self: end;
+      }
+
+      nav.toc {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+        border-right-width: 1px;
+        border-right-style: solid;
+        border-right-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .posts-list .dt-tags .dt-tag {
+      text-transform: lowercase;
+    }
+
+    @keyframes highlight-target {
+      0% {
+        background-color: #ffa;
+      }
+      66% {
+        background-color: #ffa;
+      }
+      100% {
+        background-color: none;
+      }
+    }
+
+    d-article :target, d-appendix :target {
+       animation: highlight-target 3s;
+    }
+
+    .header-section-number {
+      margin-right: 0.5em;
+    }
+    
+    d-appendix .citation-appendix,
+    .d-appendix .citation-appendix {
+      color: rgb(60, 60, 60);
+    }
+
+    d-article h2 {
+      border-bottom: 0px solid rgba(0, 0, 0, 0.1);
+      padding-bottom: 0rem;
+    }
+    d-article h3 {
+      font-size: 20px;
+    }
+    d-article h4 {
+      font-size: 18px;
+      text-transform: none;
+    }
+
+    @media (min-width: 1024px) {
+      d-article h2 {
+        font-size: 32px;
+      }
+      d-article h3 {
+        font-size: 24px;
+      }
+      d-article h4 {
+        font-size: 20px;
+      }
+    }
+  </style>
+
+
+</head>
+
+<body>
+
+<!--radix_placeholder_front_matter-->
+
+<script id="distill-front-matter" type="text/json">
+{"title":"Predictset: Conformal Prediction and Uncertainty Quantification in R","description":"The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN.","authors":[{"author":"Charles Coverdale","authorURL":"https://github.com/charlescoverdale/predictset","affiliation":"Independent","affiliationURL":"#","orcidID":""}],"publishedDate":"2026-04-19T00:00:00.000+01:00","citationText":"Coverdale, 2026"}
+</script>
+
+<!--/radix_placeholder_front_matter-->
+<!--radix_placeholder_navigation_before_body-->
+<!--/radix_placeholder_navigation_before_body-->
+<!--radix_placeholder_site_before_body-->
+<!--/radix_placeholder_site_before_body-->
+
+<div class="d-title">
+<h1>Predictset: Conformal Prediction and Uncertainty Quantification in R</h1>
+
+<!--radix_placeholder_categories-->
+<!--/radix_placeholder_categories-->
+<p><p>The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN.</p></p>
+</div>
+
+<div class="d-byline">
+  Charles Coverdale <a href="https://github.com/charlescoverdale/predictset" class="uri">https://github.com/charlescoverdale/predictset</a> (Independent)
+  
+<br/>2026-04-19
+</div>
+
+<div class="d-article">
+<h2 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction</h2>
+<p>The <a href="https://cran.r-project.org/package=predictset">predictset</a> package wraps any fitted model in a calibrated layer
+of predictive uncertainty. For regression it returns prediction intervals; for
+classification it returns prediction sets. Both carry a finite-sample coverage
+guarantee that holds without distributional assumptions, provided only that
+calibration and test data are exchangeable. The package is on CRAN and
+interoperates with base R model classes, <a href="https://cran.r-project.org/package=ranger">ranger</a>, <a href="https://cran.r-project.org/package=xgboost">xgboost</a>, and
+anything a user can wrap in a training and prediction function.</p>
+<p>Conformal prediction, originating in the work of <span class="citation" data-cites="vovk2005algorithmic">Vovk et al. (<a href="#ref-vovk2005algorithmic" role="doc-biblioref">2005</a>)</span>, has
+seen sustained methodological development over the past decade. The
+finite-sample validity result is appealing: unlike parametric, bootstrap, and
+Bayesian intervals, conformal coverage does not depend on correct model
+specification or asymptotic approximation. Recent advances, notably
+Jackknife+ <span class="citation" data-cites="barber2021predictive">(<a href="#ref-barber2021predictive" role="doc-biblioref">Barber et al. 2021</a>)</span>, conformalized quantile regression
+<span class="citation" data-cites="romano2019conformalized">(<a href="#ref-romano2019conformalized" role="doc-biblioref">Romano et al. 2019</a>)</span>, and adaptive prediction sets
+<span class="citation" data-cites="romano2020classification">(<a href="#ref-romano2020classification" role="doc-biblioref">Romano et al. 2020b</a>)</span>, have closed the practical efficiency gap that
+once limited the framework to toy problems.</p>
+<p>R has lagged this development. The <a href="https://cran.r-project.org/package=probably">probably</a> package provides
+conformal regression within the <a href="https://cran.r-project.org/package=tidymodels">tidymodels</a> ecosystem, but it does
+not cover classification, Jackknife+, CV+, or any of the methods designed for
+heterogeneous coverage guarantees. The research code released alongside
+<span class="citation" data-cites="lei2018distribution">Lei et al. (<a href="#ref-lei2018distribution" role="doc-biblioref">2018</a>)</span>, distributed as the <a href="#">conformalInference</a> GitHub
+repository, is not on CRAN and has not been updated since 2019. Conformal
+classification, group-conditional coverage, and the covariate-shift and
+sequential variants have had no CRAN implementation at all.</p>
+<p><a href="https://cran.r-project.org/package=predictset">predictset</a> fills these gaps. It covers eleven methods across
+regression, classification, and sequential prediction. It ships with a
+model-agnostic interface that accepts formulas, pre-fitted models of several
+standard classes, and arbitrary user-defined train and predict functions. It
+has four runtime imports (<a href="https://cran.r-project.org/package=cli">cli</a>, , ,
+), all of which ship with base R apart from <a href="https://cran.r-project.org/package=cli">cli</a>, and
+no hard ties to any modelling framework. Diagnostics for marginal,
+group-conditional, and binned coverage are included as first-class functions.</p>
+<h2 data-number="2" id="background"><span class="header-section-number">2</span> Background</h2>
+<p>A conformal method takes a trained point-prediction model and a held-out
+calibration set, produces a nonconformity score per calibration point, and
+uses an empirical quantile of those scores to construct an interval or set
+around each new prediction. The resulting interval has marginal coverage at
+least <span class="math inline">\(1-\alpha\)</span>, where <span class="math inline">\(\alpha\)</span> is a user-specified miscoverage level, as
+long as calibration and test points are drawn from the same joint
+distribution.</p>
+<p><strong>Split conformal.</strong> The canonical variant divides the training data into
+two halves, fits the model on one, computes absolute residuals on the other,
+and sets the interval to the point prediction plus or minus the
+<span class="math inline">\(\lceil(n_{\text{cal}}+1)(1-\alpha)\rceil\)</span>-th order statistic of the
+calibration residuals <span class="citation" data-cites="lei2018distribution">(<a href="#ref-lei2018distribution" role="doc-biblioref">Lei et al. 2018</a>)</span>.</p>
+<p><strong>Cross-validated variants.</strong> Splitting halves the effective sample size.
+Jackknife+ avoids this by leave-one-out refitting; CV+ generalises to
+<span class="math inline">\(K\)</span>-fold. Both use the residuals from held-out folds directly, with a
+slightly weaker theoretical guarantee of <span class="math inline">\(1-2\alpha\)</span> <span class="citation" data-cites="barber2021predictive">(<a href="#ref-barber2021predictive" role="doc-biblioref">Barber et al. 2021</a>)</span>.</p>
+<p><strong>Quantile regression.</strong> Conformalized quantile regression (CQR) fits two
+quantile models, one for a lower quantile and one for an upper quantile, then
+calibrates the gap between them <span class="citation" data-cites="romano2019conformalized">(<a href="#ref-romano2019conformalized" role="doc-biblioref">Romano et al. 2019</a>)</span>. Unlike split
+conformal’s constant-width bands, CQR intervals widen and narrow with the
+conditional noise scale.</p>
+<p><strong>Classification.</strong> Adaptive prediction sets (APS) score each class by the
+cumulative probability mass up to and including it in a descending-probability
+ordering <span class="citation" data-cites="romano2020classification">(<a href="#ref-romano2020classification" role="doc-biblioref">Romano et al. 2020b</a>)</span>. Regularised APS
+<span class="citation" data-cites="angelopoulos2021uncertainty">(<a href="#ref-angelopoulos2021uncertainty" role="doc-biblioref">Angelopoulos et al. 2021</a>)</span> adds a penalty that discourages large sets.
+The least-ambiguous classifier (LAC) uses one minus the predicted probability
+of the true class as the score <span class="citation" data-cites="sadinle2019least">(<a href="#ref-sadinle2019least" role="doc-biblioref">Sadinle et al. 2019</a>)</span>.</p>
+<p><strong>Beyond marginal coverage.</strong> Mondrian conformal prediction computes a
+separate calibration quantile per subgroup, delivering coverage within each
+subgroup rather than only on average <span class="citation" data-cites="vovk2005algorithmic">(<a href="#ref-vovk2005algorithmic" role="doc-biblioref">Vovk et al. 2005</a>)</span>. Weighted
+conformal prediction relaxes the exchangeability assumption to likelihood-ratio
+reweighting, allowing a known covariate shift between calibration and test
+distributions <span class="citation" data-cites="tibshirani2019conformal">(<a href="#ref-tibshirani2019conformal" role="doc-biblioref">Tibshirani et al. 2019</a>)</span>. Adaptive conformal inference (ACI)
+adjusts the miscoverage target online based on observed coverage, maintaining
+long-run target coverage even under sequential distribution drift
+<span class="citation" data-cites="gibbs2021adaptive">(<a href="#ref-gibbs2021adaptive" role="doc-biblioref">Gibbs and Candes 2021</a>)</span>. For a unified exposition see
+<span class="citation" data-cites="angelopoulos2023gentle">Angelopoulos and Bates (<a href="#ref-angelopoulos2023gentle" role="doc-biblioref">2023</a>)</span>.</p>
+<h2 data-number="3" id="package-design"><span class="header-section-number">3</span> Package design</h2>
+<h3 data-number="3.1" id="architecture-and-dependencies"><span class="header-section-number">3.1</span> Architecture and dependencies</h3>
+<p><a href="https://cran.r-project.org/package=predictset">predictset</a> is pure R with no compiled code. Runtime imports are
+<a href="https://cran.r-project.org/package=cli">cli</a> (user-facing messages), , , and
+. R 4.1.0 or later is required. Optional packages enable specific
+examples: <a href="https://cran.r-project.org/package=ranger">ranger</a> for random-forest workflows, <a href="https://cran.r-project.org/package=ggplot2">ggplot2</a> for
+plotting, and the <a href="https://cran.r-project.org/package=parsnip">parsnip</a>, <a href="https://cran.r-project.org/package=probably">probably</a>, <a href="https://cran.r-project.org/package=rsample">rsample</a>,
+and <a href="https://cran.r-project.org/package=workflows">workflows</a> packages for tidymodels integration.</p>
+<h3 data-number="3.2" id="the-three-tier-model-interface"><span class="header-section-number">3.2</span> The three-tier model interface</h3>
+<p>Every conformal function accepts a argument in one of three
+forms:</p>
+<ol type="1">
+<li>A formula (for example ), which causes the package to fit
+internally.</li>
+<li>A pre-fitted model object of a recognised class: , ,
+or <a href="https://cran.r-project.org/package=ranger">ranger</a>. The package extracts training and prediction
+functions automatically.</li>
+<li>A object created with , which
+takes a training function, a prediction function, and a type argument
+( or ). This is the escape hatch
+for <a href="https://cran.r-project.org/package=xgboost">xgboost</a>, <a href="https://cran.r-project.org/package=keras">keras</a>, <a href="https://cran.r-project.org/package=lightgbm">lightgbm</a>, and any custom wrapper.</li>
+</ol>
+<p>The same interface carries across all eleven conformal methods. Users never
+subclass, never register, and never write a dispatch adaptor.</p>
+<h3 data-number="3.3" id="score-functions"><span class="header-section-number">3.3</span> Score functions</h3>
+<p>Regression methods default to absolute residuals.
+also accepts , which scales each residual
+by a locally estimated standard deviation. This yields interval widths that
+adapt to input-dependent noise, closing much of the practical gap between
+split conformal and CQR without the cost of a separate quantile model.</p>
+<p>Classification methods expose score type through the choice of
+function. uses cumulative-rank scores.
+uses penalised cumulative-rank scores.
+uses one-minus-true-class scores.</p>
+<h3 data-number="3.4" id="s3-classes-and-methods"><span class="header-section-number">3.4</span> S3 classes and methods</h3>
+<p>Each family returns its own S3 object. The regression class is
+. The classification class is
+. The sequential class is
+. Each class has
+, ,
+and methods. The method supports the
+“fit once, predict many times” workflow: a conformal object retains its
+calibration quantile and its fitted model, so new data can be scored without
+refitting.</p>
+<h3 data-number="3.5" id="reproducibility"><span class="header-section-number">3.5</span> Reproducibility</h3>
+<p>Nonconformity-score computation and quantile selection are deterministic
+given the input. Randomised APS uses R’s stream; users can set the seed
+before calling any conformal function. The default for APS randomisation is
+, which gives slightly conservative sets in exchange for exact
+reproducibility.</p>
+<h2 data-number="4" id="regression-methods"><span class="header-section-number">4</span> Regression methods</h2>
+<p> is the default entry point for regression. It
+implements split conformal with a choice of absolute or normalised residual
+scoring. Figure <a href="#fig:hetero">1</a> shows the effect of the score choice on a
+one-dimensional heteroscedastic problem: absolute-residual intervals are
+constant-width, while normalised intervals narrow where the fit is confident
+and widen where it is not.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:hetero"></span>
+<embed src="figures/fig1_heteroscedastic.pdf" title="A two-panel scatter plot of 400 training points under a sinusoidal signal with noise that grows with the input. The left panel shows absolute-residual conformal intervals as a constant-width band around the fitted curve. The right panel shows normalised-residual intervals that narrow near the left edge where noise is low and widen toward the right where noise is higher. Both panels report empirical coverage near 0.90 and similar mean interval widths." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 1: Split-conformal prediction intervals on a one-dimensional heteroscedastic problem at target coverage 0.90. Grey points show 400 training observations drawn from a sine signal with heteroscedastic Gaussian noise. Shaded bands are 200 test-point intervals from with (left, empirical coverage 0.890, mean width 5.45) and (right, empirical coverage 0.905, mean width 5.34). The normalised scoring produces narrower intervals where noise is low without losing coverage.
+</p>
+</div>
+</div>
+<p> implements CV+ with a default of ten folds, and
+implements leave-one-out Jackknife+. Both
+refit the underlying model <span class="math inline">\(K\)</span> or <span class="math inline">\(n\)</span> times, which for expensive models can
+dominate runtime. Progress bars via make this visible.</p>
+<p> takes two pre-specified quantile models, one lower
+and one upper, and calibrates their gap. Any quantile regressor works;
+canonical choices are <a href="https://cran.r-project.org/package=quantreg">quantreg</a>, gradient-boosted quantile
+regression via <a href="https://cran.r-project.org/package=lightgbm">lightgbm</a> or <a href="https://cran.r-project.org/package=xgboost">xgboost</a>, or quantile random forests
+via <a href="https://cran.r-project.org/package=ranger">ranger</a>.</p>
+<p>Table <a href="#tab:compare">1</a> compares split, CV+, and Jackknife+ on a common
+synthetic regression task. All three methods hit target coverage; the
+cross-validated variants produce tighter intervals at the cost of additional
+model fits.</p>
+<div class="layout-chunk" data-layout="l-body">
+<table>
+<caption><span id="tab:compare">Table 1: </span>Empirical coverage and mean interval width across three regression methods on a common sample. Synthetic data with 500 training points, 400 test points, and Gaussian noise with unit standard deviation. Target coverage 0.90. The CV+ variant is fit with ten folds; Jackknife+ is leave-one-out. All three methods reach target coverage; the cross-validated variants achieve meaningfully tighter intervals.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Method</th>
+<th style="text-align: right;">Target</th>
+<th style="text-align: right;">Empirical coverage</th>
+<th style="text-align: right;">Mean width</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Split conformal</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.925</td>
+<td style="text-align: right;">4.340</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CV+</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.907</td>
+<td style="text-align: right;">4.016</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Jackknife+</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.905</td>
+<td style="text-align: right;">4.027</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Figure <a href="#fig:compare">2</a> shows the same comparison visually, with mean
+interval width on the vertical axis and realised empirical coverage
+annotated above each bar.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:compare"></span>
+<embed src="figures/fig2_compare.pdf" title="A bar chart with three bars, one each for split conformal, CV+, and Jackknife+. The split conformal bar is the tallest at about 4.34 units of mean interval width; the CV+ and Jackknife+ bars are nearly identical and about 9 per cent shorter, at around 4.02 units. Each bar has its empirical coverage labelled above it: 0.925 for split, 0.907 for CV+, and 0.905 for Jackknife+." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 2: Mean prediction-interval width across split, CV+, and Jackknife+ on a common regression task. Bars show mean width; text above each bar reports empirical coverage on a 400-point held-out test set. Target coverage is 0.90. CV+ and Jackknife+ recover roughly 9 per cent width relative to split conformal by using all training data for both fitting and calibration.
+</p>
+</div>
+</div>
+<h2 data-number="5" id="classification-methods"><span class="header-section-number">5</span> Classification methods</h2>
+<p> constructs prediction sets by adding classes in
+descending probability until the cumulative mass exceeds a calibrated
+threshold. It supports both deterministic and randomised variants; the
+latter achieves exact marginal coverage at the cost of non-reproducibility
+without an explicit seed.</p>
+<p>Figure <a href="#fig:aps">3</a> illustrates the adaptive nature of APS on a
+three-class synthetic task. Points near the decision boundary are assigned
+larger prediction sets; confident predictions receive single-class sets.
+This is the central advantage of APS over a fixed top-<span class="math inline">\(k\)</span> rule: set size
+scales with model uncertainty.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aps"></span>
+<embed src="figures/fig3_aps_sets.pdf" title="A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at just above one for the lowest-entropy decile, rises gradually across the middle deciles, and reaches close to three for the highest-entropy decile. The monotonic rise shows APS producing larger sets for harder, higher-entropy test points." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 3: Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by wrapping a 200-tree classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises monotonically with entropy, from near one in the easy deciles to near three at the decision boundary.
+</p>
+</div>
+</div>
+<p> implements the regularised variant of
+<span class="citation" data-cites="angelopoulos2021uncertainty">Angelopoulos et al. (<a href="#ref-angelopoulos2021uncertainty" role="doc-biblioref">2021</a>)</span>. A penalty term discourages set sizes beyond a
+threshold rank, yielding smaller sets when model probabilities are heavy-tailed.</p>
+<p> implements the least-ambiguous classifier of
+<span class="citation" data-cites="sadinle2019least">Sadinle et al. (<a href="#ref-sadinle2019least" role="doc-biblioref">2019</a>)</span>, which uses one minus the predicted probability of the
+true class as the nonconformity score. LAC tends to produce smaller sets
+than APS when classes are well-separated but sacrifices the
+conditional-coverage property that APS was designed to provide: LAC
+coverage remains valid marginally, but can be uneven across difficulty
+levels when probabilities are miscalibrated.</p>
+<h2 data-number="6" id="beyond-marginal-coverage"><span class="header-section-number">6</span> Beyond marginal coverage</h2>
+<p>Marginal coverage is an average over the test distribution. Coverage can be
+meaningfully worse within a subgroup or under a mild distribution shift.
+<a href="https://cran.r-project.org/package=predictset">predictset</a> exposes three methods for these cases.</p>
+<h3 data-number="6.1" id="mondrian-conformal-prediction"><span class="header-section-number">6.1</span> Mondrian conformal prediction</h3>
+<p> (regression) and
+(classification) compute a separate calibration quantile per group, so
+each subgroup receives its own coverage guarantee. No other CRAN package
+implements this.</p>
+<p>Figure <a href="#fig:mond">4</a> shows the benefit on a two-group heteroscedastic
+regression problem where the high-noise group has four times the conditional
+variance of the low-noise group. Split conformal hits marginal coverage
+at the cost of over-covering the low-noise group and under-covering the
+high-noise group; Mondrian hits both group-level targets.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:mond"></span>
+<embed src="figures/fig4_mondrian.pdf" title="A grouped bar chart with two groups on the horizontal axis (low noise and high noise) and two bars per group (split conformal in orange and Mondrian in blue). A horizontal dashed line at 0.90 marks target coverage. For the low-noise group, split conformal over-covers and sits well above the dashed line; Mondrian sits on the dashed line. For the high-noise group, split conformal falls below the dashed line while Mondrian again sits on it, showing that Mondrian delivers the target within each subgroup." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 4: Group-conditional empirical coverage on a two-group heteroscedastic regression task, target 0.90. Training set 1200 points, test set 400 points, conditional standard deviation 3 for the high-noise group and 0.75 for the low-noise group. Dashed line marks target coverage. Split conformal (orange) achieves marginal coverage by under-covering the high-noise group. Mondrian (blue) computes calibration quantiles per group and delivers the target within each subgroup.
+</p>
+</div>
+</div>
+<h3 data-number="6.2" id="weighted-conformal-for-covariate-shift"><span class="header-section-number">6.2</span> Weighted conformal for covariate shift</h3>
+<p> implements the procedure of
+<span class="citation" data-cites="tibshirani2019conformal">Tibshirani et al. (<a href="#ref-tibshirani2019conformal" role="doc-biblioref">2019</a>)</span>. When the test covariate distribution differs from
+the training distribution, and the likelihood ratio between the two is known
+or estimable, weighted conformal uses importance-weighted calibration
+residuals rather than the unweighted empirical quantile. Figure
+<a href="#fig:weighted">5</a> demonstrates the correction under a shift of the training
+mean from zero to 1.5.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:weighted"></span>
+<embed src="figures/fig5_weighted.pdf" title="A bar chart with two bars. The first bar, for standard split conformal under covariate shift, falls well below the 0.90 target, around 0.78. The second bar, for weighted conformal using likelihood-ratio weights, sits very close to 0.90. A dashed horizontal line marks the 0.90 target for reference." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 5: Empirical coverage on a shifted test set at target 0.90. Training covariates standard normal; test covariates normal with mean 1.5. Outcome is a linear signal with heteroscedastic noise. Under this covariate shift, standard split conformal loses coverage by more than ten percentage points; weighted conformal using the exact likelihood-ratio weights recovers close to target coverage.
+</p>
+</div>
+</div>
+<h3 data-number="6.3" id="adaptive-conformal-inference"><span class="header-section-number">6.3</span> Adaptive conformal inference</h3>
+<p> implements the online procedure of
+<span class="citation" data-cites="gibbs2021adaptive">Gibbs and Candes (<a href="#ref-gibbs2021adaptive" role="doc-biblioref">2021</a>)</span>. At each time step, the miscoverage target <span class="math inline">\(\alpha_t\)</span> is
+updated according to
+<span class="math inline">\(\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)\)</span>,
+where <span class="math inline">\(\mathrm{err}_t\)</span> is the indicator that <span class="math inline">\(Y_t\)</span> fell outside the current
+interval. The procedure targets the long-run coverage <span class="math inline">\(1-\alpha\)</span> regardless
+of stationarity. It is the only R implementation of ACI on CRAN.</p>
+<h2 data-number="7" id="diagnostics"><span class="header-section-number">7</span> Diagnostics</h2>
+<p>Empirical coverage is computed via ; efficiency
+is reported by and .
+Two conditional-coverage diagnostics are exposed via
+(per-group coverage) and
+(coverage within prediction-magnitude
+bins). Both are the primary tools for detecting conditional-coverage
+failures that marginal coverage cannot reveal.</p>
+<p>Conformal p-values, usable for outlier detection, are produced by
+. Pairwise method benchmarks against a
+common dataset are produced by , which
+returns a data frame with coverage, mean width, median width, and
+wall-clock time per method.</p>
+<h2 data-number="8" id="replication"><span class="header-section-number">8</span> Replication</h2>
+<p>The canonical workflow is three lines of code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">conformal_split</span>(x, y, <span class="at">model =</span> y <span class="sc">~</span> ., <span class="at">x_new =</span> x_new, <span class="at">alpha =</span> <span class="fl">0.10</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">coverage</span>(result, y_new)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(result, <span class="at">newdata =</span> future_data)</span></code></pre></div>
+<p>Line one fits a linear model, holds out half the training data for
+calibration, computes absolute residuals, extracts the
+<span class="math inline">\(\lceil(n_{\text{cal}}+1)(1-\alpha)\rceil\)</span>-th order statistic, and attaches
+it to the returned object. Line two evaluates coverage on held-out
+outcomes. Line three scores new data using the cached model and quantile.
+No refitting is needed after line one. The same three-line pattern holds
+for every method in the package, regression and classification alike, once
+is swapped for the desired method.</p>
+<h2 data-number="9" id="a-case-study-in-fairness-via-group-conditional-coverage"><span class="header-section-number">9</span> A case study in fairness via group-conditional coverage</h2>
+<p>Marginal coverage is insufficient for any setting where failure modes are
+concentrated in subgroups: medical diagnosis by demographic, credit scoring
+by postcode, or insurance pricing by occupational class. A 90 per cent
+marginal guarantee is consistent with 99 per cent coverage on one group and
+60 per cent on another. The point is made explicitly by
+<span class="citation" data-cites="romano2020malice">Romano et al. (<a href="#ref-romano2020malice" role="doc-biblioref">2020a</a>)</span>, who propose equalised coverage via group-conditional
+calibration as a minimum standard for fair predictive inference.</p>
+<p>Mondrian conformal prediction solves the algorithmic side of this problem
+directly. Given a partition of the population into subgroups, it computes a
+calibration quantile per subgroup and guarantees coverage within each. The
+cost is sample efficiency: each subgroup needs enough calibration data for
+the empirical quantile to be stable, which rules out subgroups with fewer
+than roughly fifty observations.</p>
+<p>The worked example in Figure <a href="#fig:mond">4</a> shows the effect on a
+stylised two-group problem. Figure <a href="#fig:compas">6</a> demonstrates
+the same mechanism on a real dataset: the ProPublica COMPAS
+recidivism data <span class="citation" data-cites="angwin2016machine">(<a href="#ref-angwin2016machine" role="doc-biblioref">Angwin et al. 2016</a>)</span>, which records two-year
+recidivism outcomes for 6167 criminal defendants in Broward
+County, Florida, screened in 2013 and 2014. The dataset was
+released by <span class="citation" data-cites="angwin2016machine">Angwin et al. (<a href="#ref-angwin2016machine" role="doc-biblioref">2016</a>)</span> and became the canonical benchmark
+in the algorithmic-fairness literature.</p>
+<p>A logistic classifier is fitted on age, sex, prior offence counts,
+and charge degree using half the data as training. The other half
+is split between calibration and test.
+produces marginal prediction sets at target
+coverage 0.90; produces
+group-conditional prediction sets with race (African-American vs
+Caucasian) as the group variable.
+reports the realised coverage per
+group. With only two outcome classes, marginal APS over-covers
+(producing both-class sets frequently enough to reach 100 per cent
+empirical coverage in each group), which satisfies the marginal
+guarantee but is uninformative. Mondrian APS recovers close to the
+90 per cent target per group, with smaller prediction sets on
+average. On real deployment data, users should audit the realised
+per-group coverage after deployment, since the finite-sample
+guarantee holds only within each subgroup conditional on the group
+assignment being fixed and exchangeable.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:compas"></span>
+<embed src="figures/fig6_compas.pdf" title="A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. The marginal APS bars reach 1.00 in both groups, over-covering. The Mondrian APS bars sit close to the dashed line at 0.90 in both groups, showing tight tracking of the target within each subgroup." width="100%" type="application/pdf" />
+<p class="caption">
+Figure 6: Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS over-covers both groups by including both outcome classes in the prediction set frequently enough to hit 100 per cent empirically. Mondrian APS computes a separate calibration quantile per group and tracks the 0.90 target more tightly on each.
+</p>
+</div>
+</div>
+<h2 data-number="10" id="limitations"><span class="header-section-number">10</span> Limitations</h2>
+<p>Five limitations apply.</p>
+<ol type="1">
+<li><a href="https://cran.r-project.org/package=predictset">predictset</a> is a conformal prediction package, not a
+probabilistic forecasting package. It does not implement parametric,
+Bayesian, or bootstrap intervals. Users who want those should look to
+<a href="https://cran.r-project.org/package=rstanarm">rstanarm</a>, <a href="https://cran.r-project.org/package=brms">brms</a>, or base R .</li>
+<li>The finite-sample guarantee requires exchangeability between calibration
+and test data. Time-series prediction, where exchangeability fails,
+requires either ACI or a specialised conformal method for dependent
+data. Only ACI is implemented here.</li>
+<li>The split methods halve the training data. On small samples this can
+noticeably degrade model quality. Jackknife+ and CV+ avoid this at the
+cost of refitting the model <span class="math inline">\(n\)</span> or <span class="math inline">\(K\)</span> times.</li>
+<li>APS, RAPS, and LAC require well-calibrated class probabilities from the
+base model. Miscalibrated probabilities do not invalidate coverage, but
+they can yield unnecessarily large sets.</li>
+<li>Weighted conformal requires either a known likelihood ratio or an
+estimator for it. In practice the estimator is often a density-ratio
+classifier, which introduces its own error. The package does not bundle
+such an estimator; users supply the weights.</li>
+</ol>
+<h2 data-number="11" id="conclusion"><span class="header-section-number">11</span> Conclusion</h2>
+<p>Conformal prediction offers a rare combination in predictive inference:
+finite-sample coverage guarantees, no distributional assumptions, and
+compatibility with any point-prediction model. <a href="https://cran.r-project.org/package=predictset">predictset</a>
+brings that framework to R with eleven methods spanning regression,
+classification, sequential prediction, group-conditional coverage, and
+covariate shift, several of which have had no prior implementation on
+CRAN. The same three-line interface carries across every method, so the
+cost of switching from split conformal to Jackknife+, Mondrian, or
+weighted conformal is a single function name. Planned additions for
+version 0.4 include conformal procedures for dependent data beyond
+ACI, helpers for estimating likelihood-ratio weights under covariate
+shift, and tighter integration with <a href="https://cran.r-project.org/package=tidymodels">tidymodels</a> workflows.</p>
+<h2 class="unnumbered" id="acknowledgements">Acknowledgements</h2>
+<p>The author thanks the methodological community that has developed and
+refined the conformal prediction framework over the past two decades,
+including the contributors to the research code that preceded CRAN
+implementations. The author also thanks the R Core Team and CRAN
+maintainers for the infrastructure that supports open-source statistical
+software.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<h3 class="appendix" data-number="11.1" id="cran-packages-used"><span class="header-section-number">11.1</span> CRAN packages used</h3>
+<p><a href="https://cran.r-project.org/package=predictset">predictset</a>, <a href="https://cran.r-project.org/package=ranger">ranger</a>, <a href="https://cran.r-project.org/package=xgboost">xgboost</a>, <a href="https://cran.r-project.org/package=probably">probably</a>, <a href="https://cran.r-project.org/package=tidymodels">tidymodels</a>, <a href="https://cran.r-project.org/package=cli">cli</a>, <a href="https://cran.r-project.org/package=ggplot2">ggplot2</a>, <a href="https://cran.r-project.org/package=parsnip">parsnip</a>, <a href="https://cran.r-project.org/package=rsample">rsample</a>, <a href="https://cran.r-project.org/package=workflows">workflows</a>, <a href="https://cran.r-project.org/package=keras">keras</a>, <a href="https://cran.r-project.org/package=lightgbm">lightgbm</a>, <a href="https://cran.r-project.org/package=quantreg">quantreg</a>, <a href="https://cran.r-project.org/package=rstanarm">rstanarm</a>, <a href="https://cran.r-project.org/package=brms">brms</a></p>
+<h3 class="appendix" data-number="11.2" id="cran-task-views-implied-by-cited-packages"><span class="header-section-number">11.2</span> CRAN Task Views implied by cited packages</h3>
+<p><a href="https://cran.r-project.org/view=Bayesian">Bayesian</a>, <a href="https://cran.r-project.org/view=ChemPhys">ChemPhys</a>, <a href="https://cran.r-project.org/view=Databases">Databases</a>, <a href="https://cran.r-project.org/view=Econometrics">Econometrics</a>, <a href="https://cran.r-project.org/view=Environmetrics">Environmetrics</a>, <a href="https://cran.r-project.org/view=HighPerformanceComputing">HighPerformanceComputing</a>, <a href="https://cran.r-project.org/view=MachineLearning">MachineLearning</a>, <a href="https://cran.r-project.org/view=MetaAnalysis">MetaAnalysis</a>, <a href="https://cran.r-project.org/view=MixedModels">MixedModels</a>, <a href="https://cran.r-project.org/view=ModelDeployment">ModelDeployment</a>, <a href="https://cran.r-project.org/view=NetworkAnalysis">NetworkAnalysis</a>, <a href="https://cran.r-project.org/view=Optimization">Optimization</a>, <a href="https://cran.r-project.org/view=Phylogenetics">Phylogenetics</a>, <a href="https://cran.r-project.org/view=ReproducibleResearch">ReproducibleResearch</a>, <a href="https://cran.r-project.org/view=Robust">Robust</a>, <a href="https://cran.r-project.org/view=Spatial">Spatial</a>, <a href="https://cran.r-project.org/view=Survival">Survival</a>, <a href="https://cran.r-project.org/view=TeachingStatistics">TeachingStatistics</a></p>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-angelopoulos2023gentle" class="csl-entry" role="listitem">
+A. N. Angelopoulos and S. Bates. A gentle introduction to conformal prediction and distribution-free uncertainty quantification. <em>Foundations and Trends in Machine Learning</em>, 16(4): 494–591, 2023. DOI <a href="https://doi.org/10.1561/2200000101">10.1561/2200000101</a>.
+</div>
+<div id="ref-angelopoulos2021uncertainty" class="csl-entry" role="listitem">
+A. N. Angelopoulos, S. Bates, J. Malik and M. I. Jordan. Uncertainty sets for image classifiers using conformal prediction. <em>International Conference on Learning Representations</em>, 2021. DOI <a href="https://doi.org/10.48550/arXiv.2009.14193">10.48550/arXiv.2009.14193</a>.
+</div>
+<div id="ref-angwin2016machine" class="csl-entry" role="listitem">
+J. Angwin, J. Larson, S. Mattu and L. Kirchner. Machine bias: There’s software used across the country to predict future criminals. And it’s biased against blacks. 2016. URL <a href="https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing">https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing</a>.
+</div>
+<div id="ref-barber2021predictive" class="csl-entry" role="listitem">
+R. F. Barber, E. J. Candes, A. Ramdas and R. J. Tibshirani. Predictive inference with the jackknife+. <em>Annals of Statistics</em>, 49(1): 486–507, 2021. DOI <a href="https://doi.org/10.1214/20-AOS1965">10.1214/20-AOS1965</a>.
+</div>
+<div id="ref-gibbs2021adaptive" class="csl-entry" role="listitem">
+I. Gibbs and E. J. Candes. Adaptive conformal inference under distribution shift. <em>Advances in Neural Information Processing Systems</em>, 34: 2021. DOI <a href="https://doi.org/10.48550/arXiv.2106.00170">10.48550/arXiv.2106.00170</a>.
+</div>
+<div id="ref-lei2018distribution" class="csl-entry" role="listitem">
+J. Lei, M. G’Sell, A. Rinaldo, R. J. Tibshirani and L. Wasserman. Distribution-free predictive inference for regression. <em>Journal of the American Statistical Association</em>, 113(523): 1094–1111, 2018. DOI <a href="https://doi.org/10.1080/01621459.2017.1307116">10.1080/01621459.2017.1307116</a>.
+</div>
+<div id="ref-romano2020malice" class="csl-entry" role="listitem">
+Y. Romano, R. F. Barber, C. Sabatti and E. J. Candes. With malice toward none: Assessing uncertainty via equalized coverage. <em>Harvard Data Science Review</em>, 2(2): 2020a. DOI <a href="https://doi.org/10.1162/99608f92.03f00592">10.1162/99608f92.03f00592</a>.
+</div>
+<div id="ref-romano2019conformalized" class="csl-entry" role="listitem">
+Y. Romano, E. Patterson and E. J. Candes. Conformalized quantile regression. <em>Advances in Neural Information Processing Systems</em>, 32: 2019. DOI <a href="https://doi.org/10.48550/arXiv.1905.03222">10.48550/arXiv.1905.03222</a>.
+</div>
+<div id="ref-romano2020classification" class="csl-entry" role="listitem">
+Y. Romano, M. Sesia and E. J. Candes. Classification with valid and adaptive coverage. <em>Advances in Neural Information Processing Systems</em>, 33: 2020b. DOI <a href="https://doi.org/10.48550/arXiv.2006.02544">10.48550/arXiv.2006.02544</a>.
+</div>
+<div id="ref-sadinle2019least" class="csl-entry" role="listitem">
+M. Sadinle, J. Lei and L. Wasserman. Least ambiguous set-valued classifiers with bounded error levels. <em>Journal of the American Statistical Association</em>, 114(525): 223–234, 2019. DOI <a href="https://doi.org/10.1080/01621459.2017.1395341">10.1080/01621459.2017.1395341</a>.
+</div>
+<div id="ref-tibshirani2019conformal" class="csl-entry" role="listitem">
+R. J. Tibshirani, R. F. Barber, E. J. Candes and A. Ramdas. Conformal prediction under covariate shift. <em>Advances in Neural Information Processing Systems</em>, 32: 2019. DOI <a href="https://doi.org/10.48550/arXiv.1904.06019">10.48550/arXiv.1904.06019</a>.
+</div>
+<div id="ref-vovk2005algorithmic" class="csl-entry" role="listitem">
+V. Vovk, A. Gammerman and G. Shafer. <em>Algorithmic learning in a random world.</em> New York: Springer, 2005. DOI <a href="https://doi.org/10.1007/b106715">10.1007/b106715</a>.
+</div>
+</div>
+<!--radix_placeholder_article_footer-->
+<!--/radix_placeholder_article_footer-->
+</div>
+
+<div class="d-appendix">
+</div>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+<!--radix_placeholder_site_after_body-->
+<!--/radix_placeholder_site_after_body-->
+<!--radix_placeholder_appendices-->
+<div class="appendix-bottom">
+<h3 id="references">References</h3>
+<div id="references-listing"></div>
+<h3 id="reuse">Reuse</h3>
+<p>Text and figures are licensed under Creative Commons Attribution <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The figures that have been reused from other sources don't fall under this license and can be recognized by a note in their caption: "Figure from ...".</p>
+<h3 id="citation">Citation</h3>
+<p>For attribution, please cite this work as</p>
+<pre class="citation-appendix short">Coverdale, "Predictset: Conformal Prediction and Uncertainty Quantification in R", The R Journal, 2026</pre>
+<p>BibTeX citation</p>
+<pre class="citation-appendix long">@article{predictset,
+  author = {Coverdale, Charles},
+  title = {Predictset: Conformal Prediction and Uncertainty Quantification in R},
+  journal = {The R Journal},
+  year = {2026},
+  issn = {2073-4859},
+  pages = {1}
+}</pre>
+</div>
+<!--/radix_placeholder_appendices-->
+<!--radix_placeholder_navigation_after_body-->
+<!--/radix_placeholder_navigation_after_body-->
+
+</body>
+
+</html>

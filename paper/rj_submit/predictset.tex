@@ -1,0 +1,475 @@
+% !TeX root = RJwrapper.tex
+\title{Predictset: Conformal Prediction and Uncertainty Quantification in R}
+
+
+\author{by Charles Coverdale}
+
+\maketitle
+
+\abstract{%
+The predictset package implements model-agnostic conformal prediction for regression and classification in R. It constructs prediction intervals and prediction sets with finite-sample, distribution-free coverage guarantees around any fitted model, including lm, glm, ranger, xgboost, and arbitrary user-defined models. Eleven methods are covered: split conformal, CV+, Jackknife+, conformalized quantile regression, adaptive prediction sets, regularised APS, least-ambiguous classifiers, Mondrian conformal prediction for group-conditional coverage, weighted conformal prediction for covariate shift, and adaptive conformal inference for sequential prediction. Diagnostics for marginal, group-conditional, and binned coverage are included. The package is available on CRAN.
+}
+
+\section{Introduction}\label{introduction}
+
+The \CRANpkg{predictset} package wraps any fitted model in a calibrated layer
+of predictive uncertainty. For regression it returns prediction intervals; for
+classification it returns prediction sets. Both carry a finite-sample coverage
+guarantee that holds without distributional assumptions, provided only that
+calibration and test data are exchangeable. The package is on CRAN and
+interoperates with base R model classes, \CRANpkg{ranger}, \CRANpkg{xgboost}, and
+anything a user can wrap in a training and prediction function.
+
+Conformal prediction, originating in the work of \citet{vovk2005algorithmic}, has
+seen sustained methodological development over the past decade. The
+finite-sample validity result is appealing: unlike parametric, bootstrap, and
+Bayesian intervals, conformal coverage does not depend on correct model
+specification or asymptotic approximation. Recent advances, notably
+Jackknife+ \citep{barber2021predictive}, conformalized quantile regression
+\citep{romano2019conformalized}, and adaptive prediction sets
+\citep{romano2020classification}, have closed the practical efficiency gap that
+once limited the framework to toy problems.
+
+R has lagged this development. The \CRANpkg{probably} package provides
+conformal regression within the \CRANpkg{tidymodels} ecosystem, but it does
+not cover classification, Jackknife+, CV+, or any of the methods designed for
+heterogeneous coverage guarantees. The research code released alongside
+\citet{lei2018distribution}, distributed as the \pkg{conformalInference} GitHub
+repository, is not on CRAN and has not been updated since 2019. Conformal
+classification, group-conditional coverage, and the covariate-shift and
+sequential variants have had no CRAN implementation at all.
+
+\CRANpkg{predictset} fills these gaps. It covers eleven methods across
+regression, classification, and sequential prediction. It ships with a
+model-agnostic interface that accepts formulas, pre-fitted models of several
+standard classes, and arbitrary user-defined train and predict functions. It
+has four runtime imports (\CRANpkg{cli}, \code{grDevices}, \code{graphics},
+\code{stats}), all of which ship with base R apart from \CRANpkg{cli}, and
+no hard ties to any modelling framework. Diagnostics for marginal,
+group-conditional, and binned coverage are included as first-class functions.
+
+\section{Background}\label{background}
+
+A conformal method takes a trained point-prediction model and a held-out
+calibration set, produces a nonconformity score per calibration point, and
+uses an empirical quantile of those scores to construct an interval or set
+around each new prediction. The resulting interval has marginal coverage at
+least \(1-\alpha\), where \(\alpha\) is a user-specified miscoverage level, as
+long as calibration and test points are drawn from the same joint
+distribution.
+
+\textbf{Split conformal.} The canonical variant divides the training data into
+two halves, fits the model on one, computes absolute residuals on the other,
+and sets the interval to the point prediction plus or minus the
+\(\lceil(n_{\text{cal}}+1)(1-\alpha)\rceil\)-th order statistic of the
+calibration residuals \citep{lei2018distribution}.
+
+\textbf{Cross-validated variants.} Splitting halves the effective sample size.
+Jackknife+ avoids this by leave-one-out refitting; CV+ generalises to
+\(K\)-fold. Both use the residuals from held-out folds directly, with a
+slightly weaker theoretical guarantee of \(1-2\alpha\) \citep{barber2021predictive}.
+
+\textbf{Quantile regression.} Conformalized quantile regression (CQR) fits two
+quantile models, one for a lower quantile and one for an upper quantile, then
+calibrates the gap between them \citep{romano2019conformalized}. Unlike split
+conformal's constant-width bands, CQR intervals widen and narrow with the
+conditional noise scale.
+
+\textbf{Classification.} Adaptive prediction sets (APS) score each class by the
+cumulative probability mass up to and including it in a descending-probability
+ordering \citep{romano2020classification}. Regularised APS
+\citep{angelopoulos2021uncertainty} adds a penalty that discourages large sets.
+The least-ambiguous classifier (LAC) uses one minus the predicted probability
+of the true class as the score \citep{sadinle2019least}.
+
+\textbf{Beyond marginal coverage.} Mondrian conformal prediction computes a
+separate calibration quantile per subgroup, delivering coverage within each
+subgroup rather than only on average \citep{vovk2005algorithmic}. Weighted
+conformal prediction relaxes the exchangeability assumption to likelihood-ratio
+reweighting, allowing a known covariate shift between calibration and test
+distributions \citep{tibshirani2019conformal}. Adaptive conformal inference (ACI)
+adjusts the miscoverage target online based on observed coverage, maintaining
+long-run target coverage even under sequential distribution drift
+\citep{gibbs2021adaptive}. For a unified exposition see
+\citet{angelopoulos2023gentle}.
+
+\section{Package design}\label{package-design}
+
+\subsection{Architecture and dependencies}\label{architecture-and-dependencies}
+
+\CRANpkg{predictset} is pure R with no compiled code. Runtime imports are
+\CRANpkg{cli} (user-facing messages), \code{grDevices}, \code{graphics}, and
+\code{stats}. R 4.1.0 or later is required. Optional packages enable specific
+examples: \CRANpkg{ranger} for random-forest workflows, \CRANpkg{ggplot2} for
+plotting, and the \CRANpkg{parsnip}, \CRANpkg{probably}, \CRANpkg{rsample},
+and \CRANpkg{workflows} packages for tidymodels integration.
+
+\subsection{The three-tier model interface}\label{the-three-tier-model-interface}
+
+Every conformal function accepts a \code{model} argument in one of three
+forms:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  A formula (for example \code{y \~{} .}), which causes the package to fit
+  \code{lm} internally.
+\item
+  A pre-fitted model object of a recognised class: \code{lm}, \code{glm},
+  or \CRANpkg{ranger}. The package extracts training and prediction
+  functions automatically.
+\item
+  A \code{predictset\_model} object created with \code{make\_model()}, which
+  takes a training function, a prediction function, and a type argument
+  (\code{"regression"} or \code{"classification"}). This is the escape hatch
+  for \CRANpkg{xgboost}, \CRANpkg{keras}, \CRANpkg{lightgbm}, and any custom wrapper.
+\end{enumerate}
+
+The same interface carries across all eleven conformal methods. Users never
+subclass, never register, and never write a dispatch adaptor.
+
+\subsection{Score functions}\label{score-functions}
+
+Regression methods default to absolute residuals. \code{conformal\_split()}
+also accepts \code{score\_type = "normalized"}, which scales each residual
+by a locally estimated standard deviation. This yields interval widths that
+adapt to input-dependent noise, closing much of the practical gap between
+split conformal and CQR without the cost of a separate quantile model.
+
+Classification methods expose score type through the choice of
+function. \code{conformal\_aps()} uses cumulative-rank scores.
+\code{conformal\_raps()} uses penalised cumulative-rank scores.
+\code{conformal\_lac()} uses one-minus-true-class scores.
+
+\subsection{S3 classes and methods}\label{s3-classes-and-methods}
+
+Each family returns its own S3 object. The regression class is
+\code{predictset\_reg}. The classification class is
+\code{predictset\_class}. The sequential class is
+\code{predictset\_aci}. Each class has
+\code{print()}, \code{plot()},
+and \code{predict()} methods. The \code{predict()} method supports the
+``fit once, predict many times'' workflow: a conformal object retains its
+calibration quantile and its fitted model, so new data can be scored without
+refitting.
+
+\subsection{Reproducibility}\label{reproducibility}
+
+Nonconformity-score computation and quantile selection are deterministic
+given the input. Randomised APS uses R's stream; users can set the seed
+before calling any conformal function. The default for APS randomisation is
+\code{FALSE}, which gives slightly conservative sets in exchange for exact
+reproducibility.
+
+\section{Regression methods}\label{regression-methods}
+
+\code{conformal\_split()} is the default entry point for regression. It
+implements split conformal with a choice of absolute or normalised residual
+scoring. Figure \ref{fig:hetero} shows the effect of the score choice on a
+one-dimensional heteroscedastic problem: absolute-residual intervals are
+constant-width, while normalised intervals narrow where the fit is confident
+and widen where it is not.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A two-panel scatter plot of 400 training points under a sinusoidal signal with noise that grows with the input. The left panel shows absolute-residual conformal intervals as a constant-width band around the fitted curve. The right panel shows normalised-residual intervals that narrow near the left edge where noise is low and widen toward the right where noise is higher. Both panels report empirical coverage near 0.90 and similar mean interval widths.}]{figures/fig1_heteroscedastic} 
+
+}
+
+\caption{Split-conformal prediction intervals on a one-dimensional heteroscedastic problem at target coverage 0.90. Grey points show 400 training observations drawn from a sine signal with heteroscedastic Gaussian noise. Shaded bands are 200 test-point intervals from \texttt{conformal\_split()} with \texttt{score\_type = "absolute"} (left, empirical coverage 0.890, mean width 5.45) and \texttt{score\_type = "normalized"} (right, empirical coverage 0.905, mean width 5.34). The normalised scoring produces narrower intervals where noise is low without losing coverage.}\label{fig:hetero}
+\end{figure}
+
+\code{conformal\_cv()} implements CV+ with a default of ten folds, and
+\code{conformal\_jackknife()} implements leave-one-out Jackknife+. Both
+refit the underlying model \(K\) or \(n\) times, which for expensive models can
+dominate runtime. Progress bars via \code{verbose = TRUE} make this visible.
+
+\code{conformal\_cqr()} takes two pre-specified quantile models, one lower
+and one upper, and calibrates their gap. Any quantile regressor works;
+canonical choices are \CRANpkg{quantreg}, gradient-boosted quantile
+regression via \CRANpkg{lightgbm} or \CRANpkg{xgboost}, or quantile random forests
+via \CRANpkg{ranger}.
+
+Table \ref{tab:compare} compares split, CV+, and Jackknife+ on a common
+synthetic regression task. All three methods hit target coverage; the
+cross-validated variants produce tighter intervals at the cost of additional
+model fits.
+
+\begin{table}
+
+\caption{\label{tab:compare}Empirical coverage and mean interval width across three regression methods on a common sample. Synthetic data with 500 training points, 400 test points, and Gaussian noise with unit standard deviation. Target coverage 0.90. The CV+ variant is fit with ten folds; Jackknife+ is leave-one-out. All three methods reach target coverage; the cross-validated variants achieve meaningfully tighter intervals.}
+\centering
+\begin{tabular}[t]{lrrr}
+\toprule
+Method & Target & Empirical coverage & Mean width\\
+\midrule
+Split conformal & 0.9 & 0.925 & 4.340\\
+CV+ & 0.9 & 0.907 & 4.016\\
+Jackknife+ & 0.9 & 0.905 & 4.027\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure \ref{fig:compare} shows the same comparison visually, with mean
+interval width on the vertical axis and realised empirical coverage
+annotated above each bar.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with three bars, one each for split conformal, CV+, and Jackknife+. The split conformal bar is the tallest at about 4.34 units of mean interval width; the CV+ and Jackknife+ bars are nearly identical and about 9 per cent shorter, at around 4.02 units. Each bar has its empirical coverage labelled above it: 0.925 for split, 0.907 for CV+, and 0.905 for Jackknife+.}]{figures/fig2_compare} 
+
+}
+
+\caption{Mean prediction-interval width across split, CV+, and Jackknife+ on a common regression task. Bars show mean width; text above each bar reports empirical coverage on a 400-point held-out test set. Target coverage is 0.90. CV+ and Jackknife+ recover roughly 9 per cent width relative to split conformal by using all training data for both fitting and calibration.}\label{fig:compare}
+\end{figure}
+
+\section{Classification methods}\label{classification-methods}
+
+\code{conformal\_aps()} constructs prediction sets by adding classes in
+descending probability until the cumulative mass exceeds a calibrated
+threshold. It supports both deterministic and randomised variants; the
+latter achieves exact marginal coverage at the cost of non-reproducibility
+without an explicit seed.
+
+Figure \ref{fig:aps} illustrates the adaptive nature of APS on a
+three-class synthetic task. Points near the decision boundary are assigned
+larger prediction sets; confident predictions receive single-class sets.
+This is the central advantage of APS over a fixed top-\(k\) rule: set size
+scales with model uncertainty.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at just above one for the lowest-entropy decile, rises gradually across the middle deciles, and reaches close to three for the highest-entropy decile. The monotonic rise shows APS producing larger sets for harder, higher-entropy test points.}]{figures/fig3_aps_sets} 
+
+}
+
+\caption{Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \texttt{conformal\_aps()} wrapping a 200-tree \texttt{ranger} classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises monotonically with entropy, from near one in the easy deciles to near three at the decision boundary.}\label{fig:aps}
+\end{figure}
+
+\code{conformal\_raps()} implements the regularised variant of
+\citet{angelopoulos2021uncertainty}. A penalty term discourages set sizes beyond a
+threshold rank, yielding smaller sets when model probabilities are heavy-tailed.
+
+\code{conformal\_lac()} implements the least-ambiguous classifier of
+\citet{sadinle2019least}, which uses one minus the predicted probability of the
+true class as the nonconformity score. LAC tends to produce smaller sets
+than APS when classes are well-separated but sacrifices the
+conditional-coverage property that APS was designed to provide: LAC
+coverage remains valid marginally, but can be uneven across difficulty
+levels when probabilities are miscalibrated.
+
+\section{Beyond marginal coverage}\label{beyond-marginal-coverage}
+
+Marginal coverage is an average over the test distribution. Coverage can be
+meaningfully worse within a subgroup or under a mild distribution shift.
+\CRANpkg{predictset} exposes three methods for these cases.
+
+\subsection{Mondrian conformal prediction}\label{mondrian-conformal-prediction}
+
+\code{conformal\_mondrian()} (regression) and \code{conformal\_mondrian\_class()}
+(classification) compute a separate calibration quantile per group, so
+each subgroup receives its own coverage guarantee. No other CRAN package
+implements this.
+
+Figure \ref{fig:mond} shows the benefit on a two-group heteroscedastic
+regression problem where the high-noise group has four times the conditional
+variance of the low-noise group. Split conformal hits marginal coverage
+at the cost of over-covering the low-noise group and under-covering the
+high-noise group; Mondrian hits both group-level targets.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (low noise and high noise) and two bars per group (split conformal in orange and Mondrian in blue). A horizontal dashed line at 0.90 marks target coverage. For the low-noise group, split conformal over-covers and sits well above the dashed line; Mondrian sits on the dashed line. For the high-noise group, split conformal falls below the dashed line while Mondrian again sits on it, showing that Mondrian delivers the target within each subgroup.}]{figures/fig4_mondrian} 
+
+}
+
+\caption{Group-conditional empirical coverage on a two-group heteroscedastic regression task, target 0.90. Training set 1200 points, test set 400 points, conditional standard deviation 3 for the high-noise group and 0.75 for the low-noise group. Dashed line marks target coverage. Split conformal (orange) achieves marginal coverage by under-covering the high-noise group. Mondrian (blue) computes calibration quantiles per group and delivers the target within each subgroup.}\label{fig:mond}
+\end{figure}
+
+\subsection{Weighted conformal for covariate shift}\label{weighted-conformal-for-covariate-shift}
+
+\code{conformal\_weighted()} implements the procedure of
+\citet{tibshirani2019conformal}. When the test covariate distribution differs from
+the training distribution, and the likelihood ratio between the two is known
+or estimable, weighted conformal uses importance-weighted calibration
+residuals rather than the unweighted empirical quantile. Figure
+\ref{fig:weighted} demonstrates the correction under a shift of the training
+mean from zero to 1.5.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with two bars. The first bar, for standard split conformal under covariate shift, falls well below the 0.90 target, around 0.78. The second bar, for weighted conformal using likelihood-ratio weights, sits very close to 0.90. A dashed horizontal line marks the 0.90 target for reference.}]{figures/fig5_weighted} 
+
+}
+
+\caption{Empirical coverage on a shifted test set at target 0.90. Training covariates standard normal; test covariates normal with mean 1.5. Outcome is a linear signal with heteroscedastic noise. Under this covariate shift, standard split conformal loses coverage by more than ten percentage points; weighted conformal using the exact likelihood-ratio weights recovers close to target coverage.}\label{fig:weighted}
+\end{figure}
+
+\subsection{Adaptive conformal inference}\label{adaptive-conformal-inference}
+
+\code{conformal\_aci()} implements the online procedure of
+\citet{gibbs2021adaptive}. At each time step, the miscoverage target \(\alpha_t\) is
+updated according to
+\(\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)\),
+where \(\mathrm{err}_t\) is the indicator that \(Y_t\) fell outside the current
+interval. The procedure targets the long-run coverage \(1-\alpha\) regardless
+of stationarity. It is the only R implementation of ACI on CRAN.
+
+\section{Diagnostics}\label{diagnostics}
+
+Empirical coverage is computed via \code{coverage()}; efficiency
+is reported by \code{interval\_width()} and \code{set\_size()}.
+Two conditional-coverage diagnostics are exposed via
+\code{coverage\_by\_group()} (per-group coverage) and
+\code{coverage\_by\_bin()} (coverage within prediction-magnitude
+bins). Both are the primary tools for detecting conditional-coverage
+failures that marginal coverage cannot reveal.
+
+Conformal p-values, usable for outlier detection, are produced by
+\code{conformal\_pvalue()}. Pairwise method benchmarks against a
+common dataset are produced by \code{conformal\_compare()}, which
+returns a data frame with coverage, mean width, median width, and
+wall-clock time per method.
+
+\section{Replication}\label{replication}
+
+The canonical workflow is three lines of code:
+
+\begin{verbatim}
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
+coverage(result, y_new)
+predict(result, newdata = future_data)
+\end{verbatim}
+
+Line one fits a linear model, holds out half the training data for
+calibration, computes absolute residuals, extracts the
+\(\lceil(n_{\text{cal}}+1)(1-\alpha)\rceil\)-th order statistic, and attaches
+it to the returned object. Line two evaluates coverage on held-out
+outcomes. Line three scores new data using the cached model and quantile.
+No refitting is needed after line one. The same three-line pattern holds
+for every method in the package, regression and classification alike, once
+\code{conformal\_split()} is swapped for the desired method.
+
+\section{A case study in fairness via group-conditional coverage}\label{a-case-study-in-fairness-via-group-conditional-coverage}
+
+Marginal coverage is insufficient for any setting where failure modes are
+concentrated in subgroups: medical diagnosis by demographic, credit scoring
+by postcode, or insurance pricing by occupational class. A 90 per cent
+marginal guarantee is consistent with 99 per cent coverage on one group and
+60 per cent on another. The point is made explicitly by
+\citet{romano2020malice}, who propose equalised coverage via group-conditional
+calibration as a minimum standard for fair predictive inference.
+
+Mondrian conformal prediction solves the algorithmic side of this problem
+directly. Given a partition of the population into subgroups, it computes a
+calibration quantile per subgroup and guarantees coverage within each. The
+cost is sample efficiency: each subgroup needs enough calibration data for
+the empirical quantile to be stable, which rules out subgroups with fewer
+than roughly fifty observations.
+
+The worked example in Figure \ref{fig:mond} shows the effect on a
+stylised two-group problem. Figure \ref{fig:compas} demonstrates
+the same mechanism on a real dataset: the ProPublica COMPAS
+recidivism data \citep{angwin2016machine}, which records two-year
+recidivism outcomes for 6167 criminal defendants in Broward
+County, Florida, screened in 2013 and 2014. The dataset was
+released by \citet{angwin2016machine} and became the canonical benchmark
+in the algorithmic-fairness literature.
+
+A logistic classifier is fitted on age, sex, prior offence counts,
+and charge degree using half the data as training. The other half
+is split between calibration and test.
+\code{conformal\_aps()} produces marginal prediction sets at target
+coverage 0.90; \code{conformal\_mondrian\_class()} produces
+group-conditional prediction sets with race (African-American vs
+Caucasian) as the group variable.
+\code{coverage\_by\_group()} reports the realised coverage per
+group. With only two outcome classes, marginal APS over-covers
+(producing both-class sets frequently enough to reach 100 per cent
+empirical coverage in each group), which satisfies the marginal
+guarantee but is uninformative. Mondrian APS recovers close to the
+90 per cent target per group, with smaller prediction sets on
+average. On real deployment data, users should audit the realised
+per-group coverage after deployment, since the finite-sample
+guarantee holds only within each subgroup conditional on the group
+assignment being fixed and exchangeable.
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. The marginal APS bars reach 1.00 in both groups, over-covering. The Mondrian APS bars sit close to the dashed line at 0.90 in both groups, showing tight tracking of the target within each subgroup.}]{figures/fig6_compas} 
+
+}
+
+\caption{Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS over-covers both groups by including both outcome classes in the prediction set frequently enough to hit 100 per cent empirically. Mondrian APS computes a separate calibration quantile per group and tracks the 0.90 target more tightly on each.}\label{fig:compas}
+\end{figure}
+
+\section{Limitations}\label{limitations}
+
+Five limitations apply.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \CRANpkg{predictset} is a conformal prediction package, not a
+  probabilistic forecasting package. It does not implement parametric,
+  Bayesian, or bootstrap intervals. Users who want those should look to
+  \CRANpkg{rstanarm}, \CRANpkg{brms}, or base R \code{predict()}.
+\item
+  The finite-sample guarantee requires exchangeability between calibration
+  and test data. Time-series prediction, where exchangeability fails,
+  requires either ACI or a specialised conformal method for dependent
+  data. Only ACI is implemented here.
+\item
+  The split methods halve the training data. On small samples this can
+  noticeably degrade model quality. Jackknife+ and CV+ avoid this at the
+  cost of refitting the model \(n\) or \(K\) times.
+\item
+  APS, RAPS, and LAC require well-calibrated class probabilities from the
+  base model. Miscalibrated probabilities do not invalidate coverage, but
+  they can yield unnecessarily large sets.
+\item
+  Weighted conformal requires either a known likelihood ratio or an
+  estimator for it. In practice the estimator is often a density-ratio
+  classifier, which introduces its own error. The package does not bundle
+  such an estimator; users supply the weights.
+\end{enumerate}
+
+\section{Conclusion}\label{conclusion}
+
+Conformal prediction offers a rare combination in predictive inference:
+finite-sample coverage guarantees, no distributional assumptions, and
+compatibility with any point-prediction model. \CRANpkg{predictset}
+brings that framework to R with eleven methods spanning regression,
+classification, sequential prediction, group-conditional coverage, and
+covariate shift, several of which have had no prior implementation on
+CRAN. The same three-line interface carries across every method, so the
+cost of switching from split conformal to Jackknife+, Mondrian, or
+weighted conformal is a single function name. Planned additions for
+version 0.4 include conformal procedures for dependent data beyond
+ACI, helpers for estimating likelihood-ratio weights under covariate
+shift, and tighter integration with \CRANpkg{tidymodels} workflows.
+
+\section*{Acknowledgements}\label{acknowledgements}
+\addcontentsline{toc}{section}{Acknowledgements}
+
+The author thanks the methodological community that has developed and
+refined the conformal prediction framework over the past two decades,
+including the contributors to the research code that preceded CRAN
+implementations. The author also thanks the R Core Team and CRAN
+maintainers for the infrastructure that supports open-source statistical
+software.
+
+\section*{References}
+\bibliography{RJreferences.bib}
+
+\address{%
+Charles Coverdale\\
+Independent\\%
+London, United Kingdom\\
+%
+\url{https://github.com/charlescoverdale/predictset}\\%
+%
+\href{mailto:charles.f.coverdale@gmail.com}{\nolinkurl{charles.f.coverdale@gmail.com}}%
+}
