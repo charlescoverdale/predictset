@@ -171,9 +171,9 @@ one-dimensional heteroscedastic problem: absolute-residual intervals are
 constant-width, while normalised intervals narrow where the fit is confident
 and widen where it is not.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A two-panel scatter plot of 400 training points under a sinusoidal signal with noise that grows with the input. The left panel shows absolute-residual conformal intervals as a constant-width band around the fitted curve. The right panel shows normalised-residual intervals that narrow near the left edge where noise is low and widen toward the right where noise is higher. Both panels report empirical coverage near 0.90 and similar mean interval widths.}]{figures/fig1_heteroscedastic} 
+{\centering \includegraphics[width=1\linewidth,alt={A two-panel scatter plot of 400 training points under a sinusoidal signal with noise that grows with the input. The left panel shows absolute-residual conformal intervals as a constant-width band around the fitted curve. The right panel shows normalised-residual intervals that narrow near the left edge where noise is low and widen toward the right where noise is higher. Both panels report empirical coverage near 0.90 and similar mean interval widths.},]{figures/fig1_heteroscedastic} 
 
 }
 
@@ -215,9 +215,9 @@ Figure \ref{fig:compare} shows the same comparison visually, with mean
 interval width on the vertical axis and realised empirical coverage
 annotated above each bar.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A bar chart with three bars, one each for split conformal, CV+, and Jackknife+. The split conformal bar is the tallest at about 4.34 units of mean interval width; the CV+ and Jackknife+ bars are nearly identical and about 9 per cent shorter, at around 4.02 units. Each bar has its empirical coverage labelled above it: 0.925 for split, 0.907 for CV+, and 0.905 for Jackknife+.}]{figures/fig2_compare} 
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with three bars, one each for split conformal, CV+, and Jackknife+. The split conformal bar is the tallest at about 4.34 units of mean interval width; the CV+ and Jackknife+ bars are nearly identical and about 9 per cent shorter, at around 4.02 units. Each bar has its empirical coverage labelled above it: 0.925 for split, 0.907 for CV+, and 0.905 for Jackknife+.},]{figures/fig2_compare} 
 
 }
 
@@ -238,9 +238,9 @@ larger prediction sets; confident predictions receive single-class sets.
 This is the central advantage of APS over a fixed top-\(k\) rule: set size
 scales with model uncertainty.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at just above one for the lowest-entropy decile, rises gradually across the middle deciles, and reaches close to three for the highest-entropy decile. The monotonic rise shows APS producing larger sets for harder, higher-entropy test points.}]{figures/fig3_aps_sets} 
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at just above one for the lowest-entropy decile, rises gradually across the middle deciles, and reaches close to three for the highest-entropy decile. The monotonic rise shows APS producing larger sets for harder, higher-entropy test points.},]{figures/fig3_aps_sets} 
 
 }
 
@@ -278,9 +278,9 @@ variance of the low-noise group. Split conformal hits marginal coverage
 at the cost of over-covering the low-noise group and under-covering the
 high-noise group; Mondrian hits both group-level targets.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (low noise and high noise) and two bars per group (split conformal in orange and Mondrian in blue). A horizontal dashed line at 0.90 marks target coverage. For the low-noise group, split conformal over-covers and sits well above the dashed line; Mondrian sits on the dashed line. For the high-noise group, split conformal falls below the dashed line while Mondrian again sits on it, showing that Mondrian delivers the target within each subgroup.}]{figures/fig4_mondrian} 
+{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (low noise and high noise) and two bars per group (split conformal in orange and Mondrian in blue). A horizontal dashed line at 0.90 marks target coverage. For the low-noise group, split conformal over-covers and sits well above the dashed line; Mondrian sits on the dashed line. For the high-noise group, split conformal falls below the dashed line while Mondrian again sits on it, showing that Mondrian delivers the target within each subgroup.},]{figures/fig4_mondrian} 
 
 }
 
@@ -297,9 +297,9 @@ residuals rather than the unweighted empirical quantile. Figure
 \ref{fig:weighted} demonstrates the correction under a shift of the training
 mean from zero to 1.5.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A bar chart with two bars. The first bar, for standard split conformal under covariate shift, falls well below the 0.90 target, around 0.78. The second bar, for weighted conformal using likelihood-ratio weights, sits very close to 0.90. A dashed horizontal line marks the 0.90 target for reference.}]{figures/fig5_weighted} 
+{\centering \includegraphics[width=1\linewidth,alt={A bar chart with two bars. The first bar, for standard split conformal under covariate shift, falls well below the 0.90 target, around 0.78. The second bar, for weighted conformal using likelihood-ratio weights, sits very close to 0.90. A dashed horizontal line marks the 0.90 target for reference.},]{figures/fig5_weighted} 
 
 }
 
@@ -395,9 +395,9 @@ per-group coverage after deployment, since the finite-sample
 guarantee holds only within each subgroup conditional on the group
 assignment being fixed and exchangeable.
 
-\begin{figure}
+\begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. The marginal APS bars reach 1.00 in both groups, over-covering. The Mondrian APS bars sit close to the dashed line at 0.90 in both groups, showing tight tracking of the target within each subgroup.}]{figures/fig6_compas} 
+{\centering \includegraphics[width=1\linewidth,alt={A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. The marginal APS bars reach 1.00 in both groups, over-covering. The Mondrian APS bars sit close to the dashed line at 0.90 in both groups, showing tight tracking of the target within each subgroup.},]{figures/fig6_compas} 
 
 }
 
@@ -461,7 +461,6 @@ implementations. The author also thanks the R Core Team and CRAN
 maintainers for the infrastructure that supports open-source statistical
 software.
 
-\section*{References}
 \bibliography{RJreferences.bib}
 
 \address{%
