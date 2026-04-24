@@ -43,6 +43,21 @@ reference:
     contents:
       - predictset-package
 
+  - title: "S3 Methods"
+    desc: "Plot, predict, print, and summary methods"
+    contents:
+      - plot.predictset_aci
+      - plot.predictset_class
+      - plot.predictset_reg
+      - predict.predictset_class
+      - predict.predictset_reg
+      - print.predictset_aci
+      - print.predictset_class
+      - print.predictset_model
+      - print.predictset_reg
+      - summary.predictset_class
+      - summary.predictset_reg
+
 navbar:
   structure:
     left: [intro, reference, articles, news]
