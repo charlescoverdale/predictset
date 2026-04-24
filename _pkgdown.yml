@@ -39,11 +39,11 @@ reference:
     contents:
       - make_model
 
+  - title: "Package"
+    contents:
+      - predictset-package
+
 navbar:
   structure:
     left: [intro, reference, articles, news]
     right: [search, github]
-
-  - title: "Package"
-    contents:
-      - predictset-package
