@@ -1,0 +1,1037 @@
+# predictset — full API reference
+
+> Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees.
+
+- Version: 0.3.2
+- Install: `install.packages("predictset")`
+- CRAN: https://CRAN.R-project.org/package=predictset
+- GitHub: https://github.com/charlescoverdale/predictset
+- Reference site: https://charlescoverdale.github.io/predictset/
+
+This file is a self-contained reference for LLM agents: every exported
+function with its signature, arguments, return value, and example.
+
+---
+
+## `conformal_aci()`
+
+**Adaptive Conformal Inference**
+
+Implements basic Adaptive Conformal Inference (ACI) for sequential prediction. The miscoverage level alpha is adjusted online based on whether previous predictions covered the true values, maintaining long-run coverage even under distribution shift.
+
+**Usage**
+
+```r
+conformal_aci(y_pred, y_true, alpha = 0.1, gamma = 0.005)
+```
+
+**Arguments**
+
+- `y_pred` — A numeric vector of point predictions (sequential).
+- `y_true` — A numeric vector of true values (sequential).
+- `alpha` — Target miscoverage level. Default `0.10`.
+- `gamma` — Learning rate for alpha adjustment. Default `0.005`. Larger values adapt faster but are less stable.
+
+**Returns**
+
+A list with components: lowerNumeric vector of lower bounds. upperNumeric vector of upper bounds. coveredLogical vector indicating whether each interval covered the true value. alphasNumeric vector of the adapted alpha values at each step. coverageOverall empirical coverage.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 200
+y_true <- cumsum(rnorm(n, sd = 0.1)) + rnorm(n)
+y_pred <- c(0, y_true[-n])  # naive lag-1 prediction
+
+result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
+print(result$coverage)
+```
+
+---
+
+## `conformal_aps()`
+
+**Adaptive Prediction Sets**
+
+Constructs prediction sets using the Adaptive Prediction Sets (APS) method of Romano, Sesia, and Candes (2020). Classes are included in order of decreasing predicted probability until the cumulative probability exceeds the conformal threshold.
+
+**Usage**
+
+```r
+conformal_aps(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  randomize = FALSE,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A factor (or character/integer vector coerced to factor) of class labels.
+- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `randomize` — Logical. If `TRUE`, uses randomized scores for exact coverage (but prediction sets become stochastic). Default `FALSE`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_class` object. See `conformal_lac()` for details. The `method` component is `"aps"`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(sample(c("A", "B", "C"), n, replace = TRUE))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = p / 2, B = p / 2, C = 1 - p)
+  },
+  type = "classification"
+)
+
+
+result <- conformal_aps(x, y, model = clf, x_new = x_new)
+print(result)
+```
+
+---
+
+## `conformal_class_split()`
+
+**Split Conformal Prediction Sets for Classification**
+
+[Deprecated] `conformal_class_split()` is identical to `conformal_lac()` and is deprecated. Use `conformal_lac()` instead.
+
+**Usage**
+
+```r
+conformal_class_split(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A factor (or character/integer vector coerced to factor) of class labels.
+- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_class` object. See `conformal_lac()` for details.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(ifelse(x[,1] + x[,2] > 0, "A", "B"))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) {
+    df <- data.frame(y = y, x)
+    glm(y ~ ., data = df, family = "binomial")
+  },
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = 1 - p, B = p)
+  },
+  type = "classification"
+)
+
+
+suppressWarnings(
+  result <- conformal_class_split(x, y, model = clf, x_new = x_new)
+)
+```
+
+---
+
+## `conformal_compare()`
+
+**Compare Conformal Prediction Methods**
+
+Runs multiple conformal prediction methods on the same data and returns a comparison data frame with coverage, interval width, and computation time for each method.
+
+**Usage**
+
+```r
+conformal_compare(
+  x,
+  y,
+  model,
+  x_new,
+  y_new,
+  methods = c("split", "cv"),
+  alpha = 0.1,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object, a `make_model()` specification, or a formula.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `y_new` — A numeric vector of true response values for `x_new`, used to compute empirical coverage.
+- `methods` — Character vector of method names to compare. Default `c("split", "cv")`. Available methods: `"split"`, `"cv"`, `"jackknife"`, `"jackknife_basic"`.
+- `alpha` — Miscoverage level. Default `0.10`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_compare` object (a data frame) with columns: methodCharacter. The method name. coverageNumeric. Empirical coverage on `y_new`. mean_widthNumeric. Mean interval width. median_widthNumeric. Median interval width. time_secondsNumeric. Elapsed time in seconds.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(100 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(100)
+
+
+comp <- conformal_compare(x, y, model = y ~ ., x_new = x_new,
+                           y_new = y_new)
+print(comp)
+```
+
+---
+
+## `conformal_cqr()`
+
+**Conformalized Quantile Regression**
+
+Constructs prediction intervals using Conformalized Quantile Regression (Romano et al. 2019). Requires two models: one for the lower quantile and one for the upper quantile. The conformal step adjusts these quantile predictions to achieve valid coverage.
+
+**Usage**
+
+```r
+conformal_cqr(
+  x,
+  y,
+  model_lower,
+  model_upper,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  quantiles = c(0.05, 0.95),
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model_lower` — A `make_model()` specification for the lower quantile model.
+- `model_upper` — A `make_model()` specification for the upper quantile model.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `alpha` — Miscoverage level. Default `0.10`.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `quantiles` — The target quantiles. Default `c(0.05, 0.95)`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"cqr"`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 200
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(20 * 3), ncol = 3)
+
+# Approximating quantile regression with shifted linear models.
+# In practice, use quantile regression models, e.g.:
+#   quantreg::rq(y ~ ., data = df, tau = 0.05)
+model_lo <- make_model(
+  train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+  predict_fun = function(obj, x_new) {
+    predict(obj, newdata = as.data.frame(x_new)) - 1.5
+  },
+  type = "regression"
+)
+model_hi <- make_model(
+  train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+  predict_fun = function(obj, x_new) {
+    predict(obj, newdata = as.data.frame(x_new)) + 1.5
+  },
+  type = "regression"
+)
+
+result <- conformal_cqr(x, y, model_lo, model_hi, x_new = x_new)
+print(result)
+```
+
+---
+
+## `conformal_cv()`
+
+**CV+ Conformal Prediction Intervals**
+
+Constructs prediction intervals using the CV+ method of Barber et al. (2021). Cross-validation residuals and fold-specific models are used to form observation-specific prediction intervals with finite-sample coverage guarantees.
+
+**Usage**
+
+```r
+conformal_cv(
+  x,
+  y,
+  model,
+  x_new = NULL,
+  alpha = 0.1,
+  n_folds = 10,
+  verbose = FALSE,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new` — A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data using leave-one-fold-out predictions. Note: when `x_new = NULL`, prediction intervals for training observations use a self-consistent approximation. For exact CV+ intervals on new data, provide `x_new`.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `n_folds` — Number of cross-validation folds. Default `10`.
+- `verbose` — Logical. If `TRUE`, shows a progress bar during fold fitting. Default `FALSE`.
+- `seed` — Optional random seed for reproducible data splitting.
+
+**Returns**
+
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"cv_plus"`. The object also stores `fold_models` (list of K fitted models), `fold_ids` (integer vector mapping each observation to its fold), and `residuals` (leave-fold-out absolute residuals), which are needed by the `predict()` method to compute CV+ intervals for new data.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 200
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(20 * 3), ncol = 3)
+
+
+result <- conformal_cv(x, y, model = y ~ ., x_new = x_new, n_folds = 5)
+print(result)
+```
+
+---
+
+## `conformal_jackknife()`
+
+**Jackknife+ Conformal Prediction Intervals**
+
+Constructs prediction intervals using the Jackknife+ method of Barber et al. (2021). Uses leave-one-out models to form prediction intervals with finite-sample coverage guarantees.
+
+**Usage**
+
+```r
+conformal_jackknife(
+  x,
+  y,
+  model,
+  x_new = NULL,
+  alpha = 0.1,
+  plus = TRUE,
+  verbose = FALSE,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new` — A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `plus` — Logical. If `TRUE` (default), uses the Jackknife+ method. If `FALSE`, uses the basic jackknife.
+- `verbose` — Logical. If `TRUE`, shows a progress bar during LOO fitting. Default `FALSE`.
+- `seed` — Optional random seed for reproducible data splitting.
+
+**Returns**
+
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"jackknife_plus"` or `"jackknife"`. Additional components include `loo_models` (list of n leave-one-out fitted models) and `loo_residuals` (numeric vector of LOO absolute residuals).
+
+**Example**
+
+```r
+set.seed(42)
+n <- 50
+x <- matrix(rnorm(n * 2), ncol = 2)
+y <- x[, 1] + rnorm(n)
+x_new <- matrix(rnorm(10 * 2), ncol = 2)
+
+
+result <- conformal_jackknife(x, y, model = y ~ ., x_new = x_new)
+print(result)
+```
+
+---
+
+## `conformal_lac()`
+
+**Least Ambiguous Classifier Prediction Sets**
+
+Constructs prediction sets using the Least Ambiguous Classifier (LAC) method. Includes all classes whose predicted probability exceeds `1 - q`, where `q` is the conformal quantile of 1 - p(true class) scores.
+
+**Usage**
+
+```r
+conformal_lac(x, y, model, x_new, alpha = 0.1, cal_fraction = 0.5, seed = NULL)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A factor (or character/integer vector coerced to factor) of class labels.
+- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_class` object with components: setsA list of character vectors, one per new observation. probsA list of named numeric vectors with predicted probabilities for included classes. alphaThe miscoverage level used. methodCharacter string `"lac"`. scoresNumeric vector of calibration scores. quantileThe conformal quantile used. classesCharacter vector of all class labels. n_calNumber of calibration observations. n_trainNumber of training observations. fitted_modelThe fitted model object. modelThe `predictset_model` specification.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(ifelse(x[,1] + x[,2] > 0, "A", "B"))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = 1 - p, B = p)
+  },
+  type = "classification"
+)
+
+result <- conformal_lac(x, y, model = clf, x_new = x_new)
+print(result)
+```
+
+---
+
+## `conformal_mondrian()`
+
+**Mondrian Conformal Prediction Intervals (Group-Conditional)**
+
+Constructs prediction intervals with group-conditional coverage guarantees. Instead of a single conformal quantile, a separate quantile is computed for each group, ensuring coverage within each subgroup (e.g. by gender, region, or model type).
+
+**Usage**
+
+```r
+conformal_mondrian(
+  x,
+  y,
+  model,
+  x_new,
+  groups,
+  groups_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object, a `make_model()` specification, or a formula.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `groups` — A factor or character vector of group labels for each observation in `x`, with length equal to `nrow(x)`.
+- `groups_new` — A factor or character vector of group labels for each observation in `x_new`, with length equal to `nrow(x_new)`.
+- `alpha` — Miscoverage level. Default `0.10`.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"mondrian"`. Additional components include `groups_new` (the group labels for new data) and `group_quantiles` (named numeric vector of per-group conformal quantiles).
+
+**Example**
+
+```r
+set.seed(42)
+n <- 400
+x <- matrix(rnorm(n * 3), ncol = 3)
+groups <- factor(ifelse(x[, 1] > 0, "high", "low"))
+y <- x[, 1] * 2 + ifelse(groups == "high", 2, 0.5) * rnorm(n)
+x_new <- matrix(rnorm(50 * 3), ncol = 3)
+groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+
+result <- conformal_mondrian(x, y, model = y ~ ., x_new = x_new,
+                              groups = groups, groups_new = groups_new)
+print(result)
+```
+
+---
+
+## `conformal_mondrian_class()`
+
+**Mondrian Conformal Prediction Sets for Classification**
+
+Constructs prediction sets with group-conditional coverage guarantees for classification. Uses LAC-style scoring with per-group conformal quantiles.
+
+**Usage**
+
+```r
+conformal_mondrian_class(
+  x,
+  y,
+  model,
+  x_new,
+  groups,
+  groups_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A factor (or character/integer vector coerced to factor) of class labels.
+- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `groups` — A factor or character vector of group labels for each observation in `x`.
+- `groups_new` — A factor or character vector of group labels for each observation in `x_new`.
+- `alpha` — Miscoverage level. Default `0.10`.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_class` object. See `conformal_lac()` for details. The `method` component is `"mondrian"`. Additional components include `groups_new` and `group_quantiles`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 400
+x <- matrix(rnorm(n * 4), ncol = 4)
+groups <- factor(ifelse(x[, 1] > 0, "high", "low"))
+y <- factor(ifelse(x[,1] + x[,2] > 0, "A", "B"))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+groups_new <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = 1 - p, B = p)
+  },
+  type = "classification"
+)
+
+
+result <- conformal_mondrian_class(x, y, model = clf, x_new = x_new,
+                                    groups = groups, groups_new = groups_new)
+print(result)
+```
+
+---
+
+## `conformal_pvalue()`
+
+**Conformal P-Values**
+
+Computes conformal p-values for new observations given calibration nonconformity scores. The p-value indicates how conforming a new observation is relative to the calibration set.
+
+**Usage**
+
+```r
+conformal_pvalue(scores, new_scores)
+```
+
+**Arguments**
+
+- `scores` — A numeric vector of calibration nonconformity scores.
+- `new_scores` — A numeric vector of nonconformity scores for new observations.
+
+**Returns**
+
+A numeric vector of p-values, one per element of `new_scores`. Each p-value is in (0, 1].
+
+**Example**
+
+```r
+# Calibration scores from a conformal split
+set.seed(42)
+cal_scores <- abs(rnorm(100))
+new_scores <- abs(rnorm(5))
+
+pvals <- conformal_pvalue(cal_scores, new_scores)
+print(pvals)
+```
+
+---
+
+## `conformal_raps()`
+
+**Regularized Adaptive Prediction Sets**
+
+Constructs prediction sets using the Regularized Adaptive Prediction Sets (RAPS) method of Angelopoulos et al. (2021). Extends APS with a regularization penalty that encourages smaller prediction sets.
+
+**Usage**
+
+```r
+conformal_raps(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  k_reg = 1,
+  lambda = 0.01,
+  randomize = FALSE,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A factor (or character/integer vector coerced to factor) of class labels.
+- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `k_reg` — Regularization parameter controlling the number of classes exempt from the penalty. Default `1` (only the top class is unpenalized).
+- `lambda` — Regularization strength. Default `0.01`. Larger values produce smaller prediction sets at the potential cost of coverage.
+- `randomize` — Logical. If `TRUE`, uses randomized scores for exact coverage (but prediction sets become stochastic). Default `FALSE`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_class` object. See `conformal_lac()` for details. The `method` component is `"raps"`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(sample(c("A", "B", "C"), n, replace = TRUE))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = p / 2, B = p / 2, C = 1 - p)
+  },
+  type = "classification"
+)
+
+
+result <- conformal_raps(x, y, model = clf, x_new = x_new,
+                          k_reg = 1, lambda = 0.01)
+print(result)
+```
+
+---
+
+## `conformal_split()`
+
+**Split Conformal Prediction Intervals**
+
+Constructs prediction intervals using split conformal inference. The data is split into training and calibration sets; nonconformity scores are computed on the calibration set and used to form intervals on new data.
+
+**Usage**
+
+```r
+conformal_split(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  score_type = c("absolute", "normalized"),
+  scale_model = NULL,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new` — A numeric matrix or data frame of new predictor variables for which to compute prediction intervals.
+- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `score_type` — Type of nonconformity score. `"absolute"` (default) uses absolute residuals and produces constant-width intervals. `"normalized"` divides residuals by a local scale estimate from `scale_model`, producing locally-adaptive interval widths.
+- `scale_model` — A `make_model()` specification for predicting absolute residuals (used only when `score_type = "normalized"`). Must return positive predictions. If `NULL` and `score_type = "normalized"`, a default model is fitted using `lm()` on absolute residuals.
+- `seed` — Optional random seed for reproducible data splitting.
+
+**Returns**
+
+A `predictset_reg` object (a list) with components: predNumeric vector of point predictions for `x_new`. lowerNumeric vector of lower bounds. upperNumeric vector of upper bounds. alphaThe miscoverage level used. methodCharacter string `"split"`. scoresNumeric vector of calibration nonconformity scores. quantileThe conformal quantile used to form intervals. n_calNumber of calibration observations. n_trainNumber of training observations. fitted_modelThe fitted model object. modelThe `predictset_model` specification.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 200
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(50 * 3), ncol = 3)
+
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
+print(result)
+```
+
+---
+
+## `conformal_weighted()`
+
+**Weighted Conformal Prediction Intervals**
+
+Constructs prediction intervals using weighted split conformal inference, designed for settings with covariate shift where calibration and test data may have different distributions. Importance weights re-weight the calibration scores to account for this shift.
+
+**Usage**
+
+```r
+conformal_weighted(
+  x,
+  y,
+  model,
+  x_new,
+  weights = NULL,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  seed = NULL
+)
+```
+
+**Arguments**
+
+- `x` — A numeric matrix or data frame of predictor variables.
+- `y` — A numeric vector of response values.
+- `model` — A fitted model object, a `make_model()` specification, or a formula.
+- `x_new` — A numeric matrix or data frame of new predictor variables.
+- `weights` — A numeric vector of importance weights for each observation in `x`, with length equal to `nrow(x)`. Weights must be non-negative. If `NULL`, uniform weights are used (equivalent to standard split conformal).
+- `alpha` — Miscoverage level. Default `0.10`.
+- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
+- `seed` — Optional random seed.
+
+**Returns**
+
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"weighted"`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 400
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(50 * 3, mean = 1), ncol = 3)
+weights <- rep(1, n)
+
+
+result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
+                              weights = weights)
+print(result)
+```
+
+---
+
+## `coverage()`
+
+**Empirical Coverage Rate**
+
+Computes the fraction of true values that fall within the prediction intervals (regression) or prediction sets (classification).
+
+**Usage**
+
+```r
+coverage(object, y_true)
+
+coveragepredictset_reg(object, y_true)
+
+coveragepredictset_class(object, y_true)
+```
+
+**Arguments**
+
+- `object` — A `predictset_reg` or `predictset_class` object.
+- `y_true` — A numeric vector (regression) or factor/character vector (classification) of true values, with the same length as the number of predictions.
+
+**Returns**
+
+A single numeric value between 0 and 1 representing the empirical coverage rate.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(100 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(100)
+
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
+coverage(result, y_new)
+```
+
+---
+
+## `coverage_by_bin()`
+
+**Empirical Coverage by Prediction Bin**
+
+Bins predictions into quantile-based groups and computes coverage within each bin. Useful for detecting systematic under- or over-coverage as a function of predicted value.
+
+**Usage**
+
+```r
+coverage_by_bin(object, y_true, bins = 10)
+```
+
+**Arguments**
+
+- `object` — A `predictset_reg` object.
+- `y_true` — A numeric vector of true response values.
+- `bins` — Number of bins. Default `10`.
+
+**Returns**
+
+A data frame with columns `bin`, `coverage`, `n`, and `mean_width`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(200)
+
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
+coverage_by_bin(result, y_new, bins = 5)
+```
+
+---
+
+## `coverage_by_group()`
+
+**Empirical Coverage by Group**
+
+Computes empirical coverage within each group, useful for diagnosing conditional coverage violations.
+
+**Usage**
+
+```r
+coverage_by_group(object, y_true, groups)
+```
+
+**Arguments**
+
+- `object` — A `predictset_reg` or `predictset_class` object.
+- `y_true` — True values (numeric for regression, factor/character for classification).
+- `groups` — A factor or character vector of group labels with the same length as the number of predictions.
+
+**Returns**
+
+A data frame with columns `group`, `coverage`, `n`, and `target`.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 500
+x <- matrix(rnorm(n * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(n)
+x_new <- matrix(rnorm(200 * 3), ncol = 3)
+y_new <- x_new[, 1] * 2 + rnorm(200)
+groups <- factor(ifelse(x_new[, 1] > 0, "high", "low"))
+
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
+coverage_by_group(result, y_new, groups)
+```
+
+---
+
+## `interval_width()`
+
+**Prediction Interval Widths**
+
+Returns the width of each prediction interval.
+
+**Usage**
+
+```r
+interval_width(object)
+```
+
+**Arguments**
+
+- `object` — A `predictset_reg` object.
+
+**Returns**
+
+A numeric vector of interval widths.
+
+**Example**
+
+```r
+set.seed(42)
+x <- matrix(rnorm(200 * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(200)
+x_new <- matrix(rnorm(50 * 3), ncol = 3)
+
+result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
+widths <- interval_width(result)
+summary(widths)
+```
+
+---
+
+## `make_model()`
+
+**Create a Model Specification for Conformal Prediction**
+
+Defines how to train a model and generate predictions, allowing any model to be used with conformal prediction methods.
+
+**Usage**
+
+```r
+make_model(train_fun, predict_fun, type = c("regression", "classification"))
+```
+
+**Arguments**
+
+- `train_fun` — A function with signature function(x, y) that takes a numeric matrix `x` and response `y` (numeric for regression, factor for classification) and returns a fitted model object.
+- `predict_fun` — A function with signature function(object, x_new) that takes a fitted model object and a numeric matrix `x_new` and returns predictions. For regression, must return a numeric vector. For classification, must return a probability matrix with columns named by class labels.
+- `type` — Character string, either `"regression"` or `"classification"`.
+
+**Returns**
+
+A `predictset_model` object (a list with components `train_fun`, `predict_fun`, and `type`).
+
+**Example**
+
+```r
+reg_model <- make_model(
+  train_fun = function(x, y) lm(y ~ ., data = data.frame(y = y, x)),
+  predict_fun = function(object, x_new) {
+    predict(object, newdata = as.data.frame(x_new))
+  },
+  type = "regression"
+)
+```
+
+---
+
+## `set_size()`
+
+**Prediction Set Sizes**
+
+Returns the number of classes in each prediction set.
+
+**Usage**
+
+```r
+set_size(object)
+```
+
+**Arguments**
+
+- `object` — A `predictset_class` object.
+
+**Returns**
+
+An integer vector of set sizes.
+
+**Example**
+
+```r
+set.seed(42)
+n <- 300
+x <- matrix(rnorm(n * 4), ncol = 4)
+y <- factor(ifelse(x[,1] > 0, "A", "B"))
+x_new <- matrix(rnorm(50 * 4), ncol = 4)
+
+clf <- make_model(
+  train_fun = function(x, y) glm(y ~ ., data = data.frame(y = y, x),
+                                  family = "binomial"),
+  predict_fun = function(object, x_new) {
+    df <- as.data.frame(x_new)
+    names(df) <- paste0("X", seq_len(ncol(x_new)))
+    p <- predict(object, newdata = df, type = "response")
+    cbind(A = 1 - p, B = p)
+  },
+  type = "classification"
+)
+
+result <- conformal_lac(x, y, model = clf, x_new = x_new)
+sizes <- set_size(result)
+table(sizes)
+```
+
+---
+

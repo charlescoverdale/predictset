@@ -2,6 +2,8 @@
 
 > Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees. Install with `install.packages("predictset")`.
 
+Full API reference (for agents): https://raw.githubusercontent.com/charlescoverdale/predictset/main/llms-full.txt
+
 Version: 0.3.2. License: MIT.
 
 ## Functions
