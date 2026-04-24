@@ -1,0 +1,35 @@
+# predictset
+
+> Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees. Install with `install.packages("predictset")`.
+
+Version: 0.3.2. License: MIT.
+
+## Functions
+
+- [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.html): Adaptive Conformal Inference
+- [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.html): Adaptive Prediction Sets
+- [`conformal_class_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_class_split.html): Split Conformal Prediction Sets for Classification
+- [`conformal_compare()`](https://charlescoverdale.github.io/predictset/reference/conformal_compare.html): Compare Conformal Prediction Methods
+- [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.html): Conformalized Quantile Regression
+- [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.html): CV+ Conformal Prediction Intervals
+- [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.html): Jackknife+ Conformal Prediction Intervals
+- [`conformal_lac()`](https://charlescoverdale.github.io/predictset/reference/conformal_lac.html): Least Ambiguous Classifier Prediction Sets
+- [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.html): Mondrian Conformal Prediction Intervals (Group-Conditional)
+- [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.html): Mondrian Conformal Prediction Sets for Classification
+- [`conformal_pvalue()`](https://charlescoverdale.github.io/predictset/reference/conformal_pvalue.html): Conformal P-Values
+- [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.html): Regularized Adaptive Prediction Sets
+- [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.html): Split Conformal Prediction Intervals
+- [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.html): Weighted Conformal Prediction Intervals
+- [`coverage()`](https://charlescoverdale.github.io/predictset/reference/coverage.html): Empirical Coverage Rate
+- [`coverage_by_bin()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_bin.html): Empirical Coverage by Prediction Bin
+- [`coverage_by_group()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_group.html): Empirical Coverage by Group
+- [`interval_width()`](https://charlescoverdale.github.io/predictset/reference/interval_width.html): Prediction Interval Widths
+- [`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.html): Create a Model Specification for Conformal Prediction
+- [`set_size()`](https://charlescoverdale.github.io/predictset/reference/set_size.html): Prediction Set Sizes
+
+## Documentation
+
+- [Full reference](https://charlescoverdale.github.io/predictset/reference/)
+- [GitHub](https://github.com/charlescoverdale/predictset)
+- [CRAN](https://CRAN.R-project.org/package=predictset)
+
