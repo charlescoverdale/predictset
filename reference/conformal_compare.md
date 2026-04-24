@@ -109,7 +109,7 @@ print(comp)
 #> 
 #> ── Conformal Method Comparison ─────────────────────────────────────────────────
 #> 
-#> • split: coverage = 0.92, mean width = 3.292, time = 0.003s
-#> • cv: coverage = 0.93, mean width = 3.446, time = 0.029s
+#> • split: coverage = 0.92, mean width = 3.292, time = 0.002s
+#> • cv: coverage = 0.93, mean width = 3.446, time = 0.02s
 # }
 ```
