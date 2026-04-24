@@ -43,3 +43,7 @@ navbar:
   structure:
     left: [intro, reference, articles, news]
     right: [search, github]
+
+  - title: "Package"
+    contents:
+      - predictset-package
