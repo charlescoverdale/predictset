@@ -431,11 +431,14 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 
 ## Related packages
 
-| Package | What it covers |
+| Package | Description |
 |---|---|
+| [`nowcast`](https://github.com/charlescoverdale/nowcast) | Economic nowcasting (pairs with predictset for prediction intervals) |
+| [`ivcheck`](https://github.com/charlescoverdale/ivcheck) | IV diagnostics and LATE-assumption falsification |
+| [`mpshock`](https://github.com/charlescoverdale/mpshock) | Monetary policy shock series |
+| [`inflationkit`](https://github.com/charlescoverdale/inflationkit) | Inflation analysis and forecast evaluation |
 | [`probably`](https://probably.tidymodels.org/) | Conformal regression within the tidymodels ecosystem |
 | [`conformalInference`](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only) |
-| [`nowcast`](https://github.com/charlescoverdale/nowcast) | Economic nowcasting (pairs with predictset for prediction intervals) |
 
 ---
 
