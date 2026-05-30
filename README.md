@@ -446,4 +446,8 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/charlescoverdale/predictset/issues) on GitHub.
 
+---
+
+## Keywords
+
 conformal prediction, prediction intervals, prediction sets, uncertainty quantification, coverage guarantee, distribution-free, model-agnostic, machine learning, statistics, R package
