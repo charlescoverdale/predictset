@@ -11,6 +11,9 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+A technical working paper for this package can be found
+[here](https://charlescoverdale.github.io/files/coverdale_predictset_2026.pdf).
+
 **predictset** is an R package for model-agnostic conformal prediction
 and distribution-free uncertainty quantification. It constructs
 prediction intervals (regression) and prediction sets (classification)
@@ -22,6 +25,7 @@ custom user-defined models via
 ## Installation
 
 ``` r
+
 # Install from CRAN
 install.packages("predictset")
 
@@ -31,6 +35,7 @@ devtools::install_github("charlescoverdale/predictset")
 ```
 
 ``` r
+
 library(predictset)
 
 # Get 90% prediction intervals around any model - 3 lines of code
@@ -69,22 +74,22 @@ a lightweight package with only two dependencies (`cli` and `stats`).
 
 ## How does predictset compare to other packages?
 
-| Feature                 | **predictset** | **probably**    | **conformalInference** | **MAPIE**         |
-|-------------------------|----------------|-----------------|------------------------|-------------------|
-| Language                | R              | R               | R                      | Python            |
-| Regression              | Yes            | Yes             | Yes                    | Yes               |
-| Classification          | Yes            | No              | No                     | Yes               |
-| Model-agnostic          | Yes            | tidymodels only | Yes                    | scikit-learn only |
-| On CRAN                 | Pending        | Yes             | No (GitHub only)       | N/A               |
-| Jackknife+ / CV+        | Yes            | No              | Yes                    | Yes               |
-| CQR                     | Yes            | Yes             | Yes                    | Yes               |
-| APS / RAPS              | Yes            | No              | No                     | Yes               |
-| Mondrian CP             | Yes            | No              | No                     | Yes               |
-| Weighted CP             | Yes            | No              | No                     | Yes               |
-| Adaptive CI             | Yes            | No              | No                     | No                |
-| Conditional diagnostics | Yes            | No              | No                     | Partial           |
-| Dependencies            | 2              | 14+             | 5                      | N/A               |
-| Last updated            | 2026           | 2024            | 2019                   | 2024              |
+| Feature | **predictset** | **probably** | **conformalInference** | **MAPIE** |
+|----|----|----|----|----|
+| Language | R | R | R | Python |
+| Regression | Yes | Yes | Yes | Yes |
+| Classification | Yes | No | No | Yes |
+| Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
+| On CRAN | Pending | Yes | No (GitHub only) | N/A |
+| Jackknife+ / CV+ | Yes | No | Yes | Yes |
+| CQR | Yes | Yes | Yes | Yes |
+| APS / RAPS | Yes | No | No | Yes |
+| Mondrian CP | Yes | No | No | Yes |
+| Weighted CP | Yes | No | No | Yes |
+| Adaptive CI | Yes | No | No | No |
+| Conditional diagnostics | Yes | No | No | Partial |
+| Dependencies | 2 | 14+ | 5 | N/A |
+| Last updated | 2026 | 2024 | 2019 | 2024 |
 
 **predictset** is designed to complement rather than compete with
 `probably`. If you’re working in the tidymodels ecosystem and only need
@@ -104,6 +109,7 @@ classification.
 ### Regression: prediction intervals with coverage verification
 
 ``` r
+
 library(predictset)
 
 set.seed(42)
@@ -136,6 +142,7 @@ predict(result, newdata = future_data)
 ### Classification: prediction sets
 
 ``` r
+
 set.seed(42)
 n <- 400
 x <- matrix(rnorm(n * 4), ncol = 4)
@@ -164,16 +171,16 @@ table(set_size(result))  # distribution of set sizes
 
 ## Choosing a method
 
-| Scenario                            | Recommended method                                                                                                                                                                                                            | Why                                             |
-|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
-| **Default for regression**          | [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md)                                                                                                                             | Fast, single model fit                          |
-| Small dataset, need tight intervals | [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md) or [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md)\*                    | Uses all data for both training and calibration |
-| Heteroscedastic data                | `conformal_split(..., score_type = "normalized")` or [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md)                                                                            | Adaptive interval widths                        |
-| **Default for classification**      | [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md)                                                                                                                                 | Adaptive set sizes, well-calibrated             |
-| Many classes, want small sets       | [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md)                                                                                                                               | Regularized APS, penalises large sets           |
-| Coverage must hold per subgroup     | [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.md) / [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md) | Group-conditional guarantees                    |
-| Covariate shift between train/test  | [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md)                                                                                                                       | Importance-weighted calibration                 |
-| Sequential/online prediction        | [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.md)\*\*                                                                                                                             | Adapts to distribution drift over time          |
+| Scenario | Recommended method | Why |
+|----|----|----|
+| **Default for regression** | [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md) | Fast, single model fit |
+| Small dataset, need tight intervals | [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md) or [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md)\* | Uses all data for both training and calibration |
+| Heteroscedastic data | `conformal_split(..., score_type = "normalized")` or [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md) | Adaptive interval widths |
+| **Default for classification** | [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md) | Adaptive set sizes, well-calibrated |
+| Many classes, want small sets | [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md) | Regularized APS, penalises large sets |
+| Coverage must hold per subgroup | [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.md) / [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md) | Group-conditional guarantees |
+| Covariate shift between train/test | [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md) | Importance-weighted calibration |
+| Sequential/online prediction | [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.md)\*\* | Adapts to distribution drift over time |
 
 \*Jackknife+ and CV+ have a theoretical coverage guarantee of 1-2α
 (Barber et al. 2021), weaker than split conformal’s 1-α. In practice,
@@ -191,6 +198,7 @@ custom deep learning wrapper.
 **1. Formula shorthand** (fits `lm` internally):
 
 ``` r
+
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new)
 ```
 
@@ -200,6 +208,7 @@ This is the quickest way to get started. Pass a formula and
 **2. Fitted model** (auto-detected for `lm`, `glm`, and `ranger`):
 
 ``` r
+
 fit <- lm(y ~ ., data = data.frame(y = y, x))
 result <- conformal_split(x, y, model = fit, x_new = x_new)
 ```
@@ -214,6 +223,7 @@ automatically.
 (works with anything):
 
 ``` r
+
 xgb_model <- make_model(
   train_fun = function(x, y) {
     dtrain <- xgboost::xgb.DMatrix(x, label = y)
@@ -237,27 +247,27 @@ prediction with xgboost, keras, lightgbm, or any other model.
 
 ## Methods
 
-| Function                                                                                                            | Type           | Method                               | Reference                                                                        |
-|---------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------------|----------------------------------------------------------------------------------|
-| [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md)                   | Regression     | Split conformal                      | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8)   |
-| [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md)                         | Regression     | CV+                                  | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965)                       |
-| [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md)           | Regression     | Jackknife+                           | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965)                       |
-| [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md)                       | Regression     | Conformalized Quantile Regression    | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222)                         |
-| [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.md)             | Regression     | Mondrian (group-conditional)         | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8)   |
-| [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md)             | Regression     | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019)                     |
-| [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md)                       | Classification | Adaptive Prediction Sets             | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544)                |
-| [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md)                     | Classification | Regularized APS                      | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193)                   |
-| [`conformal_lac()`](https://charlescoverdale.github.io/predictset/reference/conformal_lac.md)                       | Classification | Least Ambiguous Classifier           | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2017.1395341) |
-| [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md) | Classification | Mondrian (group-conditional)         | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8)   |
-| [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.md)                       | Sequential     | Adaptive Conformal Inference         | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170)                        |
-| [`coverage()`](https://charlescoverdale.github.io/predictset/reference/coverage.md)                                 | Diagnostic     | Empirical coverage rate              |                                                                                  |
-| [`coverage_by_group()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_group.md)               | Diagnostic     | Coverage within subgroups            |                                                                                  |
-| [`coverage_by_bin()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_bin.md)                   | Diagnostic     | Coverage by prediction quantile bin  |                                                                                  |
-| [`interval_width()`](https://charlescoverdale.github.io/predictset/reference/interval_width.md)                     | Diagnostic     | Width of prediction intervals        |                                                                                  |
-| [`set_size()`](https://charlescoverdale.github.io/predictset/reference/set_size.md)                                 | Diagnostic     | Size of prediction sets              |                                                                                  |
-| [`conformal_pvalue()`](https://charlescoverdale.github.io/predictset/reference/conformal_pvalue.md)                 | Diagnostic     | Conformal p-values                   |                                                                                  |
-| [`conformal_compare()`](https://charlescoverdale.github.io/predictset/reference/conformal_compare.md)               | Diagnostic     | Compare multiple methods             |                                                                                  |
-| [`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.md)                             | Utility        | Wrap custom train/predict functions  |                                                                                  |
+| Function | Type | Method | Reference |
+|----|----|----|----|
+| [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md) | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md) | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md) | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
+| [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md) | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
+| [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.md) | Regression | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md) | Regression | Weighted conformal (covariate shift) | [Tibshirani et al. (2019)](https://arxiv.org/abs/1904.06019) |
+| [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md) | Classification | Adaptive Prediction Sets | [Romano, Sesia & Candes (2020)](https://arxiv.org/abs/2006.02544) |
+| [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md) | Classification | Regularized APS | [Angelopoulos et al. (2021)](https://arxiv.org/abs/2009.14193) |
+| [`conformal_lac()`](https://charlescoverdale.github.io/predictset/reference/conformal_lac.md) | Classification | Least Ambiguous Classifier | [Sadinle, Lei & Wasserman (2019)](https://doi.org/10.1080/01621459.2017.1395341) |
+| [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md) | Classification | Mondrian (group-conditional) | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.md) | Sequential | Adaptive Conformal Inference | [Gibbs & Candes (2021)](https://arxiv.org/abs/2106.00170) |
+| [`coverage()`](https://charlescoverdale.github.io/predictset/reference/coverage.md) | Diagnostic | Empirical coverage rate |  |
+| [`coverage_by_group()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_group.md) | Diagnostic | Coverage within subgroups |  |
+| [`coverage_by_bin()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_bin.md) | Diagnostic | Coverage by prediction quantile bin |  |
+| [`interval_width()`](https://charlescoverdale.github.io/predictset/reference/interval_width.md) | Diagnostic | Width of prediction intervals |  |
+| [`set_size()`](https://charlescoverdale.github.io/predictset/reference/set_size.md) | Diagnostic | Size of prediction sets |  |
+| [`conformal_pvalue()`](https://charlescoverdale.github.io/predictset/reference/conformal_pvalue.md) | Diagnostic | Conformal p-values |  |
+| [`conformal_compare()`](https://charlescoverdale.github.io/predictset/reference/conformal_compare.md) | Diagnostic | Compare multiple methods |  |
+| [`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.md) | Utility | Wrap custom train/predict functions |  |
 
 ------------------------------------------------------------------------
 
@@ -271,6 +281,7 @@ conformal (because it uses all the data for both training and
 calibration) at the cost of refitting the model n times.
 
 ``` r
+
 set.seed(42)
 n <- 200
 x <- matrix(rnorm(n * 3), ncol = 3)
@@ -301,6 +312,7 @@ conformal scoring fixes this by scaling residuals by a local estimate of
 variability.
 
 ``` r
+
 set.seed(42)
 n <- 500
 x <- matrix(runif(n, 0, 10), ncol = 1)
@@ -327,6 +339,7 @@ regulatory compliance.
 No other R package on CRAN implements Mondrian conformal prediction.
 
 ``` r
+
 set.seed(42)
 n <- 600
 x <- matrix(rnorm(n * 3), ncol = 3)
@@ -352,6 +365,7 @@ Weighted conformal prediction uses importance weights to correct for
 this shift.
 
 ``` r
+
 set.seed(42)
 n <- 500
 x <- matrix(rnorm(n * 3), ncol = 3)
@@ -374,6 +388,7 @@ a model for the mean and adding symmetric bands, CQR fits models for the
 lower and upper quantiles and then adjusts them to guarantee coverage.
 
 ``` r
+
 set.seed(42)
 n <- 500
 x <- matrix(rnorm(n * 3), ncol = 3)
@@ -405,6 +420,7 @@ maintaining long-run coverage even under distribution shift. No other R
 package implements ACI.
 
 ``` r
+
 set.seed(42)
 n <- 500
 y_true <- cumsum(rnorm(n, sd = 0.1)) + rnorm(n)  # drifting process
@@ -420,6 +436,7 @@ plot(result)  # intervals + adaptive alpha trace
 Benchmark multiple conformal methods side-by-side:
 
 ``` r
+
 set.seed(42)
 n <- 500
 x <- matrix(rnorm(n * 3), ncol = 3)
@@ -440,6 +457,7 @@ After producing predictions, use the diagnostic functions to evaluate
 calibration and efficiency.
 
 ``` r
+
 # Suppose y_test contains the true values for x_new
 coverage(result, y_test)
 #> [1] 0.91
@@ -596,11 +614,14 @@ Quantification](https://arxiv.org/abs/2107.07511).
 
 ## Related packages
 
-| Package                                                       | What it covers                                                       |
-|---------------------------------------------------------------|----------------------------------------------------------------------|
-| [`probably`](https://probably.tidymodels.org/)                | Conformal regression within the tidymodels ecosystem                 |
-| [`conformalInference`](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only)               |
-| [`nowcast`](https://github.com/charlescoverdale/nowcast)      | Economic nowcasting (pairs with predictset for prediction intervals) |
+| Package | Description |
+|----|----|
+| [`nowcast`](https://github.com/charlescoverdale/nowcast) | Economic nowcasting (pairs with predictset for prediction intervals) |
+| [`ivcheck`](https://github.com/charlescoverdale/ivcheck) | IV diagnostics and LATE-assumption falsification |
+| [`mpshock`](https://github.com/charlescoverdale/mpshock) | Monetary policy shock series |
+| [`inflationkit`](https://github.com/charlescoverdale/inflationkit) | Inflation analysis and forecast evaluation |
+| [`probably`](https://probably.tidymodels.org/) | Conformal regression within the tidymodels ecosystem |
+| [`conformalInference`](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only) |
 
 ------------------------------------------------------------------------
 
@@ -608,6 +629,10 @@ Quantification](https://arxiv.org/abs/2107.07511).
 
 Found a bug or have a feature request? Please [open an
 issue](https://github.com/charlescoverdale/predictset/issues) on GitHub.
+
+------------------------------------------------------------------------
+
+## Keywords
 
 conformal prediction, prediction intervals, prediction sets, uncertainty
 quantification, coverage guarantee, distribution-free, model-agnostic,
