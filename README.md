@@ -3,7 +3,7 @@
 
 A technical working paper for this package can be found [here](https://charlescoverdale.github.io/files/coverdale_predictset_2026.pdf).
 
-**predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees - no distributional assumptions required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or custom user-defined models via `make_model()`.
+**predictset** is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees - no distributional assumptions required. Pass a formula, a fitted `lm`, `glm` or `ranger`, or wrap anything else (xgboost, keras, lightgbm) with `make_model()`.
 
 ## Installation
 
@@ -28,6 +28,25 @@ result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 result$lower  # lower bounds
 result$upper  # upper bounds
 ```
+
+---
+
+## Changes in 0.4.0
+
+This release fixes three defects that changed numerical results. If you have run any of the following on an earlier version, re-run it.
+
+| What changed | Effect |
+|---|---|
+| `conformal_aci()` applied the Gibbs and Candes online update with the operands reversed | A miscoverage event narrowed the next interval instead of widening it, so `alpha` ran away to a clip boundary. On a variance-shift benchmark this drove coverage to 0.605 against a 0.90 target. |
+| `model` was ignored when given as a formula or a fitted object | `model = y ~ a` silently fitted every column of `x`; `lm(y ~ poly(v1, 3) + v2)` came back as `y ~ v1 + v2`. Both are now honoured. |
+| `conformal_aps()` and `conformal_raps()` could return the full label set for every observation | With oracle probabilities on a four-class problem, APS returned a mean set size of 3.90 out of 4 at 99.9% coverage. It now returns 2.69 at 88.6%. |
+
+Two defaults changed as a result:
+
+- `randomize = TRUE` is now the default for `conformal_aps()` and `conformal_raps()`, which is the method as published. Pass `seed` for reproducible sets, or `randomize = FALSE` for the deterministic (more conservative) variant.
+- `conformal_weighted()` takes a new `weights_new` argument. Supply it for the exact procedure of Tibshirani et al. (2019), in which every test point receives its own conformal quantile.
+
+Smaller fixes: Jackknife+ and CV+ now return `±Inf` where the quantile index falls outside `1..n` rather than clamping to the extreme order statistic; a fitted `glm` now works with the classification methods; `coverage_by_bin()` handles tied predictions; the `seed` argument no longer leaves the global random stream altered; Mondrian returns an unbounded interval for a group too small to calibrate rather than silently borrowing the pooled quantile. Full detail in [NEWS.md](NEWS.md).
 
 ---
 
@@ -130,6 +149,8 @@ table(set_size(result))  # distribution of set sizes
 
 The uniform random variable in the APS score is not an optional refinement. Without it the score has an atom at exactly 1, and whenever the model ranks the true class last more often than `alpha` of the time the conformal quantile is exactly 1 and every set becomes the full label set. `randomize = FALSE` is available for deterministic output and warns when this happens.
 
+Prediction sets are the exact inversion of the calibrated score, which can be empty for a test point the model is confident about. By default an empty set is replaced by the single most probable class. Pass `allow_empty = TRUE` to `conformal_lac()`, `conformal_aps()`, `conformal_raps()`, or `conformal_mondrian_class()` to get the inversion untouched: empty sets are the defining feature of LAC in Sadinle, Lei and Wasserman (2019).
+
 ---
 
 ## Choosing a method
@@ -196,7 +217,7 @@ result <- conformal_split(x, y, model = xgb_model, x_new = x_new)
 
 | Function | Type | Method | Reference |
 |---|---|---|---|
-| `conformal_split()` | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| `conformal_split()` | Regression | Split conformal | [Lei et al. (2018)](https://doi.org/10.1080/01621459.2017.1307116) |
 | `conformal_cv()` | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
 | `conformal_jackknife()` | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
 | `conformal_cqr()` | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
