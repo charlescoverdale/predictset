@@ -20,11 +20,16 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #' @param alpha Miscoverage level. Default `0.10`.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
-#' @param quantiles The target quantiles. Default `c(0.05, 0.95)`.
+#' @param quantiles The nominal lower and upper quantiles targeted by
+#'   `model_lower` and `model_upper`. Default `c(0.05, 0.95)`. These are
+#'   recorded on the returned object and checked for consistency with `alpha`:
+#'   CQR is most efficient when `quantiles` spans `1 - alpha`. The models
+#'   themselves are supplied by the user, so this argument does not fit them.
 #' @param seed Optional random seed.
 #'
 #' @return A `predictset_reg` object. See [conformal_split()] for details.
-#'   The `method` component is `"cqr"`.
+#'   The `method` component is `"cqr"` and `quantiles` records the nominal
+#'   quantiles.
 #'
 #' @references
 #' Romano, Y., Patterson, E. and Candes, E.J. (2019).
@@ -75,12 +80,16 @@ conformal_cqr <- function(x, y, model_lower, model_upper, x_new,
     cli_abort("{.arg x} and {.arg y} must have the same number of observations.")
   }
 
+  quantiles <- validate_quantiles(quantiles, alpha)
+
   mod_lo <- resolve_model(model_lower, type = "regression")
+
+  local_seed(seed)
   mod_hi <- resolve_model(model_upper, type = "regression")
 
   # Split data
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -107,6 +116,7 @@ conformal_cqr <- function(x, y, model_lower, model_upper, x_new,
     upper = qhat_hi_new + q,
     alpha = alpha,
     method = "cqr",
+    quantiles = quantiles,
     scores = scores,
     quantile = q,
     n_cal = length(split$cal),
@@ -114,4 +124,27 @@ conformal_cqr <- function(x, y, model_lower, model_upper, x_new,
     fitted_model = list(lower = fitted_lo, upper = fitted_hi),
     model = list(lower = mod_lo, upper = mod_hi)
   ), class = "predictset_reg")
+}
+
+
+# The nominal quantile spread should match the target coverage. A mismatch is
+# legal but costs efficiency, so it is worth saying out loud.
+validate_quantiles <- function(quantiles, alpha) {
+  if (!is.numeric(quantiles) || length(quantiles) != 2 || any(is.na(quantiles))) {
+    cli_abort("{.arg quantiles} must be a numeric vector of length 2.")
+  }
+  if (any(quantiles <= 0 | quantiles >= 1)) {
+    cli_abort("{.arg quantiles} must lie strictly between 0 and 1.")
+  }
+  if (quantiles[1] >= quantiles[2]) {
+    cli_abort("{.arg quantiles} must be increasing: {.code quantiles[1] < quantiles[2]}.")
+  }
+  spread <- quantiles[2] - quantiles[1]
+  if (abs(spread - (1 - alpha)) > 1e-8) {
+    cli_warn(c(
+      "{.arg quantiles} spans {.val {round(spread, 4)}} but {.arg alpha} targets {.val {round(1 - alpha, 4)}} coverage.",
+      "i" = "Coverage is still guaranteed, but intervals will be wider than necessary. Fit the quantile models at {.val {alpha / 2}} and {.val {1 - alpha / 2}}."
+    ))
+  }
+  quantiles
 }

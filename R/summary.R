@@ -61,7 +61,6 @@ summary.predictset_reg <- function(object, ...) {
 summary.predictset_class <- function(object, ...) {
   sizes <- vapply(object$sets, length, integer(1))
   method_names <- c(
-    split = "Split Conformal",
     aps = "Adaptive Prediction Sets",
     raps = "Regularized Adaptive Prediction Sets",
     lac = "Least Ambiguous Classifier",

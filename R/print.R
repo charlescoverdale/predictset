@@ -31,6 +31,11 @@ print.predictset_reg <- function(x, ...) {
     bullets <- c(bullets,
       "*" = "Median LOO residual: {.val {round(stats::median(x$loo_residuals), 4)}}"
     )
+  } else if (x$method == "weighted" &&
+             length(unique(x$quantile_by_point)) > 1) {
+    bullets <- c(bullets,
+      "*" = "Conformal quantile: {.val {round(min(x$quantile_by_point), 4)}} to {.val {round(max(x$quantile_by_point), 4)}} across test points (median {.val {round(x$quantile, 4)}})"
+    )
   } else {
     bullets <- c(bullets,
       "*" = "Conformal quantile: {.val {round(x$quantile, 4)}}"
@@ -39,6 +44,16 @@ print.predictset_reg <- function(x, ...) {
   bullets <- c(bullets,
     "*" = "Median interval width: {.val {round(median(x$upper - x$lower), 4)}}"
   )
+  if (isTRUE(x$train_approximation)) {
+    bullets <- c(bullets,
+      "!" = "Intervals are for the training data and use an approximation without the CV+ guarantee. Supply {.arg x_new} for exact CV+ intervals."
+    )
+  }
+  if (any(!is.finite(x$upper - x$lower))) {
+    bullets <- c(bullets,
+      "!" = "{sum(!is.finite(x$upper - x$lower))} interval{?s} {?is/are} unbounded: too few calibration points for {.code alpha = {x$alpha}}."
+    )
+  }
   cli_bullets(bullets)
   invisible(x)
 }
@@ -53,7 +68,6 @@ print.predictset_reg <- function(x, ...) {
 #' @export
 print.predictset_class <- function(x, ...) {
   method_names <- c(
-    split = "Split Conformal",
     aps = "Adaptive Prediction Sets",
     raps = "Regularized Adaptive Prediction Sets",
     lac = "Least Ambiguous Classifier",

@@ -69,7 +69,9 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
 
   mod <- resolve_model(model, type = "regression")
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  local_seed(seed)
+
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -86,14 +88,22 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
   pooled_q <- conformal_quantile(scores, alpha)
   group_quantiles <- setNames(numeric(length(all_groups)), all_groups)
 
+  # A group needs at least ceiling(1/alpha) - 1 calibration points before its
+  # own conformal quantile is finite. Below that, conformal_quantile() returns
+  # Inf, which is the honest answer: the data cannot support a finite
+  # group-conditional interval. Borrowing the pooled quantile instead would
+  # silently void the group-conditional guarantee for exactly the groups that
+  # need it, so it is not done.
+  n_min <- min_cal_size(alpha)
   for (g in all_groups) {
     g_idx <- which(groups_cal == g)
-    if (length(g_idx) < 3) {
-      cli_warn("Group {.val {g}} has only {length(g_idx)} calibration point{?s}. Falling back to pooled quantile.")
-      group_quantiles[g] <- pooled_q
-    } else {
-      group_quantiles[g] <- conformal_quantile(scores[g_idx], alpha)
+    if (length(g_idx) < n_min) {
+      cli_warn(c(
+        "Group {.val {g}} has {length(g_idx)} calibration point{?s}, fewer than the {n_min} needed for a finite quantile at {.code alpha = {alpha}}.",
+        "i" = "Its interval is unbounded. Collect more data for this group, raise {.arg alpha}, or merge it into a larger group."
+      ))
     }
+    group_quantiles[g] <- conformal_quantile(scores[g_idx], alpha)
   }
 
   # Predictions on new data
@@ -103,13 +113,7 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
   upper <- numeric(n_new)
 
   for (i in seq_len(n_new)) {
-    g <- as.character(groups_new[i])
-    if (g %in% names(group_quantiles)) {
-      q_i <- group_quantiles[g]
-    } else {
-      cli_warn("Group {.val {g}} not seen during calibration. Falling back to pooled quantile.")
-      q_i <- pooled_q
-    }
+    q_i <- group_quantile_for(groups_new[i], group_quantiles, pooled_q)
     lower[i] <- yhat_new[i] - q_i
     upper[i] <- yhat_new[i] + q_i
   }
@@ -149,7 +153,10 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
 #'   observation in `x_new`.
 #' @param alpha Miscoverage level. Default `0.10`.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
-#' @param seed Optional random seed.
+#' @param allow_empty Logical. If `FALSE` (the default), an empty prediction
+#'   set is replaced by the single most probable class.
+#' @param seed Optional random seed. Set for the duration of the call only;
+#'   the global random stream is restored on exit.
 #'
 #' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"mondrian"`. Additional components
@@ -186,7 +193,7 @@ conformal_mondrian <- function(x, y, model, x_new, groups, groups_new,
 #' @export
 conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
                                       alpha = 0.10, cal_fraction = 0.5,
-                                      seed = NULL) {
+                                      allow_empty = FALSE, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -208,7 +215,9 @@ conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
 
   mod <- resolve_model(model, type = "classification")
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  local_seed(seed)
+
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -217,11 +226,8 @@ conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
 
   fitted <- mod$train_fun(x_train, y_train)
 
-  probs_cal <- mod$predict_fun(fitted, x_cal)
-  if (is.null(colnames(probs_cal))) {
-    colnames(probs_cal) <- levels(y)
-  }
-  validate_probs_colnames(probs_cal, y, "calibration probability matrix")
+  probs_cal <- label_probs(mod$predict_fun(fitted, x_cal), levels(y))
+  validate_probs(probs_cal, levels(y), "calibration probability matrix")
 
   scores <- lac_scores(probs_cal, y_cal)
 
@@ -230,21 +236,27 @@ conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
   pooled_q <- conformal_quantile(scores, alpha)
   group_quantiles <- setNames(numeric(length(all_groups)), all_groups)
 
+  # A group needs at least ceiling(1/alpha) - 1 calibration points before its
+  # own conformal quantile is finite. Below that, conformal_quantile() returns
+  # Inf, which is the honest answer: the data cannot support a finite
+  # group-conditional interval. Borrowing the pooled quantile instead would
+  # silently void the group-conditional guarantee for exactly the groups that
+  # need it, so it is not done.
+  n_min <- min_cal_size(alpha)
   for (g in all_groups) {
     g_idx <- which(groups_cal == g)
-    if (length(g_idx) < 3) {
-      cli_warn("Group {.val {g}} has only {length(g_idx)} calibration point{?s}. Falling back to pooled quantile.")
-      group_quantiles[g] <- pooled_q
-    } else {
-      group_quantiles[g] <- conformal_quantile(scores[g_idx], alpha)
+    if (length(g_idx) < n_min) {
+      cli_warn(c(
+        "Group {.val {g}} has {length(g_idx)} calibration point{?s}, fewer than the {n_min} needed for a finite quantile at {.code alpha = {alpha}}.",
+        "i" = "Its interval is unbounded. Collect more data for this group, raise {.arg alpha}, or merge it into a larger group."
+      ))
     }
+    group_quantiles[g] <- conformal_quantile(scores[g_idx], alpha)
   }
 
   # Predictions on new data
-  probs_new <- mod$predict_fun(fitted, x_new)
-  if (is.null(colnames(probs_new))) {
-    colnames(probs_new) <- levels(y)
-  }
+  probs_new <- label_probs(mod$predict_fun(fitted, x_new), levels(y))
+  validate_probs(probs_new, levels(y), "probability matrix for x_new")
 
   n_new <- nrow(x_new)
   sets <- vector("list", n_new)
@@ -252,18 +264,9 @@ conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
   classes <- colnames(probs_new)
 
   for (i in seq_len(n_new)) {
-    g <- as.character(groups_new[i])
-    if (g %in% names(group_quantiles)) {
-      q_i <- group_quantiles[g]
-    } else {
-      cli_warn("Group {.val {g}} not seen during calibration. Falling back to pooled quantile.")
-      q_i <- pooled_q
-    }
+    q_i <- group_quantile_for(groups_new[i], group_quantiles, pooled_q)
     p <- probs_new[i, ]
-    included <- classes[p >= 1 - q_i]
-    if (length(included) == 0) {
-      included <- classes[which.max(p)]
-    }
+    included <- non_empty(classes[p >= 1 - q_i], classes, p, allow_empty)
     sets[[i]] <- included
     set_probs[[i]] <- setNames(p[included], included)
   }
@@ -281,6 +284,22 @@ conformal_mondrian_class <- function(x, y, model, x_new, groups, groups_new,
     fitted_model = fitted,
     model = mod,
     groups_new = groups_new,
-    group_quantiles = group_quantiles
+    group_quantiles = group_quantiles,
+    allow_empty = allow_empty
   ), class = "predictset_class")
+}
+
+
+# Look up a group's conformal quantile, falling back to the pooled quantile for
+# a group never seen during calibration.
+group_quantile_for <- function(g, group_quantiles, pooled_q) {
+  g <- as.character(g)
+  if (g %in% names(group_quantiles)) {
+    return(group_quantiles[[g]])
+  }
+  cli_warn(c(
+    "Group {.val {g}} was not seen during calibration.",
+    "i" = "Using the pooled quantile, which carries no group-conditional guarantee for this group."
+  ))
+  pooled_q
 }

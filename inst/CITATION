@@ -1,8 +1,14 @@
+year <- if (!is.null(meta$`Date/Publication`)) {
+  sub("-.*", "", meta$`Date/Publication`)
+} else {
+  format(Sys.Date(), "%Y")
+}
+
 bibentry(
   bibtype = "Manual",
-  title   = "predictset: Model-Agnostic Conformal Prediction for Classification and Regression",
+  title   = "predictset: Conformal Prediction and Uncertainty Quantification",
   author  = person("Charles", "Coverdale"),
-  year    = "2026",
-  note    = "R package version 0.3.0",
-  url     = "https://github.com/charlescoverdale/predictset"
+  year    = year,
+  note    = sprintf("R package version %s", meta$Version),
+  url     = "https://CRAN.R-project.org/package=predictset"
 )

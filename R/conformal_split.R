@@ -21,7 +21,9 @@
 #'   residuals (used only when `score_type = "normalized"`). Must return
 #'   positive predictions. If `NULL` and `score_type = "normalized"`, a
 #'   default model is fitted using [lm()] on absolute residuals.
-#' @param seed Optional random seed for reproducible data splitting.
+#' @param seed Optional random seed for reproducible data splitting. Set for
+#'   the duration of the call only; the global random stream is restored on
+#'   exit.
 #'
 #' @return A `predictset_reg` object (a list) with components:
 #' \describe{
@@ -72,9 +74,10 @@ conformal_split <- function(x, y, model, x_new, alpha = 0.10,
   }
 
   mod <- resolve_model(model, type = "regression")
+  local_seed(seed)
 
   # Split data
-  split <- split_data(nrow(x), cal_fraction, seed)
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]

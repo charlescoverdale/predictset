@@ -50,6 +50,16 @@ conformal_pvalue <- function(scores, new_scores) {
 #' average coverage converges to \eqn{1 - \alpha} as the sequence length
 #' grows (Gibbs and Candes, 2021).
 #'
+#' The miscoverage level is updated online as
+#' \eqn{\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)}, where
+#' \eqn{\mathrm{err}_t} indicates that \eqn{Y_t} fell outside the interval.
+#' A miss lowers \eqn{\alpha_t} and so widens the next interval.
+#'
+#' Results are sensitive to \eqn{\gamma}: too small and the method cannot track
+#' a shift, too large and \eqn{\alpha_t} becomes volatile. Gibbs and Candes
+#' (2024) remove this tuning problem by aggregating over a set of learning
+#' rates; that extension is not implemented here.
+#'
 #' @param y_pred A numeric vector of point predictions (sequential).
 #' @param y_true A numeric vector of true values (sequential).
 #' @param alpha Target miscoverage level. Default `0.10`.
@@ -124,9 +134,13 @@ conformal_aci <- function(y_pred, y_true, alpha = 0.10, gamma = 0.005) {
     covered[t] <- (y_true[t] >= lower[t]) && (y_true[t] <= upper[t])
     residuals[t] <- abs(y_true[t] - y_pred[t])
 
-    # Update alpha: increase if covered (tighten), decrease if not (widen)
+    # Gibbs and Candes (2021), Eq. 2: alpha_{t+1} = alpha_t + gamma(alpha - err_t).
+    # A miss (err_t = 1) lowers alpha_t, which raises the quantile and widens the
+    # next interval; coverage raises alpha_t and tightens it. Reversing these
+    # operands turns the negative feedback into positive feedback and alpha_t
+    # runs away to a clip boundary.
     err_t <- if (covered[t]) 0 else 1
-    alpha_t <- alpha_t + gamma * (err_t - alpha)
+    alpha_t <- alpha_t + gamma * (alpha - err_t)
     alpha_t <- max(0.001, min(0.999, alpha_t))
   }
 

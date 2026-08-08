@@ -87,6 +87,11 @@ calibration residuals [@lei2018distribution].
 Jackknife+ avoids this by leave-one-out refitting; CV+ generalises to
 $K$-fold. Both use the residuals from held-out folds directly, with a
 slightly weaker theoretical guarantee of $1-2\alpha$ [@barber2021predictive].
+Their bounds are the $\lfloor\alpha(n+1)\rfloor$-th and
+$\lceil(1-\alpha)(n+1)\rceil$-th order statistics of the leave-out
+predictions shifted by the corresponding residuals; when an index falls
+outside $1,\ldots,n$ the bound is infinite, and \code{predictset} returns
+$\pm\infty$ rather than substituting the extreme observed value.
 
 **Quantile regression.** Conformalized quantile regression (CQR) fits two
 quantile models, one for a lower quantile and one for an upper quantile, then
@@ -222,11 +227,19 @@ model fits.
 
 ## Classification methods
 
-\code{conformal\_aps()} constructs prediction sets by adding classes in
-descending probability until the cumulative mass exceeds a calibrated
-threshold. It supports both deterministic and randomised variants; the
-latter achieves exact marginal coverage at the cost of non-reproducibility
-without an explicit seed.
+\code{conformal\_aps()} constructs prediction sets by inverting the
+generalised inverse quantile score: a class enters the set exactly when its
+score falls at or below the calibrated threshold. The score carries a uniform
+random variable $U$, drawn once per observation and shared across classes,
+and the same draw governs both calibration and set construction. This
+randomisation is the default and is not an optional refinement. Setting
+\code{randomize = FALSE} takes $U = 0$, which leaves an atom of probability
+mass at exactly 1, reached whenever the model ranks the true class last;
+whenever that happens more often than $\alpha$ of the time the calibrated
+threshold is exactly 1 and every prediction set becomes the full label set.
+The deterministic variant is therefore reproducible without a seed but
+materially conservative, and \code{conformal\_aps()} warns when it
+degenerates.
 
 Figure \ref{fig:aps} illustrates the adaptive nature of APS on a
 three-class synthetic task. Points near the decision boundary are assigned
@@ -237,7 +250,7 @@ scales with model uncertainty.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig3_aps_sets.pdf}
-\caption{\textbf{Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90.} Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \code{conformal\_aps()} wrapping a 200-tree \CRANpkg{ranger} classifier. Difficulty deciles are computed from the entropy of the classifier's softmax output. Mean set size rises monotonically with entropy, from near one in the easy deciles to near three at the decision boundary.}
+\caption{\textbf{Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90.} Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \code{conformal\_aps()} wrapping a 200-tree \CRANpkg{ranger} classifier. Difficulty deciles are computed from the entropy of the classifier's softmax output. Mean set size rises with entropy, from 1.00 in the easiest decile to 1.83 in the hardest, with overall empirical coverage 0.920 at a mean set size of 1.36.}
 \label{fig:aps}
 \end{figure}
 
@@ -263,7 +276,7 @@ meaningfully worse within a subgroup or under a mild distribution shift.
 
 \code{conformal\_mondrian()} (regression) and \code{conformal\_mondrian\_class()}
 (classification) compute a separate calibration quantile per group, so
-each subgroup receives its own coverage guarantee. No other CRAN package
+each subgroup receives its own coverage guarantee. No actively maintained CRAN package
 implements this.
 
 Figure \ref{fig:mond} shows the benefit on a two-group heteroscedastic
@@ -292,7 +305,7 @@ mean from zero to 1.5.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig5_weighted.pdf}
-\caption{\textbf{Empirical coverage on a shifted test set at target 0.90.} Training covariates $x \sim \mathcal{N}(0, 1)$, test covariates $x \sim \mathcal{N}(1.5, 1)$, outcome $y = 1.5 x + \varepsilon$ with heteroscedastic noise $\varepsilon \sim \mathcal{N}(0, 0.5 + 0.3|x|)$. Under this covariate shift, standard split conformal loses coverage by more than ten percentage points; weighted conformal using the exact likelihood-ratio weights recovers close to target coverage.}
+\caption{\textbf{Empirical coverage on a shifted test set at target 0.90.} Training covariates $x \sim \mathcal{N}(0, 1)$, test covariates $x \sim \mathcal{N}(1.5, 1)$, outcome $y = 1.5 x + \varepsilon$ with heteroscedastic noise $\varepsilon \sim \mathcal{N}(0, 0.5 + 0.3|x|)$. Under this covariate shift, standard split conformal falls to 0.772, nearly thirteen percentage points below target. Weighted conformal supplied with the likelihood ratio evaluated on both the calibration and the test covariates, so that each test point receives its own conformal quantile, recovers 0.900.}
 \label{fig:weighted}
 \end{figure}
 
@@ -304,7 +317,11 @@ updated according to
 $\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)$,
 where $\mathrm{err}_t$ is the indicator that $Y_t$ fell outside the current
 interval. The procedure targets the long-run coverage $1-\alpha$ regardless
-of stationarity. It is the only R implementation of ACI on CRAN.
+of stationarity. \CRANpkg{conformalForecast} also provides adaptive conformal
+prediction and conformal PID control, specialised to multistep-ahead time
+series forecasting; the GitHub package \pkg{AdaptiveConformal} implements a
+wider family of online conformal algorithms. \code{conformal\_aci()} exposes
+ACI as a general-purpose sequential wrapper alongside the batch methods.
 
 ## Diagnostics
 
@@ -354,9 +371,13 @@ calibration as a minimum standard for fair predictive inference.
 Mondrian conformal prediction solves the algorithmic side of this problem
 directly. Given a partition of the population into subgroups, it computes a
 calibration quantile per subgroup and guarantees coverage within each. The
-cost is sample efficiency: each subgroup needs enough calibration data for
-the empirical quantile to be stable, which rules out subgroups with fewer
-than roughly fifty observations.
+cost is sample efficiency: a subgroup needs at least
+$\lceil 1/\alpha \rceil - 1$ calibration observations before its quantile is
+finite at all (nine at $\alpha = 0.10$), and several times that before it is
+stable. \code{predictset} returns an unbounded interval for a subgroup below
+that threshold, with a warning, rather than borrowing the pooled quantile:
+substituting the pooled quantile would void the group-conditional guarantee
+for precisely the subgroups that most need it.
 
 The worked example in Figure \ref{fig:mond} shows the effect on a
 stylised two-group problem. Figure \ref{fig:compas} demonstrates
@@ -375,12 +396,14 @@ coverage 0.90; \code{conformal\_mondrian\_class()} produces
 group-conditional prediction sets with race (African-American vs
 Caucasian) as the group variable.
 \code{coverage\_by\_group()} reports the realised coverage per
-group. With only two outcome classes, marginal APS over-covers
-(producing both-class sets frequently enough to reach 100 per cent
-empirical coverage in each group), which satisfies the marginal
-guarantee but is uninformative. Mondrian APS recovers close to the
-90 per cent target per group, with smaller prediction sets on
-average. On real deployment data, users should audit the realised
+group. Marginal APS reaches 0.910 for Caucasian and 0.917 for
+African-American defendants at a mean set size of 1.70. The
+marginal guarantee constrains only the pooled rate, so any
+agreement between groups here is incidental rather than
+guaranteed. Mondrian APS calibrates separately within each group,
+giving 0.912 and 0.891 at a mean set size of 1.58: it holds each
+group near target by construction, and buys smaller sets in the
+process. On real deployment data, users should audit the realised
 per-group coverage after deployment, since the finite-sample
 guarantee holds only within each subgroup conditional on the group
 assignment being fixed and exchangeable.
@@ -388,7 +411,7 @@ assignment being fixed and exchangeable.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig6_compas.pdf}
-\caption{\textbf{Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90.} Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS over-covers both groups by including both outcome classes in the prediction set frequently enough to hit 100 per cent empirically. Mondrian APS computes a separate calibration quantile per group and tracks the 0.90 target more tightly on each.}
+\caption{\textbf{Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90.} Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS attains 0.910 and 0.917 respectively at a mean set size of 1.70; because it calibrates on the pooled sample, nothing constrains the gap between the two groups. Mondrian APS computes a separate calibration quantile per group, giving 0.912 and 0.891 at a mean set size of 1.58: closer to target on each group and smaller sets overall.}
 \label{fig:compas}
 \end{figure}
 

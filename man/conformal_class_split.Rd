@@ -11,6 +11,7 @@ conformal_class_split(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  allow_empty = FALSE,
   seed = NULL
 )
 }
@@ -29,7 +30,13 @@ or a fitted model object that produces class probabilities.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
 
-\item{seed}{Optional random seed.}
+\item{allow_empty}{Logical. If \code{FALSE} (the default), an empty prediction
+set is replaced by the single most probable class. LAC admits empty sets
+by design (Sadinle, Lei and Wasserman 2019); set \code{TRUE} to return them.
+Suppressing empty sets is conservative, never anti-conservative.}
+
+\item{seed}{Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.}
 }
 \value{
 A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for details.

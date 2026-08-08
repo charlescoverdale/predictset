@@ -47,12 +47,13 @@ test_that("conformal_mondrian falls back for unseen group", {
   expect_s3_class(result, "predictset_reg")
 })
 
-test_that("conformal_mondrian falls back for small group", {
+test_that("conformal_mondrian gives an unbounded interval for a group too small to calibrate", {
   set.seed(42)
   n <- 50
   x <- matrix(rnorm(n * 3), ncol = 3)
   y <- rnorm(n)
-  # Make groups so one has only 1 obs after split
+  # Group "A" has far fewer than the ceiling(1/alpha) - 1 = 9 calibration
+  # points needed for a finite quantile at alpha = 0.10.
   groups <- factor(c("A", rep("B", n - 1)))
   x_new <- matrix(rnorm(5 * 3), ncol = 3)
   groups_new <- factor(rep("A", 5))
@@ -61,9 +62,14 @@ test_that("conformal_mondrian falls back for small group", {
     result <- conformal_mondrian(x, y, model = test_reg_model,
                                   x_new = x_new, groups = groups,
                                   groups_new = groups_new, seed = 42),
-    "Falling back to pooled"
+    "fewer than the 9 needed"
   )
   expect_s3_class(result, "predictset_reg")
+  # Borrowing the pooled quantile here would void the group-conditional
+  # guarantee for group A, so the interval must be unbounded instead.
+  expect_true(is.infinite(result$group_quantiles[["A"]]))
+  expect_true(all(is.infinite(result$upper)))
+  expect_true(is.finite(result$group_quantiles[["B"]]))
 })
 
 test_that("conformal_mondrian_class returns correct structure", {

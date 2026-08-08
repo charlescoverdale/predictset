@@ -42,7 +42,9 @@ residuals (used only when \code{score_type = "normalized"}). Must return
 positive predictions. If \code{NULL} and \code{score_type = "normalized"}, a
 default model is fitted using \code{\link[=lm]{lm()}} on absolute residuals.}
 
-\item{seed}{Optional random seed for reproducible data splitting.}
+\item{seed}{Optional random seed for reproducible data splitting. Set for
+the duration of the call only; the global random stream is restored on
+exit.}
 }
 \value{
 A \code{predictset_reg} object (a list) with components:

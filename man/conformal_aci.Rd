@@ -38,6 +38,16 @@ ACI provides asymptotic coverage guarantees under distribution drift, not
 the finite-sample guarantees of split conformal prediction. The long-run
 average coverage converges to \eqn{1 - \alpha} as the sequence length
 grows (Gibbs and Candes, 2021).
+
+The miscoverage level is updated online as
+\eqn{\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)}, where
+\eqn{\mathrm{err}_t} indicates that \eqn{Y_t} fell outside the interval.
+A miss lowers \eqn{\alpha_t} and so widens the next interval.
+
+Results are sensitive to \eqn{\gamma}: too small and the method cannot track
+a shift, too large and \eqn{\alpha_t} becomes volatile. Gibbs and Candes
+(2024) remove this tuning problem by aggregating over a set of learning
+rates; that extension is not implemented here.
 }
 \examples{
 set.seed(42)

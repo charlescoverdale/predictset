@@ -43,11 +43,13 @@
 #'
 #' @export
 conformal_class_split <- function(x, y, model, x_new, alpha = 0.10,
-                                   cal_fraction = 0.5, seed = NULL) {
+                                   cal_fraction = 0.5, allow_empty = FALSE,
+                                   seed = NULL) {
   cli_warn(c(
     "Please use {.fn conformal_lac} instead of {.fn conformal_class_split}.",
     "i" = "{.fn conformal_class_split} will be removed in a future version."
   ))
   conformal_lac(x, y, model = model, x_new = x_new, alpha = alpha,
-                cal_fraction = cal_fraction, seed = seed)
+                cal_fraction = cal_fraction, allow_empty = allow_empty,
+                seed = seed)
 }

@@ -81,24 +81,24 @@ test_that("validate_x_new catches column mismatch", {
   )
 })
 
-test_that("validate_probs_colnames catches missing levels", {
+test_that("validate_probs catches missing levels", {
   probs <- matrix(c(0.5, 0.5, 0.3, 0.7), ncol = 2)
   colnames(probs) <- c("A", "B")
   y <- factor(c("A", "C"), levels = c("A", "B", "C"))
 
   expect_error(
-    predictset:::validate_probs_colnames(probs, y),
+    predictset:::validate_probs(probs, levels(y)),
     "missing columns"
   )
 })
 
-test_that("validate_probs_colnames catches single column", {
+test_that("validate_probs catches single column", {
   probs <- matrix(c(0.5, 0.3), ncol = 1)
   colnames(probs) <- "A"
   y <- factor("A")
 
   expect_error(
-    predictset:::validate_probs_colnames(probs, y),
+    predictset:::validate_probs(probs, levels(y)),
     "at least 2 columns"
   )
 })

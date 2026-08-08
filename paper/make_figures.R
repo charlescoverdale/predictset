@@ -211,8 +211,9 @@ clf <- make_model(
 
 idx_train <- seq_len(600)
 idx_test <- setdiff(seq_len(n_cls), idx_train)
+# APS is randomised (Romano, Sesia and Candes 2020); seed for reproducibility.
 res_aps <- conformal_aps(z[idx_train, ], y_cls[idx_train], model = clf,
-                         x_new = z[idx_test, ], alpha = 0.10)
+                         x_new = z[idx_test, ], alpha = 0.10, seed = 1)
 
 # Difficulty = entropy of the predicted probability vector.
 p_test <- clf$predict_fun(
@@ -303,12 +304,16 @@ x_w_new <- matrix(rnorm(400, mean = 1.5, sd = 1), ncol = 1)
 y_w_new <- 1.5 * x_w_new[, 1] + rnorm(400, sd = 0.5 + 0.3 * abs(x_w_new[, 1]))
 
 w <- dnorm(x_w[, 1], mean = 1.5, sd = 1) / dnorm(x_w[, 1], mean = 0, sd = 1)
+# The test-point weights give the exact procedure of Tibshirani et al. (2019),
+# in which each test point receives its own conformal quantile.
+w_new <- dnorm(x_w_new[, 1], mean = 1.5, sd = 1) /
+  dnorm(x_w_new[, 1], mean = 0, sd = 1)
 
 res_std <- conformal_split(x_w, y_w, model = y_w ~ .,
                            x_new = x_w_new, alpha = 0.10)
 res_wcp <- conformal_weighted(x_w, y_w, model = y_w ~ .,
                               x_new = x_w_new,
-                              weights = w, alpha = 0.10)
+                              weights = w, weights_new = w_new, alpha = 0.10)
 
 df6 <- data.frame(
   method = c("Split conformal", "Weighted conformal"),
@@ -402,7 +407,7 @@ y_val   <- train_df$outcome[-inner]
 race_val <- train_df$race[-inner]
 
 res_marginal <- conformal_aps(x_train, y_train, model = glm_pipeline,
-                              x_new = x_val, alpha = 0.10)
+                              x_new = x_val, alpha = 0.10, seed = 1)
 
 res_mondrian <- conformal_mondrian_class(
   x_train, y_train, model = glm_pipeline,

@@ -97,7 +97,7 @@ test_that("conformal_aci larger gamma adapts faster", {
   expect_gt(alpha_var_fast, alpha_var_slow)
 })
 
-test_that("conformal_aci responds to distribution shift via alpha", {
+test_that("conformal_aci responds to distribution shift by widening", {
   set.seed(42)
   n <- 400
   # Stable period then variance increase causes miscoverage
@@ -106,13 +106,63 @@ test_that("conformal_aci responds to distribution shift via alpha", {
 
   result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
 
-  # During stable period, alpha_t drifts below target (coverage > 1-alpha)
   alpha_early <- mean(result$alphas[150:200])
-  # After shift, miscoverage pushes alpha_t above target
   alpha_late <- mean(result$alphas[350:400])
 
-  # Alpha should increase after the distribution shift
-  expect_gt(alpha_late, alpha_early)
+  # Gibbs and Candes (2021), Eq. 2: alpha_{t+1} = alpha_t + gamma(alpha - err_t).
+  # A run of misses drives alpha_t DOWN, which raises the quantile and widens
+  # the interval. The reverse sign is positive feedback: misses would tighten
+  # the interval, causing more misses, and alpha_t runs to a clip boundary.
+  expect_lt(alpha_late, alpha_early)
+
+  # The feedback must be stable, not a runaway to the [0.001, 0.999] clips.
+  expect_gt(min(result$alphas), 0.001)
+  expect_lt(max(result$alphas), 0.999)
+})
+
+test_that("conformal_aci matches the Gibbs and Candes update exactly", {
+  set.seed(11)
+  n <- 300
+  y_true <- c(rnorm(150), rnorm(150, mean = 6))
+  y_pred <- c(0, y_true[-n])
+  alpha <- 0.10
+  gamma <- 0.02
+
+  result <- conformal_aci(y_pred, y_true, alpha = alpha, gamma = gamma)
+
+  # Independent transcription of the published recursion.
+  cq <- function(s, a) {
+    k <- ceiling((length(s) + 1) * (1 - a))
+    if (k > length(s)) Inf else sort(s)[k]
+  }
+  res_v <- numeric(n)
+  alphas <- numeric(n)
+  covered <- logical(n)
+  at <- alpha
+  for (t in seq_len(n)) {
+    alphas[t] <- at
+    q <- if (t == 1L) Inf else cq(res_v[seq_len(t - 1L)], at)
+    covered[t] <- y_true[t] >= y_pred[t] - q && y_true[t] <= y_pred[t] + q
+    res_v[t] <- abs(y_true[t] - y_pred[t])
+    at <- max(0.001, min(0.999, at + gamma * (alpha - as.numeric(!covered[t]))))
+  }
+
+  expect_equal(result$alphas, alphas)
+  expect_equal(result$covered, covered)
+})
+
+test_that("conformal_aci holds long-run coverage under a level shift", {
+  set.seed(7)
+  n <- 1000
+  y_true <- c(rnorm(500), rnorm(500, mean = 20))
+  y_pred <- rep(0, n)
+
+  result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.02)
+
+  # A sign-reversed update collapses this to ~0.60 or inflates it to 1.00
+  # with infinite intervals; the published update tracks the target.
+  expect_gt(result$coverage, 0.85)
+  expect_lt(result$coverage, 0.95)
 })
 
 test_that("print.predictset_aci works", {

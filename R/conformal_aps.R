@@ -6,11 +6,22 @@
 #' the conformal threshold.
 #'
 #' @details
-#' When \code{randomize = FALSE} (the default), this implementation uses the
-#' deterministic variant of APS, which provides conservative coverage (at
-#' least \eqn{1 - \alpha}). The randomized variant (\code{randomize = TRUE})
-#' achieves exact \eqn{1 - \alpha} coverage but produces non-reproducible
-#' prediction sets.
+#' \code{randomize = TRUE} (the default) is the method as published: the
+#' nonconformity score carries a uniform random variable \eqn{U}, drawn once
+#' per observation and shared across classes, and the prediction set is the
+#' exact inversion of that score. This is what delivers coverage close to
+#' \eqn{1 - \alpha} rather than well above it.
+#'
+#' \code{randomize = FALSE} uses the deterministic simplification \eqn{U = 0}.
+#' It is reproducible without a seed, but the score then has an atom of
+#' probability mass at exactly 1, hit whenever the model ranks the true class
+#' last. Whenever that happens more often than \eqn{\alpha} of the time the
+#' conformal quantile is exactly 1 and every prediction set is the full label
+#' set; the function warns when this occurs. Deterministic scoring is
+#' materially conservative for small numbers of classes.
+#'
+#' Randomized sets are stochastic: pass `seed`, or call [set.seed()], for
+#' reproducible output.
 #'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A factor (or character/integer vector coerced to factor) of class
@@ -20,9 +31,15 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction sets.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
-#' @param randomize Logical. If `TRUE`, uses randomized scores for exact
-#'   coverage (but prediction sets become stochastic). Default `FALSE`.
-#' @param seed Optional random seed.
+#' @param randomize Logical. If `TRUE` (the default), uses the randomized
+#'   score and set construction of Romano, Sesia and Candes (2020). If
+#'   `FALSE`, uses the deterministic simplification, which is markedly
+#'   conservative. See Details.
+#' @param allow_empty Logical. If `FALSE` (the default), an empty prediction
+#'   set is replaced by the single most probable class. This is conservative.
+#'   Set `TRUE` to return the score inversion exactly.
+#' @param seed Optional random seed. Set for the duration of the call only;
+#'   the global random stream is restored on exit.
 #'
 #' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"aps"`.
@@ -60,8 +77,8 @@
 #' @family classification methods
 #' @export
 conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
-                           cal_fraction = 0.5, randomize = FALSE,
-                           seed = NULL) {
+                           cal_fraction = 0.5, randomize = TRUE,
+                           allow_empty = FALSE, seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -74,7 +91,9 @@ conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
 
   mod <- resolve_model(model, type = "classification")
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  local_seed(seed)
+
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -82,21 +101,18 @@ conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
 
   fitted <- mod$train_fun(x_train, y_train)
 
-  probs_cal <- mod$predict_fun(fitted, x_cal)
-  if (is.null(colnames(probs_cal))) {
-    colnames(probs_cal) <- levels(y)
-  }
-  validate_probs_colnames(probs_cal, y, "calibration probability matrix")
+  probs_cal <- label_probs(mod$predict_fun(fitted, x_cal), levels(y))
+  validate_probs(probs_cal, levels(y), "calibration probability matrix")
 
   scores <- aps_scores(probs_cal, y_cal, randomize = randomize)
   q <- conformal_quantile(scores, alpha)
 
-  probs_new <- mod$predict_fun(fitted, x_new)
-  if (is.null(colnames(probs_new))) {
-    colnames(probs_new) <- levels(y)
-  }
+  probs_new <- label_probs(mod$predict_fun(fitted, x_new), levels(y))
+  validate_probs(probs_new, levels(y), "probability matrix for x_new")
 
-  result <- build_aps_sets(probs_new, q)
+  result <- build_aps_sets(probs_new, q, randomize = randomize,
+                           allow_empty = allow_empty)
+  warn_saturated(result$sets, levels(y), "APS", randomize)
 
   structure(list(
     sets = result$sets,
@@ -110,6 +126,7 @@ conformal_aps <- function(x, y, model, x_new, alpha = 0.10,
     n_train = length(split$train),
     fitted_model = fitted,
     model = mod,
-    randomize = randomize
+    randomize = randomize,
+    allow_empty = allow_empty
   ), class = "predictset_class")
 }

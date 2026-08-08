@@ -13,7 +13,8 @@
 
 \item{...}{Additional arguments. For Mondrian objects, pass
 \code{groups_new} (a factor or character vector of group labels for each
-observation in \code{newdata}).}
+observation in \code{newdata}). For weighted conformal objects, pass
+\code{weights_new} (importance weights for each row of \code{newdata}).}
 }
 \value{
 A data frame with columns \code{pred}, \code{lower}, and \code{upper}.

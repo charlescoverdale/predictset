@@ -12,13 +12,17 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction sets.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
-#' @param seed Optional random seed.
+#' @param seed Optional random seed. Set for the duration of the call only;
+#'   the global random stream is restored on exit.
 #' @param k_reg Regularization parameter controlling the number of classes
 #'   exempt from the penalty. Default `1` (only the top class is unpenalized).
 #' @param lambda Regularization strength. Default `0.01`. Larger values
 #'   produce smaller prediction sets at the potential cost of coverage.
-#' @param randomize Logical. If `TRUE`, uses randomized scores for exact
-#'   coverage (but prediction sets become stochastic). Default `FALSE`.
+#' @param randomize Logical. If `TRUE` (the default), uses the randomized
+#'   score and set construction. If `FALSE`, uses the deterministic
+#'   simplification, which is markedly conservative. See [conformal_aps()].
+#' @param allow_empty Logical. If `FALSE` (the default), an empty prediction
+#'   set is replaced by the single most probable class.
 #'
 #' @return A `predictset_class` object. See [conformal_lac()] for
 #'   details. The `method` component is `"raps"`.
@@ -58,7 +62,8 @@
 #' @export
 conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
                             cal_fraction = 0.5, k_reg = 1, lambda = 0.01,
-                            randomize = FALSE, seed = NULL) {
+                            randomize = TRUE, allow_empty = FALSE,
+                            seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -71,7 +76,9 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
 
   mod <- resolve_model(model, type = "classification")
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  local_seed(seed)
+
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -79,22 +86,19 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
 
   fitted <- mod$train_fun(x_train, y_train)
 
-  probs_cal <- mod$predict_fun(fitted, x_cal)
-  if (is.null(colnames(probs_cal))) {
-    colnames(probs_cal) <- levels(y)
-  }
-  validate_probs_colnames(probs_cal, y, "calibration probability matrix")
+  probs_cal <- label_probs(mod$predict_fun(fitted, x_cal), levels(y))
+  validate_probs(probs_cal, levels(y), "calibration probability matrix")
 
   scores <- raps_scores(probs_cal, y_cal, k_reg = k_reg, lambda = lambda,
                          randomize = randomize)
   q <- conformal_quantile(scores, alpha)
 
-  probs_new <- mod$predict_fun(fitted, x_new)
-  if (is.null(colnames(probs_new))) {
-    colnames(probs_new) <- levels(y)
-  }
+  probs_new <- label_probs(mod$predict_fun(fitted, x_new), levels(y))
+  validate_probs(probs_new, levels(y), "probability matrix for x_new")
 
-  result <- build_raps_sets(probs_new, q, k_reg = k_reg, lambda = lambda)
+  result <- build_raps_sets(probs_new, q, k_reg = k_reg, lambda = lambda,
+                            randomize = randomize, allow_empty = allow_empty)
+  warn_saturated(result$sets, levels(y), "RAPS", randomize)
 
   structure(list(
     sets = result$sets,
@@ -110,6 +114,7 @@ conformal_raps <- function(x, y, model, x_new, alpha = 0.10,
     model = mod,
     k_reg = k_reg,
     lambda = lambda,
-    randomize = randomize
+    randomize = randomize,
+    allow_empty = allow_empty
   ), class = "predictset_class")
 }

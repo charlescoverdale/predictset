@@ -33,6 +33,21 @@ plot.predictset_reg <- function(x, max_points = 200, ...) {
   lower <- x$lower[idx][ord]
   upper <- x$upper[idx][ord]
 
+  # Unbounded intervals are a legitimate result at small n or small alpha.
+  # Draw them to the edge of the finite range rather than failing on ylim.
+  finite_vals <- c(lower[is.finite(lower)], upper[is.finite(upper)], pred)
+  if (length(finite_vals) == 0) {
+    cli_abort("All prediction intervals are unbounded; there is nothing to plot.")
+  }
+  ylim <- range(finite_vals)
+  if (any(!is.finite(c(lower, upper)))) {
+    cli_inform("{sum(!is.finite(lower) | !is.finite(upper))} interval{?s} {?is/are} unbounded and {?is/are} clipped to the plot range.")
+    pad <- diff(ylim) * 0.05
+    ylim <- ylim + c(-pad, pad)
+    lower[!is.finite(lower)] <- ylim[1]
+    upper[!is.finite(upper)] <- ylim[2]
+  }
+
   method_names <- c(
     split = "Split Conformal",
     cv_plus = "CV+",
@@ -44,7 +59,7 @@ plot.predictset_reg <- function(x, max_points = 200, ...) {
   )
 
   plot(seq_along(pred), pred,
-       ylim = range(c(lower, upper)),
+       ylim = ylim,
        xlab = "Observation (ordered by prediction)",
        ylab = "Predicted value",
        main = paste0(method_names[x$method],
@@ -94,7 +109,6 @@ plot.predictset_class <- function(x, ...) {
   tab <- table(factor(sizes, levels = seq_len(length(x$classes))))
 
   method_names <- c(
-    split = "Split Conformal",
     aps = "APS",
     raps = "RAPS",
     lac = "LAC",

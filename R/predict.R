@@ -7,7 +7,8 @@
 #' @param newdata A numeric matrix or data frame of new predictor variables.
 #' @param ... Additional arguments. For Mondrian objects, pass
 #'   `groups_new` (a factor or character vector of group labels for each
-#'   observation in `newdata`).
+#'   observation in `newdata`). For weighted conformal objects, pass
+#'   `weights_new` (importance weights for each row of `newdata`).
 #'
 #' @return A data frame with columns `pred`, `lower`, and `upper`.
 #'
@@ -33,51 +34,27 @@ predict.predictset_reg <- function(object, newdata, ...) {
     upper <- hi_pred + object$quantile
   } else if (object$method == "mondrian") {
     pred <- object$model$predict_fun(object$fitted_model, newdata)
-    groups_new <- dots$groups_new
-    if (is.null(groups_new)) {
-      cli_abort("Mondrian predict requires {.arg groups_new} to be passed via {.code predict(object, newdata, groups_new = ...)}.")
-    }
-    groups_new <- as.factor(groups_new)
-    if (length(groups_new) != nrow(newdata)) {
-      cli_abort("{.arg groups_new} must have length equal to {.code nrow(newdata)} ({nrow(newdata)}).")
-    }
-    n_new <- nrow(newdata)
-    lower <- numeric(n_new)
-    upper <- numeric(n_new)
-    for (i in seq_len(n_new)) {
-      g <- as.character(groups_new[i])
-      if (g %in% names(object$group_quantiles)) {
-        q_i <- object$group_quantiles[g]
-      } else {
-        q_i <- object$quantile
-      }
-      lower[i] <- pred[i] - q_i
-      upper[i] <- pred[i] + q_i
-    }
+    groups_new <- check_groups_new(dots$groups_new, nrow(newdata))
+    q_i <- vapply(groups_new, group_quantile_for, numeric(1),
+                  group_quantiles = object$group_quantiles,
+                  pooled_q = object$quantile)
+    lower <- pred - q_i
+    upper <- pred + q_i
+  } else if (object$method == "weighted") {
+    pred <- object$model$predict_fun(object$fitted_model, newdata)
+    q <- weighted_predict_quantile(object, dots$weights_new, nrow(newdata))
+    lower <- pred - q
+    upper <- pred + q
   } else if (object$method == "jackknife_plus") {
     # Jackknife+: use stored LOO models and residuals
     pred <- object$model$predict_fun(object$fitted_model, newdata)
-    n <- length(object$loo_models)
-    n_new <- nrow(newdata)
-    lower <- numeric(n_new)
-    upper <- numeric(n_new)
-
-    for (j in seq_len(n_new)) {
-      loo_preds_at_j <- numeric(n)
-      for (i in seq_len(n)) {
-        loo_preds_at_j[i] <- object$model$predict_fun(
-          object$loo_models[[i]], newdata[j, , drop = FALSE]
-        )
-      }
-      lower_vals <- sort(loo_preds_at_j - object$loo_residuals)
-      upper_vals <- sort(loo_preds_at_j + object$loo_residuals)
-
-      k_lo <- floor(object$alpha * (n + 1))
-      k_hi <- ceiling((1 - object$alpha) * (n + 1))
-
-      lower[j] <- lower_vals[max(k_lo, 1)]
-      upper[j] <- upper_vals[min(k_hi, n)]
-    }
+    intervals <- jackknife_plus_intervals(newdata, object$model,
+                                          object$loo_models,
+                                          object$loo_residuals,
+                                          object$alpha,
+                                          length(object$loo_models))
+    lower <- intervals$lower
+    upper <- intervals$upper
   } else if (object$method == "cv_plus") {
     # CV+: use stored fold models, fold_ids, and residuals
     pred <- object$model$predict_fun(object$fitted_model, newdata)
@@ -141,62 +118,40 @@ predict.predictset_class <- function(object, newdata, ...) {
   newdata <- validate_x(newdata, "newdata")
   dots <- list(...)
 
-  probs_new <- object$model$predict_fun(object$fitted_model, newdata)
-  if (is.null(colnames(probs_new))) {
-    colnames(probs_new) <- object$classes
-  }
+  probs_new <- label_probs(
+    object$model$predict_fun(object$fitted_model, newdata),
+    object$classes
+  )
+  validate_probs(probs_new, object$classes, "predicted probability matrix")
 
-  # Validate probability matrix
-  missing_cls <- setdiff(object$classes, colnames(probs_new))
-  if (length(missing_cls) > 0) {
-    cli_abort(
-      "Predicted probability matrix is missing columns for class{?es}: {.val {missing_cls}}."
-    )
-  }
-  if (any(probs_new < 0 | probs_new > 1, na.rm = TRUE)) {
-    cli_abort("Predicted probabilities must be in [0, 1].")
-  }
-  row_sums <- rowSums(probs_new)
-  if (any(abs(row_sums - 1) > 0.01, na.rm = TRUE)) {
-    cli_warn("Some rows of the predicted probability matrix do not sum to 1.")
-  }
+  randomize <- isTRUE(object$randomize)
+  allow_empty <- isTRUE(object$allow_empty)
 
   if (object$method == "mondrian") {
-    groups_new <- dots$groups_new
-    if (is.null(groups_new)) {
-      cli_abort("Mondrian predict requires {.arg groups_new} to be passed via {.code predict(object, newdata, groups_new = ...)}.")
-    }
-    groups_new <- as.factor(groups_new)
-    if (length(groups_new) != nrow(newdata)) {
-      cli_abort("{.arg groups_new} must have length equal to {.code nrow(newdata)} ({nrow(newdata)}).")
-    }
-    n_new <- nrow(newdata)
+    groups_new <- check_groups_new(dots$groups_new, nrow(newdata))
     classes <- colnames(probs_new)
+    n_new <- nrow(newdata)
     sets <- vector("list", n_new)
     set_probs <- vector("list", n_new)
     for (i in seq_len(n_new)) {
-      g <- as.character(groups_new[i])
-      if (g %in% names(object$group_quantiles)) {
-        q_i <- object$group_quantiles[g]
-      } else {
-        q_i <- object$quantile
-      }
+      q_i <- group_quantile_for(groups_new[i], object$group_quantiles,
+                                object$quantile)
       p <- probs_new[i, ]
-      included <- classes[p >= 1 - q_i]
-      if (length(included) == 0) {
-        included <- classes[which.max(p)]
-      }
+      included <- non_empty(classes[p >= 1 - q_i], classes, p, allow_empty)
       sets[[i]] <- included
       set_probs[[i]] <- setNames(p[included], included)
     }
     result <- list(sets = sets, probs = set_probs)
-  } else if (object$method %in% c("aps")) {
-    result <- build_aps_sets(probs_new, object$quantile)
+  } else if (object$method == "aps") {
+    result <- build_aps_sets(probs_new, object$quantile,
+                             randomize = randomize, allow_empty = allow_empty)
   } else if (object$method == "raps") {
     result <- build_raps_sets(probs_new, object$quantile,
-                               k_reg = object$k_reg, lambda = object$lambda)
+                              k_reg = object$k_reg, lambda = object$lambda,
+                              randomize = randomize, allow_empty = allow_empty)
   } else {
-    result <- build_lac_sets(probs_new, object$quantile)
+    result <- build_lac_sets(probs_new, object$quantile,
+                             allow_empty = allow_empty)
   }
 
   structure(list(
@@ -211,6 +166,36 @@ predict.predictset_class <- function(object, newdata, ...) {
     n_train = object$n_train,
     fitted_model = object$fitted_model,
     model = object$model,
-    randomize = if (!is.null(object$randomize)) object$randomize else FALSE
+    randomize = randomize,
+    allow_empty = allow_empty
   ), class = "predictset_class")
+}
+
+# Shared argument handling for the two Mondrian predict branches.
+check_groups_new <- function(groups_new, n_new) {
+  if (is.null(groups_new)) {
+    cli_abort("Mondrian predict requires {.arg groups_new} to be passed via {.code predict(object, newdata, groups_new = ...)}.")
+  }
+  groups_new <- as.factor(groups_new)
+  if (length(groups_new) != n_new) {
+    cli_abort("{.arg groups_new} must have length equal to {.code nrow(newdata)} ({n_new}).")
+  }
+  groups_new
+}
+
+# Weighted conformal needs the test-point weights to reproduce its per-point
+# quantile. Without them it can only reuse the summary quantile from fitting.
+weighted_predict_quantile <- function(object, weights_new, n_new) {
+  if (is.null(weights_new)) {
+    if (length(unique(object$quantile_by_point)) > 1) {
+      cli_warn(c(
+        "{.arg weights_new} not supplied to {.fn predict}.",
+        "i" = "Falling back to the median conformal quantile from fitting, which is not the exact weighted procedure."
+      ))
+    }
+    return(rep(object$quantile, n_new))
+  }
+  w_test <- check_weights(weights_new, n_new, "weights_new")
+  weighted_conformal_quantile(object$scores, object$cal_weights,
+                              object$alpha, w_test)
 }

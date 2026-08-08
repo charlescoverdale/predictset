@@ -19,7 +19,11 @@ devtools::install_github("charlescoverdale/predictset")
 ```r
 library(predictset)
 
-# Get 90% prediction intervals around any model - 3 lines of code
+x <- matrix(rnorm(500 * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(500)
+x_new <- matrix(rnorm(50 * 3), ncol = 3)
+
+# 90% prediction intervals around any model
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 result$lower  # lower bounds
 result$upper  # upper bounds
@@ -33,7 +37,7 @@ Standard machine learning models produce point predictions: a single number for 
 
 The key property is that this guarantee holds in finite samples. It's not asymptotic, and it doesn't require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.
 
-**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (`cli` and `stats`).
+**predictset** implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with a single non-base dependency (`cli`; the rest are base R).
 
 ---
 
@@ -45,16 +49,16 @@ The key property is that this guarantee holds in finite samples. It's not asympt
 | Regression | Yes | Yes | Yes | Yes |
 | Classification | Yes | No | No | Yes |
 | Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
-| On CRAN | Pending | Yes | No (GitHub only) | N/A |
+| On CRAN | Yes | Yes | No (GitHub only) | N/A |
 | Jackknife+ / CV+ | Yes | No | Yes | Yes |
 | CQR | Yes | Yes | Yes | Yes |
 | APS / RAPS | Yes | No | No | Yes |
 | Mondrian CP | Yes | No | No | Yes |
 | Weighted CP | Yes | No | No | Yes |
-| Adaptive CI | Yes | No | No | No |
+| Adaptive CI | Yes | No | No | Yes |
 | Conditional diagnostics | Yes | No | No | Partial |
-| Dependencies | 2 | 14+ | 5 | N/A |
-| Last updated | 2026 | 2024 | 2019 | 2024 |
+| Dependencies | 1 (plus base R) | 17 | 5 | N/A |
+| Last updated | 2026 | 2025 | 2019 | 2025 |
 
 **predictset** is designed to complement rather than compete with `probably`. If you're working in the tidymodels ecosystem and only need regression intervals, `probably` integrates neatly with your workflow. **predictset** fills the gaps: classification methods (APS, RAPS, LAC), Jackknife+/CV+ for regression, and a model-agnostic interface that works with any model, not just tidymodels workflows.
 
@@ -117,11 +121,14 @@ clf <- make_model(
   type = "classification"
 )
 
-result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
-result$sets[[1]]   # prediction set for first observation: e.g. c("A")
-result$sets[[10]]  # ambiguous case might include: c("A", "B")
+# APS is randomised by default (Romano, Sesia & Candes 2020). Pass `seed`, or
+# call set.seed(), for reproducible sets.
+result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10, seed = 1)
+result$sets[[1]]   # prediction set for the first observation, e.g. c("A")
 table(set_size(result))  # distribution of set sizes
 ```
+
+The uniform random variable in the APS score is not an optional refinement. Without it the score has an atom at exactly 1, and whenever the model ranks the true class last more often than `alpha` of the time the conformal quantile is exactly 1 and every set becomes the full label set. `randomize = FALSE` is available for deterministic output and warns when this happens.
 
 ---
 
@@ -162,7 +169,7 @@ fit <- lm(y ~ ., data = data.frame(y = y, x))
 result <- conformal_split(x, y, model = fit, x_new = x_new)
 ```
 
-If you've already fitted a model and want conformal intervals around its predictions, pass it directly. **predictset** recognises standard R model objects and extracts the training and prediction functions automatically.
+If you've already fitted a model, pass it directly. **predictset** reads its formula and its call, then refits *that same specification* on each conformal training split. This matters: conformal prediction has to retrain on the split, so the object you pass is a template, not the model that ends up being used. Transformations in the formula (`poly()`, `log()`, interactions) and `ranger` hyperparameters are preserved. Anything predictset cannot refit raises an error pointing you at `make_model()` rather than silently substituting a default.
 
 **3. Custom model** via `make_model()` (works with anything):
 
@@ -263,7 +270,7 @@ plot(result)
 
 Standard conformal prediction guarantees marginal coverage (across all test points), but coverage can vary wildly across subgroups. Mondrian conformal computes a separate quantile for each group, guaranteeing coverage within each subgroup. This is critical for fairness and regulatory compliance.
 
-No other R package on CRAN implements Mondrian conformal prediction.
+To our knowledge no actively maintained CRAN package offers Mondrian conformal prediction for both regression and classification. (`conformalClassification` implemented label-wise Mondrian ICP but was archived from CRAN in May 2026.)
 
 ```r
 set.seed(42)
@@ -294,12 +301,17 @@ x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] * 2 + rnorm(n)
 x_new <- matrix(rnorm(100 * 3, mean = 1), ncol = 3)  # shifted test data
 
-# Importance weights (likelihood ratio of test vs training distributions)
+# Importance weights (likelihood ratio of test vs training distributions),
+# evaluated on both the calibration covariates and the test covariates
 weights <- dnorm(x[, 1], mean = 1) / dnorm(x[, 1], mean = 0)
+weights_new <- dnorm(x_new[, 1], mean = 1) / dnorm(x_new[, 1], mean = 0)
 
 result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
-                              weights = weights)
+                              weights = weights, weights_new = weights_new)
 print(result)
+
+# Each test point gets its own conformal quantile
+summary(result$quantile_by_point)
 ```
 
 ### Conformalized Quantile Regression
@@ -333,7 +345,7 @@ plot(result)
 
 ### Adaptive Conformal Inference (sequential prediction)
 
-ACI adapts the miscoverage level online based on observed coverage, maintaining long-run coverage even under distribution shift. No other R package implements ACI.
+ACI adapts the miscoverage level online based on observed coverage, maintaining long-run coverage even under distribution shift. See also [`conformalForecast`](https://CRAN.R-project.org/package=conformalForecast) for adaptive conformal prediction and conformal PID control aimed specifically at multistep time series forecasting, and [`AdaptiveConformal`](https://github.com/herbps10/AdaptiveConformal) (GitHub) for a wider family of online conformal algorithms.
 
 ```r
 set.seed(42)
@@ -396,7 +408,7 @@ coverage_by_bin(result, y_test, bins = 5)
 pvals <- conformal_pvalue(result$scores, new_scores)
 ```
 
-`coverage()` should be close to `1 - alpha`. If it's substantially lower, something has gone wrong (likely a violation of exchangeability). `interval_width()` and `set_size()` measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.
+`coverage()` should be close to `1 - alpha` from either side. Coverage substantially below target usually means exchangeability is violated; coverage far above it means the method is over-covering, which is a real cost, since it buys nothing and widens every interval. `interval_width()` and `set_size()` measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.
 
 `coverage_by_group()` and `coverage_by_bin()` diagnose conditional coverage. Marginal coverage can mask severe under-coverage in subgroups (e.g. by demographic group or by prediction magnitude). These diagnostics help identify where intervals fail, and are essential for fairness evaluation.
 
@@ -428,6 +440,9 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 - **Jackknife+ and CV+ are computationally expensive.** Jackknife+ refits the model n times; CV+ refits it K times. For large datasets or expensive models, this may be impractical.
 - **The coverage guarantee requires exchangeability.** If the calibration data and test data come from different distributions (for example, if there is temporal drift) the coverage guarantee does not hold. This means conformal prediction is not directly applicable to time series forecasting without modification (e.g. conformal methods for time series exist but are not implemented here).
 - **Classification methods depend on probability estimates.** APS, RAPS, and LAC require the model to output well-calibrated class probabilities. If the probabilities are poorly calibrated, the prediction sets will still have valid coverage but may be unnecessarily large.
+- **Small samples give unbounded intervals, by design.** The conformal quantile is the `ceiling((n+1)(1-alpha))`-th calibration score. When that index exceeds the number of calibration points, the correct bound is infinite, and predictset returns `Inf` rather than silently substituting the largest observed score. At `alpha = 0.10` this means fewer than 9 calibration points. The same applies per group in Mondrian conformal.
+- **Predictors must be numeric.** Encode factors yourself, for example with `stats::model.matrix(~ . - 1, data = x)`.
+- **Weighted conformal needs test-point weights.** Supply `weights_new` to get the exact procedure of Tibshirani et al. (2019), in which each test point receives its own quantile.
 
 ---
 

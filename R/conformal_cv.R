@@ -26,8 +26,10 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #'   If `NULL`, intervals are computed for the training data using
 #'   leave-one-fold-out predictions. Note: when `x_new = NULL`, prediction
-#'   intervals for training observations use a self-consistent approximation.
-#'   For exact CV+ intervals on new data, provide `x_new`.
+#'   intervals for training observations use a self-consistent approximation
+#'   that does not carry the CV+ coverage guarantee; the returned object
+#'   records this in `train_approximation`. For exact CV+ intervals, provide
+#'   `x_new`.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction
 #'   intervals.
 #' @param n_folds Number of cross-validation folds. Default `10`.
@@ -77,7 +79,8 @@ conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
   }
 
   mod <- resolve_model(model, type = "regression")
-  folds <- kfold_split(n, n_folds, seed)
+  local_seed(seed)
+  folds <- kfold_split(n, n_folds)
 
   # Build fold_ids: integer vector mapping observation index -> fold number
   fold_ids <- integer(n)
@@ -110,6 +113,7 @@ conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
   # Compute CV+ intervals
   if (!is.null(x_new)) {
     x_new <- validate_x(x_new, "x_new")
+    validate_x_new(x, x_new)
     yhat_full <- mod$predict_fun(fitted_all, x_new)
     intervals <- cv_plus_intervals(x_new, mod, fold_models, fold_ids,
                                     residuals, alpha, n)
@@ -139,7 +143,8 @@ conformal_cv <- function(x, y, model, x_new = NULL, alpha = 0.10,
     model = mod,
     fold_models = fold_models,
     fold_ids = fold_ids,
-    residuals = residuals
+    residuals = residuals,
+    train_approximation = is.null(x_new)
   ), class = "predictset_reg")
 }
 
@@ -183,8 +188,8 @@ cv_plus_intervals <- function(x_new, mod, fold_models, fold_ids, residuals,
     lower_values <- fold_pred_per_obs - residuals
     upper_values <- fold_pred_per_obs + residuals
 
-    lower[j] <- sort(lower_values)[max(k_lo, 1L)]
-    upper[j] <- sort(upper_values)[min(k_hi, n)]
+    lower[j] <- order_stat(sort(lower_values), k_lo, "lower")
+    upper[j] <- order_stat(sort(upper_values), k_hi, "upper")
   }
 
   list(lower = lower, upper = upper)
@@ -241,10 +246,10 @@ cv_plus_intervals_train <- function(loo_preds, fold_ids, residuals, alpha, n) {
   # residual and taking low quantile = center - high quantile of residuals)
   # upper = loo_preds[i] + sorted_resid[min(k_hi, n)]
 
-  q_upper <- sorted_resid[min(k_hi, n)]
+  q_upper <- order_stat(sorted_resid, k_hi, "upper")
   # For lower: the k_lo-th smallest of (center - R_j) = center - (k_lo-th
-  # largest of R_j) = center - sorted_resid[n - max(k_lo, 1L) + 1]
-  q_lower <- sorted_resid[n - max(k_lo, 1L) + 1L]
+  # largest of R_j) = center - sorted_resid[n - k_lo + 1]
+  q_lower <- order_stat(sorted_resid, n - k_lo + 1L, "upper")
 
   lower <- loo_preds - q_lower
   upper <- loo_preds + q_upper

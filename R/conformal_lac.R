@@ -12,7 +12,12 @@
 #' @param x_new A numeric matrix or data frame of new predictor variables.
 #' @param alpha Miscoverage level. Default `0.10` gives 90 percent prediction sets.
 #' @param cal_fraction Fraction of data used for calibration. Default `0.5`.
-#' @param seed Optional random seed.
+#' @param allow_empty Logical. If `FALSE` (the default), an empty prediction
+#'   set is replaced by the single most probable class. LAC admits empty sets
+#'   by design (Sadinle, Lei and Wasserman 2019); set `TRUE` to return them.
+#'   Suppressing empty sets is conservative, never anti-conservative.
+#' @param seed Optional random seed. Set for the duration of the call only;
+#'   the global random stream is restored on exit.
 #'
 #' @return A `predictset_class` object with components:
 #' \describe{
@@ -61,7 +66,8 @@
 #' @family classification methods
 #' @export
 conformal_lac <- function(x, y, model, x_new, alpha = 0.10,
-                           cal_fraction = 0.5, seed = NULL) {
+                           cal_fraction = 0.5, allow_empty = FALSE,
+                           seed = NULL) {
   x <- validate_x(x, "x")
   y <- validate_y_class(y)
   x_new <- validate_x(x_new, "x_new")
@@ -74,7 +80,9 @@ conformal_lac <- function(x, y, model, x_new, alpha = 0.10,
 
   mod <- resolve_model(model, type = "classification")
 
-  split <- split_data(nrow(x), cal_fraction, seed)
+  local_seed(seed)
+
+  split <- split_data(nrow(x), cal_fraction)
   x_train <- x[split$train, , drop = FALSE]
   y_train <- y[split$train]
   x_cal <- x[split$cal, , drop = FALSE]
@@ -82,21 +90,16 @@ conformal_lac <- function(x, y, model, x_new, alpha = 0.10,
 
   fitted <- mod$train_fun(x_train, y_train)
 
-  probs_cal <- mod$predict_fun(fitted, x_cal)
-  if (is.null(colnames(probs_cal))) {
-    colnames(probs_cal) <- levels(y)
-  }
-  validate_probs_colnames(probs_cal, y, "calibration probability matrix")
+  probs_cal <- label_probs(mod$predict_fun(fitted, x_cal), levels(y))
+  validate_probs(probs_cal, levels(y), "calibration probability matrix")
 
   scores <- lac_scores(probs_cal, y_cal)
   q <- conformal_quantile(scores, alpha)
 
-  probs_new <- mod$predict_fun(fitted, x_new)
-  if (is.null(colnames(probs_new))) {
-    colnames(probs_new) <- levels(y)
-  }
+  probs_new <- label_probs(mod$predict_fun(fitted, x_new), levels(y))
+  validate_probs(probs_new, levels(y), "probability matrix for x_new")
 
-  result <- build_lac_sets(probs_new, q)
+  result <- build_lac_sets(probs_new, q, allow_empty = allow_empty)
 
   structure(list(
     sets = result$sets,
@@ -109,6 +112,7 @@ conformal_lac <- function(x, y, model, x_new, alpha = 0.10,
     n_cal = length(split$cal),
     n_train = length(split$train),
     fitted_model = fitted,
-    model = mod
+    model = mod,
+    allow_empty = allow_empty
   ), class = "predictset_class")
 }

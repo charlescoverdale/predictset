@@ -10,6 +10,7 @@ conformal_weighted(
   model,
   x_new,
   weights = NULL,
+  weights_new = NULL,
   alpha = 0.1,
   cal_fraction = 0.5,
   seed = NULL
@@ -30,15 +31,25 @@ in \code{x}, with length equal to \code{nrow(x)}. Weights must be non-negative.
 If \code{NULL}, uniform weights are used (equivalent to standard split
 conformal).}
 
+\item{weights_new}{A numeric vector of importance weights for each
+observation in \code{x_new}, with length equal to \code{nrow(x_new)}. Supplying
+these gives the exact procedure of Tibshirani et al. (2019), in which
+each test point receives its own conformal quantile. If \code{NULL}, the mean
+calibration weight is substituted for every test point, which is an
+approximation (see Details).}
+
 \item{alpha}{Miscoverage level. Default \code{0.10}.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
 
-\item{seed}{Optional random seed.}
+\item{seed}{Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.}
 }
 \value{
 A \code{predictset_reg} object. See \code{\link[=conformal_split]{conformal_split()}} for details.
-The \code{method} component is \code{"weighted"}.
+The \code{method} component is \code{"weighted"}. The \code{quantile} component is the
+median conformal quantile across test points; \code{quantile_by_point} holds
+the full vector.
 }
 \description{
 Constructs prediction intervals using weighted split conformal inference,
@@ -47,9 +58,22 @@ may have different distributions. Importance weights re-weight the
 calibration scores to account for this shift.
 }
 \details{
-The test-point weight \eqn{w_{n+1}} is set to the mean of calibration
-weights, following standard practice when the true test weight is unknown.
-See Tibshirani et al. (2019), Equation 5.
+Tibshirani et al. (2019), Equation 5, defines the weighted conformal
+quantile using the test-point weight \eqn{w(X_{n+1})}, which is known at
+test time. Each test point therefore receives a different quantile, and
+that per-point adaptation is the mechanism by which the method corrects for
+covariate shift. Supply \code{weights_new} to obtain it.
+
+A test point whose weight is large relative to the calibration weights
+receives an infinite quantile: the point mass at \eqn{+\infty} carries more
+than \eqn{\alpha} of the weighted distribution, so no finite interval is
+justified there. That is the correct answer, and it flags test covariates
+the calibration set cannot support.
+
+When \code{weights_new} is \code{NULL} the mean calibration weight is used for every
+test point. This yields a single constant-width interval and does not carry
+the finite-sample guarantee; it is offered only as a fallback for when the
+likelihood ratio cannot be evaluated on the test covariates.
 }
 \examples{
 set.seed(42)
@@ -57,11 +81,14 @@ n <- 400
 x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] * 2 + rnorm(n)
 x_new <- matrix(rnorm(50 * 3, mean = 1), ncol = 3)
-weights <- rep(1, n)
+
+# Likelihood ratio of the test density to the training density
+w <- dnorm(x[, 1], mean = 1) / dnorm(x[, 1], mean = 0)
+w_new <- dnorm(x_new[, 1], mean = 1) / dnorm(x_new[, 1], mean = 0)
 
 \donttest{
 result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
-                              weights = weights)
+                              weights = w, weights_new = w_new)
 print(result)
 }
 
@@ -70,6 +97,11 @@ print(result)
 Tibshirani, R.J., Barber, R.F., Candes, E.J. and Ramdas, A. (2019).
 Conformal prediction under covariate shift.
 \emph{Advances in Neural Information Processing Systems}, 32.
+
+Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2023).
+Conformal prediction beyond exchangeability.
+\emph{Annals of Statistics}, 51(2), 816-845.
+\doi{10.1214/23-AOS2276}
 }
 \seealso{
 Other regression methods: 

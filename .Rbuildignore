@@ -8,3 +8,9 @@
 ^pkgdown$
 ^cran-comments\.md$
 ^predictset_.*\.tar\.gz$
+^CRAN-SUBMISSION$
+^paper$
+^Makefile$
+^llms.*\.txt$
+^Rplots\.pdf$
+^.*\.Rcheck$

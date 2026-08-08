@@ -232,8 +232,23 @@ coverage_by_bin <- function(object, y_true, bins = 10) {
   n <- length(object$pred)
   bins <- min(bins, n)
 
-  # Create quantile-based bins
-  breaks <- stats::quantile(object$pred, probs = seq(0, 1, length.out = bins + 1))
+  # Quantile-based bins. Tied predictions (trees with few splits, binary
+  # predictors) produce duplicate break points, which cut() rejects, so
+  # collapse them and report however many distinct bins the data supports.
+  breaks <- unique(stats::quantile(
+    object$pred,
+    probs = seq(0, 1, length.out = bins + 1),
+    names = FALSE
+  ))
+  if (length(breaks) < 2) {
+    cli_abort(c(
+      "Cannot bin predictions: all {n} predicted value{?s} are identical.",
+      "i" = "{.fn coverage_by_bin} needs variation in {.code object$pred}."
+    ))
+  }
+  if (length(breaks) < bins + 1) {
+    cli_warn("Tied predictions collapsed {bins} requested bin{?s} into {length(breaks) - 1}.")
+  }
   breaks[1] <- breaks[1] - 1
   breaks[length(breaks)] <- breaks[length(breaks)] + 1
   bin_ids <- as.integer(cut(object$pred, breaks = breaks, include.lowest = TRUE))

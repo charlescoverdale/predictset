@@ -13,7 +13,8 @@ conformal_raps(
   cal_fraction = 0.5,
   k_reg = 1,
   lambda = 0.01,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 }
@@ -38,10 +39,15 @@ exempt from the penalty. Default \code{1} (only the top class is unpenalized).}
 \item{lambda}{Regularization strength. Default \code{0.01}. Larger values
 produce smaller prediction sets at the potential cost of coverage.}
 
-\item{randomize}{Logical. If \code{TRUE}, uses randomized scores for exact
-coverage (but prediction sets become stochastic). Default \code{FALSE}.}
+\item{randomize}{Logical. If \code{TRUE} (the default), uses the randomized
+score and set construction. If \code{FALSE}, uses the deterministic
+simplification, which is markedly conservative. See \code{\link[=conformal_aps]{conformal_aps()}}.}
 
-\item{seed}{Optional random seed.}
+\item{allow_empty}{Logical. If \code{FALSE} (the default), an empty prediction
+set is replaced by the single most probable class.}
+
+\item{seed}{Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.}
 }
 \value{
 A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for

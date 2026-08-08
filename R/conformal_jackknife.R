@@ -16,6 +16,12 @@
 #' split conformal's \eqn{1 - \alpha} guarantee. In practice, Jackknife+
 #' coverage is typically much closer to \eqn{1 - \alpha}.
 #'
+#' The interval bounds are the \eqn{\lfloor \alpha (n+1) \rfloor}-th and
+#' \eqn{\lceil (1-\alpha)(n+1) \rceil}-th smallest values. When an index falls
+#' outside \eqn{1, \ldots, n} the corresponding bound is infinite, which
+#' happens for \eqn{n < 1/\alpha - 1} (fewer than 9 observations at
+#' \code{alpha = 0.10}).
+#'
 #' @param x A numeric matrix or data frame of predictor variables.
 #' @param y A numeric vector of response values.
 #' @param model A fitted model object (e.g., from [lm()]), a [make_model()]
@@ -67,7 +73,7 @@ conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
   }
 
   mod <- resolve_model(model, type = "regression")
-  if (!is.null(seed)) set.seed(seed)
+  local_seed(seed)
 
   if (n > 500) {
     cli_inform("Fitting {n} leave-one-out models...")
@@ -96,6 +102,7 @@ conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
   # Determine test points
   if (!is.null(x_new)) {
     x_new <- validate_x(x_new, "x_new")
+    validate_x_new(x, x_new)
     x_test <- x_new
   } else {
     x_test <- x
@@ -109,25 +116,10 @@ conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
     # Jackknife+ (Barber et al. 2021):
     # For each test point j, compute yhat_{-i}(x_test_j) from each LOO model,
     # then lower = quantile of {yhat_{-i} - R_i}, upper = quantile of {yhat_{-i} + R_i}
-    lower <- numeric(n_test)
-    upper <- numeric(n_test)
-
-    k_lo <- floor(alpha * (n + 1))
-    k_hi <- ceiling((1 - alpha) * (n + 1))
-
-    for (j in seq_len(n_test)) {
-      loo_preds_at_j <- numeric(n)
-      for (i in seq_len(n)) {
-        loo_preds_at_j[i] <- mod$predict_fun(
-          loo_models[[i]], x_test[j, , drop = FALSE]
-        )
-      }
-      lower_vals <- sort(loo_preds_at_j - loo_residuals)
-      upper_vals <- sort(loo_preds_at_j + loo_residuals)
-
-      lower[j] <- lower_vals[max(k_lo, 1)]
-      upper[j] <- upper_vals[min(k_hi, n)]
-    }
+    intervals <- jackknife_plus_intervals(x_test, mod, loo_models,
+                                          loo_residuals, alpha, n)
+    lower <- intervals$lower
+    upper <- intervals$upper
     method <- "jackknife_plus"
   } else {
     # Basic jackknife: centre on full-model prediction +/- quantile of LOO residuals
@@ -152,4 +144,45 @@ conformal_jackknife <- function(x, y, model, x_new = NULL, alpha = 0.10,
     loo_models = loo_models,
     loo_residuals = loo_residuals
   ), class = "predictset_reg")
+}
+
+
+#' Compute Jackknife+ intervals for a set of test points
+#'
+#' Each leave-one-out model is asked for its predictions at every test point in
+#' a single call, giving `n` calls to `predict_fun` rather than `n * n_test`.
+#'
+#' @param x_test Matrix of test points.
+#' @param mod Model specification with predict_fun.
+#' @param loo_models List of n leave-one-out fitted models.
+#' @param loo_residuals Numeric vector of LOO absolute residuals.
+#' @param alpha Miscoverage level.
+#' @param n Number of training observations.
+#'
+#' @return List with `lower` and `upper` numeric vectors.
+#'
+#' @noRd
+jackknife_plus_intervals <- function(x_test, mod, loo_models, loo_residuals,
+                                     alpha, n) {
+  n_test <- nrow(x_test)
+
+  # loo_pred_matrix[j, i] = yhat_{-i}(x_test_j)
+  loo_pred_matrix <- matrix(NA_real_, nrow = n_test, ncol = n)
+  for (i in seq_len(n)) {
+    loo_pred_matrix[, i] <- mod$predict_fun(loo_models[[i]], x_test)
+  }
+
+  k_lo <- floor(alpha * (n + 1))
+  k_hi <- ceiling((1 - alpha) * (n + 1))
+
+  lower <- numeric(n_test)
+  upper <- numeric(n_test)
+  for (j in seq_len(n_test)) {
+    lower[j] <- order_stat(sort(loo_pred_matrix[j, ] - loo_residuals),
+                           k_lo, "lower")
+    upper[j] <- order_stat(sort(loo_pred_matrix[j, ] + loo_residuals),
+                           k_hi, "upper")
+  }
+
+  list(lower = lower, upper = upper)
 }

@@ -1,21 +1,25 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes
 
 ## Test environments
 
-- macOS Sequoia 15.6.1 (local), R 4.5.2
-- Windows Server 2022 (win-builder), R-devel, R-release
+- macOS Tahoe 26.5 (local, aarch64), R 4.5.2, `--as-cran --run-donttest`
 
-## Notes
+Not yet checked on win-builder or R-devel; run those before submitting.
 
-- **NOTE**: New submission.
+## Submission notes
 
-## Resubmission
+This release fixes three defects that changed numerical results:
 
-Fixed incorrect DOI for Sadinle, Lei & Wasserman (2019) in README.md,
-conformal_class_split.Rd, and conformal_lac.Rd. The wrong DOI
-(10.1080/01621459.2018.1449837) has been replaced with the correct one
-(10.1080/01621459.2017.1395341).
+- `conformal_aci()` applied the Gibbs and Candes (2021) online update with the
+  operands reversed, so miscoverage narrowed rather than widened the next
+  interval.
+- The `model` argument was ignored when supplied as a formula or a fitted
+  model object.
+- `conformal_aps()` / `conformal_raps()` could return the full label set for
+  every observation.
 
-318 tests pass across all environments.
+Defaults changed for `randomize` in `conformal_aps()` and `conformal_raps()`,
+and new `weights_new` and `allow_empty` arguments were added. All changes are
+documented in NEWS.md. There are no reverse dependencies.

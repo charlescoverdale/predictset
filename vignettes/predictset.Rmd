@@ -100,7 +100,10 @@ clf <- make_model(
   type = "classification"
 )
 
-result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
+# APS is randomised by default, which is the method as published. Pass `seed`
+# for reproducible sets; `randomize = FALSE` gives deterministic but materially
+# more conservative ones.
+result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10, seed = 1)
 print(result)
 
 # Most predictions are a single class; ambiguous ones include 2-3
@@ -176,7 +179,7 @@ print(comp)
 | Large dataset, speed matters | `conformal_split()` | Single model fit, fastest |
 | Small dataset, need tight intervals | `conformal_cv()` or `conformal_jackknife()`* | Uses all data for training and calibration |
 | Heteroscedastic data | `conformal_cqr()` or `conformal_split(..., score_type = "normalized")` | Adaptive interval widths |
-| Multi-class classification | `conformal_aps()` | Adaptive set sizes, well-calibrated |
+| Multi-class classification | `conformal_aps()` | Adaptive set sizes, randomised by default |
 | Classification with many classes | `conformal_raps()` | Regularized APS, smaller sets |
 | Coverage must hold per subgroup | `conformal_mondrian()` / `conformal_mondrian_class()` | Group-conditional guarantees |
 | Covariate shift between train/test | `conformal_weighted()` | Importance-weighted calibration |

@@ -3,8 +3,41 @@
 # Minimum scale threshold for normalized conformal scoring
 MIN_SCALE <- 1e-6
 
+# Set the RNG seed for the duration of the calling function only, restoring the
+# user's .Random.seed on exit. Packages should not leave the global random
+# stream altered as a side effect of being called.
+local_seed <- function(seed, frame = parent.frame()) {
+  if (is.null(seed)) {
+    return(invisible(NULL))
+  }
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    assign(".predictset_old_seed",
+           get(".Random.seed", envir = globalenv(), inherits = FALSE),
+           envir = frame)
+    restore <- quote(
+      assign(".Random.seed", .predictset_old_seed, envir = globalenv())
+    )
+  } else {
+    restore <- quote(
+      suppressWarnings(rm(".Random.seed", envir = globalenv()))
+    )
+  }
+  do.call(on.exit, list(restore, add = TRUE, after = FALSE), envir = frame)
+  set.seed(seed)
+  invisible(NULL)
+}
+
 validate_x <- function(x, arg = "x") {
   if (is.data.frame(x)) {
+    bad <- names(x)[!vapply(x, is.numeric, logical(1))]
+    if (length(bad) > 0) {
+      cli_abort(c(
+        "{.arg {arg}} must contain only numeric columns.",
+        "x" = "Non-numeric column{?s}: {.val {bad}}.",
+        "i" = "Encode factors as numeric columns first, for example with
+               {.code stats::model.matrix(~ . - 1, data = {arg})}."
+      ))
+    }
     x <- as.matrix(x)
   }
   if (!is.matrix(x) && !is.numeric(x)) {
@@ -12,6 +45,12 @@ validate_x <- function(x, arg = "x") {
   }
   if (!is.matrix(x)) {
     x <- matrix(x, ncol = 1)
+  }
+  if (!is.numeric(x)) {
+    cli_abort(c(
+      "{.arg {arg}} must be numeric, not {.cls {typeof(x)}}.",
+      "i" = "Encode categorical predictors as numeric columns first."
+    ))
   }
   if (nrow(x) == 0) {
     cli_abort("{.arg {arg}} must have at least one row.")
@@ -62,16 +101,51 @@ validate_x_new <- function(x, x_new) {
   }
 }
 
-validate_probs_colnames <- function(probs, y, arg = "probability matrix") {
+# Full validation of a predicted probability matrix: class columns, range, and
+# row sums. Applied identically at calibration, prediction, and predict() time.
+validate_probs <- function(probs, classes, arg = "probability matrix") {
+  if (!is.matrix(probs) || !is.numeric(probs)) {
+    cli_abort(c(
+      "The {arg} must be a numeric matrix.",
+      "i" = "{.arg predict_fun} must return one column per class, named by class label."
+    ))
+  }
   if (ncol(probs) < 2) {
     cli_abort("The {arg} must have at least 2 columns (classes).")
   }
-  missing_levels <- setdiff(levels(y), colnames(probs))
+  missing_levels <- setdiff(classes, colnames(probs))
   if (length(missing_levels) > 0) {
     cli_abort(
       "The {arg} is missing columns for class level{?s}: {.val {missing_levels}}."
     )
   }
+  if (any(is.na(probs))) {
+    cli_abort("The {arg} must not contain NA values.")
+  }
+  if (any(probs < 0 | probs > 1)) {
+    cli_abort("The {arg} must contain probabilities in [0, 1].")
+  }
+  if (any(abs(rowSums(probs) - 1) > 0.01)) {
+    cli_warn("Some rows of the {arg} do not sum to 1.")
+  }
+  invisible(probs)
+}
+
+# Attach class-label column names when predict_fun returned an unnamed matrix.
+label_probs <- function(probs, classes) {
+  if (is.null(dim(probs))) {
+    probs <- as.matrix(probs)
+  }
+  if (is.null(colnames(probs))) {
+    if (ncol(probs) != length(classes)) {
+      cli_abort(c(
+        "{.arg predict_fun} returned {ncol(probs)} unnamed column{?s} for {length(classes)} class{?es}.",
+        "i" = "Name the columns of the probability matrix by class label."
+      ))
+    }
+    colnames(probs) <- classes
+  }
+  probs
 }
 
 validate_alpha <- function(alpha) {
@@ -81,8 +155,7 @@ validate_alpha <- function(alpha) {
   alpha
 }
 
-split_data <- function(n, cal_fraction, seed = NULL) {
-  if (!is.null(seed)) set.seed(seed)
+split_data <- function(n, cal_fraction) {
   n_cal <- floor(n * cal_fraction)
   n_train <- n - n_cal
   if (n_train < 2) {
@@ -98,8 +171,7 @@ split_data <- function(n, cal_fraction, seed = NULL) {
   )
 }
 
-kfold_split <- function(n, n_folds, seed = NULL) {
-  if (!is.null(seed)) set.seed(seed)
+kfold_split <- function(n, n_folds) {
   idx <- sample.int(n)
   fold_ids <- rep(seq_len(n_folds), length.out = n)
   folds <- vector("list", n_folds)
@@ -116,13 +188,39 @@ conformal_quantile <- function(scores, alpha) {
   sort(scores)[k]
 }
 
+# Smallest calibration size at which the conformal quantile is finite.
+min_cal_size <- function(alpha) {
+  ceiling(1 / alpha) - 1
+}
+
+# The k-th smallest of `values`, following the Barber et al. (2021) convention
+# that an index outside 1..n denotes -Inf (side = "lower") or +Inf
+# (side = "upper"). Clamping to the extreme order statistic instead would
+# silently produce an interval narrower than the estimator is defined to be.
+order_stat <- function(values_sorted, k, side = c("lower", "upper")) {
+  side <- match.arg(side)
+  n <- length(values_sorted)
+  if (k < 1L) {
+    return(if (side == "lower") -Inf else Inf)
+  }
+  if (k > n) {
+    return(if (side == "upper") Inf else -Inf)
+  }
+  values_sorted[k]
+}
+
 regression_scores <- function(y, yhat) {
   abs(y - yhat)
 }
 
 # Classification helpers
 
-aps_scores <- function(probs, y_true, randomize = FALSE) {
+# Generalized inverse quantile score of Romano, Sesia and Candes (2020):
+#   E(x, y, u) = sum_{j: p_j >= p_y} p_j - u * p_y,  u ~ Unif(0, 1).
+# The randomized form (u ~ U(0,1)) is the method as published; u = 0 is the
+# deterministic simplification, which places an atom of mass at exactly 1 and
+# is markedly conservative.
+aps_scores <- function(probs, y_true, randomize = TRUE) {
   n <- nrow(probs)
   classes <- colnames(probs)
   scores <- numeric(n)
@@ -140,9 +238,8 @@ aps_scores <- function(probs, y_true, randomize = FALSE) {
       next
     }
     score <- cumprobs[rank_true]
-    if (randomize && rank_true >= 1) {
-      u <- stats::runif(1)
-      score <- score - u * sorted_p[rank_true]
+    if (randomize) {
+      score <- score - stats::runif(1) * sorted_p[rank_true]
     }
     scores[i] <- score
   }
@@ -150,7 +247,7 @@ aps_scores <- function(probs, y_true, randomize = FALSE) {
 }
 
 raps_scores <- function(probs, y_true, k_reg = 1, lambda = 0.01,
-                         randomize = FALSE) {
+                         randomize = TRUE) {
   n <- nrow(probs)
   classes <- colnames(probs)
   scores <- numeric(n)
@@ -169,9 +266,8 @@ raps_scores <- function(probs, y_true, k_reg = 1, lambda = 0.01,
     }
     penalty <- lambda * max(0, rank_true - k_reg)
     score <- cumprobs[rank_true] + penalty
-    if (randomize && rank_true >= 1) {
-      u <- stats::runif(1)
-      score <- score - u * sorted_p[rank_true]
+    if (randomize) {
+      score <- score - stats::runif(1) * sorted_p[rank_true]
     }
     scores[i] <- score
   }
@@ -189,7 +285,20 @@ lac_scores <- function(probs, y_true) {
   1 - probs[cbind(seq_len(nrow(probs)), y_idx)]
 }
 
-build_aps_sets <- function(probs, threshold) {
+# Fall back to the most probable class when the score-inverted set is empty.
+non_empty <- function(included, classes, p, allow_empty) {
+  if (length(included) == 0 && !allow_empty) {
+    return(classes[which.max(p)])
+  }
+  included
+}
+
+# Invert the APS score exactly: include class j iff its score is <= threshold.
+# The per-observation u must be drawn once and shared across classes, exactly as
+# in the score, so that the set is {y : E(x, y, u) <= q}. That quantity is
+# non-decreasing in rank, so the set is always a prefix of the sorted classes.
+build_aps_sets <- function(probs, threshold, randomize = TRUE,
+                           allow_empty = FALSE) {
   n <- nrow(probs)
   classes <- colnames(probs)
   sets <- vector("list", n)
@@ -201,16 +310,19 @@ build_aps_sets <- function(probs, threshold) {
     sorted_p <- p[ord]
     sorted_classes <- classes[ord]
     cumprobs <- cumsum(sorted_p)
-    k <- which(cumprobs >= threshold)[1]
-    if (is.na(k)) k <- length(classes)
-    included <- sorted_classes[seq_len(k)]
+    u <- if (randomize) stats::runif(1) else 0
+    crit <- cumprobs - u * sorted_p
+    k <- sum(crit <= threshold)
+    included <- if (k > 0) sorted_classes[seq_len(k)] else character(0)
+    included <- non_empty(included, classes, p, allow_empty)
     sets[[i]] <- included
-    set_probs[[i]] <- setNames(sorted_p[seq_len(k)], included)
+    set_probs[[i]] <- setNames(p[included], included)
   }
   list(sets = sets, probs = set_probs)
 }
 
-build_raps_sets <- function(probs, threshold, k_reg = 1, lambda = 0.01) {
+build_raps_sets <- function(probs, threshold, k_reg = 1, lambda = 0.01,
+                            randomize = TRUE, allow_empty = FALSE) {
   n <- nrow(probs)
   classes <- colnames(probs)
   sets <- vector("list", n)
@@ -223,17 +335,18 @@ build_raps_sets <- function(probs, threshold, k_reg = 1, lambda = 0.01) {
     sorted_classes <- classes[ord]
     cumprobs <- cumsum(sorted_p)
     penalties <- lambda * pmax(0, seq_along(sorted_p) - k_reg)
-    penalized <- cumprobs + penalties
-    k <- which(penalized >= threshold)[1]
-    if (is.na(k)) k <- length(classes)
-    included <- sorted_classes[seq_len(k)]
+    u <- if (randomize) stats::runif(1) else 0
+    crit <- cumprobs - u * sorted_p + penalties
+    k <- sum(crit <= threshold)
+    included <- if (k > 0) sorted_classes[seq_len(k)] else character(0)
+    included <- non_empty(included, classes, p, allow_empty)
     sets[[i]] <- included
-    set_probs[[i]] <- setNames(sorted_p[seq_len(k)], included)
+    set_probs[[i]] <- setNames(p[included], included)
   }
   list(sets = sets, probs = set_probs)
 }
 
-build_lac_sets <- function(probs, threshold) {
+build_lac_sets <- function(probs, threshold, allow_empty = FALSE) {
   n <- nrow(probs)
   classes <- colnames(probs)
   sets <- vector("list", n)
@@ -242,28 +355,47 @@ build_lac_sets <- function(probs, threshold) {
   for (i in seq_len(n)) {
     p <- probs[i, ]
     included <- classes[p >= 1 - threshold]
-    if (length(included) == 0) {
-      included <- classes[which.max(p)]
-    }
+    included <- non_empty(included, classes, p, allow_empty)
     sets[[i]] <- included
     set_probs[[i]] <- setNames(p[included], included)
   }
   list(sets = sets, probs = set_probs)
 }
 
+# Warn when every prediction set is the full label set, which is a valid but
+# useless answer. With deterministic APS/RAPS scoring this happens whenever the
+# model ranks the true class last more often than alpha of the time: the score
+# then has an atom at exactly 1 that becomes the conformal quantile.
+warn_saturated <- function(sets, classes, method, randomize) {
+  n_classes <- length(classes)
+  if (length(sets) > 0 &&
+      all(vapply(sets, length, integer(1)) == n_classes)) {
+    msg <- c(
+      "Every {method} prediction set is the full label set of {n_classes} class{?es}, which carries no information."
+    )
+    if (!randomize) {
+      msg <- c(msg, "i" = "Deterministic scoring ({.code randomize = FALSE}) places an atom at 1 in the score. Use {.code randomize = TRUE} for the method as published.")
+    } else {
+      msg <- c(msg, "i" = "The model's class probabilities may carry little signal at this {.arg alpha}.")
+    }
+    cli_warn(msg)
+  }
+  invisible(NULL)
+}
+
 # Weighted conformal quantile per Tibshirani et al. (2019), Eq. 5:
-# q = inf{q : sum_{i: s_i <= q} w_i / (sum_j w_j + w_{n+1}) >= 1 - alpha}
-# where w_{n+1} is the test-point weight (unknown at calibration time).
-# Following standard practice, we set w_{n+1} = mean(calibration weights).
-weighted_conformal_quantile <- function(scores, weights, alpha) {
-  n <- length(scores)
+#   q(x) = inf{q : sum_{i: s_i <= q} w_i / (sum_j w_j + w(x)) >= 1 - alpha}
+# The test-point weight w(x) is known at test time and yields a different
+# quantile for each test point; that per-point adaptation is the mechanism by
+# which weighted conformal prediction corrects for covariate shift.
+weighted_conformal_quantile <- function(scores, weights, alpha, w_test) {
   ord <- order(scores)
   sorted_scores <- scores[ord]
-  sorted_weights <- weights[ord]
-  total_weight <- sum(sorted_weights)
-  w_test <- mean(weights)
-  cumw <- cumsum(sorted_weights) / (total_weight + w_test)
-  idx <- which(cumw >= 1 - alpha)[1]
-  if (is.na(idx)) return(Inf)
-  sorted_scores[idx]
+  cumw <- cumsum(weights[ord])
+  total_weight <- sum(weights)
+
+  vapply(w_test, function(wt) {
+    idx <- which(cumw / (total_weight + wt) >= 1 - alpha)[1]
+    if (is.na(idx)) Inf else sorted_scores[idx]
+  }, numeric(1))
 }

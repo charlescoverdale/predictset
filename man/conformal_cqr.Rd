@@ -33,13 +33,18 @@ model.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
 
-\item{quantiles}{The target quantiles. Default \code{c(0.05, 0.95)}.}
+\item{quantiles}{The nominal lower and upper quantiles targeted by
+\code{model_lower} and \code{model_upper}. Default \code{c(0.05, 0.95)}. These are
+recorded on the returned object and checked for consistency with \code{alpha}:
+CQR is most efficient when \code{quantiles} spans \code{1 - alpha}. The models
+themselves are supplied by the user, so this argument does not fit them.}
 
 \item{seed}{Optional random seed.}
 }
 \value{
 A \code{predictset_reg} object. See \code{\link[=conformal_split]{conformal_split()}} for details.
-The \code{method} component is \code{"cqr"}.
+The \code{method} component is \code{"cqr"} and \code{quantiles} records the nominal
+quantiles.
 }
 \description{
 Constructs prediction intervals using Conformalized Quantile Regression

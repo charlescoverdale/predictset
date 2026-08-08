@@ -60,6 +60,12 @@ The Jackknife+ theoretical coverage guarantee is \eqn{1 - 2\alpha}, not
 \eqn{1 - \alpha} (Barber et al. 2021, Theorem 1). This is weaker than
 split conformal's \eqn{1 - \alpha} guarantee. In practice, Jackknife+
 coverage is typically much closer to \eqn{1 - \alpha}.
+
+The interval bounds are the \eqn{\lfloor \alpha (n+1) \rfloor}-th and
+\eqn{\lceil (1-\alpha)(n+1) \rceil}-th smallest values. When an index falls
+outside \eqn{1, \ldots, n} the corresponding bound is infinite, which
+happens for \eqn{n < 1/\alpha - 1} (fewer than 9 observations at
+\code{alpha = 0.10}).
 }
 \examples{
 set.seed(42)

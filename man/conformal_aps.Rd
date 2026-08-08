@@ -11,7 +11,8 @@ conformal_aps(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 }
@@ -30,10 +31,17 @@ or a fitted model object that produces class probabilities.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
 
-\item{randomize}{Logical. If \code{TRUE}, uses randomized scores for exact
-coverage (but prediction sets become stochastic). Default \code{FALSE}.}
+\item{randomize}{Logical. If \code{TRUE} (the default), uses the randomized
+score and set construction of Romano, Sesia and Candes (2020). If
+\code{FALSE}, uses the deterministic simplification, which is markedly
+conservative. See Details.}
 
-\item{seed}{Optional random seed.}
+\item{allow_empty}{Logical. If \code{FALSE} (the default), an empty prediction
+set is replaced by the single most probable class. This is conservative.
+Set \code{TRUE} to return the score inversion exactly.}
+
+\item{seed}{Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.}
 }
 \value{
 A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for
@@ -46,11 +54,22 @@ decreasing predicted probability until the cumulative probability exceeds
 the conformal threshold.
 }
 \details{
-When \code{randomize = FALSE} (the default), this implementation uses the
-deterministic variant of APS, which provides conservative coverage (at
-least \eqn{1 - \alpha}). The randomized variant (\code{randomize = TRUE})
-achieves exact \eqn{1 - \alpha} coverage but produces non-reproducible
-prediction sets.
+\code{randomize = TRUE} (the default) is the method as published: the
+nonconformity score carries a uniform random variable \eqn{U}, drawn once
+per observation and shared across classes, and the prediction set is the
+exact inversion of that score. This is what delivers coverage close to
+\eqn{1 - \alpha} rather than well above it.
+
+\code{randomize = FALSE} uses the deterministic simplification \eqn{U = 0}.
+It is reproducible without a seed, but the score then has an atom of
+probability mass at exactly 1, hit whenever the model ranks the true class
+last. Whenever that happens more often than \eqn{\alpha} of the time the
+conformal quantile is exactly 1 and every prediction set is the full label
+set; the function warns when this occurs. Deterministic scoring is
+materially conservative for small numbers of classes.
+
+Randomized sets are stochastic: pass \code{seed}, or call \code{\link[=set.seed]{set.seed()}}, for
+reproducible output.
 }
 \examples{
 set.seed(42)

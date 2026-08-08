@@ -11,6 +11,7 @@ Implements conformal prediction methods for constructing prediction intervals (r
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://charlescoverdale.github.io/predictset/}
   \item \url{https://github.com/charlescoverdale/predictset}
   \item Report bugs at \url{https://github.com/charlescoverdale/predictset/issues}
 }

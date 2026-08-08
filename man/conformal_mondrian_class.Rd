@@ -13,6 +13,7 @@ conformal_mondrian_class(
   groups_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  allow_empty = FALSE,
   seed = NULL
 )
 }
@@ -37,7 +38,11 @@ observation in \code{x_new}.}
 
 \item{cal_fraction}{Fraction of data used for calibration. Default \code{0.5}.}
 
-\item{seed}{Optional random seed.}
+\item{allow_empty}{Logical. If \code{FALSE} (the default), an empty prediction
+set is replaced by the single most probable class.}
+
+\item{seed}{Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.}
 }
 \value{
 A \code{predictset_class} object. See \code{\link[=conformal_lac]{conformal_lac()}} for
