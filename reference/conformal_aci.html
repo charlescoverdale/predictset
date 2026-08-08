@@ -13,7 +13,7 @@ long-run coverage even under distribution shift."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,6 +99,14 @@ the true value.</p></dd>
 the finite-sample guarantees of split conformal prediction. The long-run
 average coverage converges to \(1 - \alpha\) as the sequence length
 grows (Gibbs and Candes, 2021).</p>
+<p>The miscoverage level is updated online as
+\(\alpha_{t+1} = \alpha_t + \gamma(\alpha - \mathrm{err}_t)\), where
+\(\mathrm{err}_t\) indicates that \(Y_t\) fell outside the interval.
+A miss lowers \(\alpha_t\) and so widens the next interval.</p>
+<p>Results are sensitive to \(\gamma\): too small and the method cannot track
+a shift, too large and \(\alpha_t\) becomes volatile. Gibbs and Candes
+(2024) remove this tuning problem by aggregating over a set of learning
+rates; that extension is not implemented here.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -126,7 +134,7 @@ Adaptive conformal inference under distribution shift.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">conformal_aci</span><span class="op">(</span><span class="va">y_pred</span>, <span class="va">y_true</span>, alpha <span class="op">=</span> <span class="fl">0.10</span>, gamma <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">coverage</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.99</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.91</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -139,7 +147,7 @@ Adaptive conformal inference under distribution shift.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

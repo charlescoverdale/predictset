@@ -112,7 +112,10 @@ clf <- make_model(
   type = "classification"
 )
 
-result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
+# APS is randomised by default, which is the method as published. Pass `seed`
+# for reproducible sets; `randomize = FALSE` gives deterministic but materially
+# more conservative ones.
+result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10, seed = 1)
 print(result)
 
 # Most predictions are a single class; ambiguous ones include 2-3
@@ -195,8 +198,8 @@ print(comp)
 #> ── Conformal Method Comparison ─────────────────────────────────────────────────
 #> 
 #> • split: coverage = 0.89, mean width = 3.388, time = 0.002s
-#> • cv: coverage = 0.89, mean width = 3.308, time = 0.037s
-#> • jackknife: coverage = 0.89, mean width = 3.335, time = 28.364s
+#> • cv: coverage = 0.89, mean width = 3.308, time = 0.044s
+#> • jackknife: coverage = 0.89, mean width = 3.335, time = 0.756s
 ```
 
 ## Choosing a method
@@ -206,7 +209,7 @@ print(comp)
 | Large dataset, speed matters | [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md) | Single model fit, fastest |
 | Small dataset, need tight intervals | [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md) or [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md)\* | Uses all data for training and calibration |
 | Heteroscedastic data | [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md) or `conformal_split(..., score_type = "normalized")` | Adaptive interval widths |
-| Multi-class classification | [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md) | Adaptive set sizes, well-calibrated |
+| Multi-class classification | [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md) | Adaptive set sizes, randomised by default |
 | Classification with many classes | [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md) | Regularized APS, smaller sets |
 | Coverage must hold per subgroup | [`conformal_mondrian()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian.md) / [`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md) | Group-conditional guarantees |
 | Covariate shift between train/test | [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md) | Importance-weighted calibration |

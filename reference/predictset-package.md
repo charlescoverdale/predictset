@@ -28,6 +28,8 @@ can produce predictions from new data, including 'lm', 'glm', 'ranger',
 
 Useful links:
 
+- <https://charlescoverdale.github.io/predictset/>
+
 - <https://github.com/charlescoverdale/predictset>
 
 - Report bugs at <https://github.com/charlescoverdale/predictset/issues>

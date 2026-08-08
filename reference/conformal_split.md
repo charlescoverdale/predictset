@@ -70,7 +70,9 @@ conformal_split(
 
 - seed:
 
-  Optional random seed for reproducible data splitting.
+  Optional random seed for reproducible data splitting. Set for the
+  duration of the call only; the global random stream is restored on
+  exit.
 
 ## Value
 

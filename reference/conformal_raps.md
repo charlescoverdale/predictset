@@ -16,7 +16,8 @@ conformal_raps(
   cal_fraction = 0.5,
   k_reg = 1,
   lambda = 0.01,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
@@ -63,12 +64,20 @@ conformal_raps(
 
 - randomize:
 
-  Logical. If `TRUE`, uses randomized scores for exact coverage (but
-  prediction sets become stochastic). Default `FALSE`.
+  Logical. If `TRUE` (the default), uses the randomized score and set
+  construction. If `FALSE`, uses the deterministic simplification, which
+  is markedly conservative. See
+  [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md).
+
+- allow_empty:
+
+  Logical. If `FALSE` (the default), an empty prediction set is replaced
+  by the single most probable class.
 
 - seed:
 
-  Optional random seed.
+  Optional random seed. Set for the duration of the call only; the
+  global random stream is restored on exit.
 
 ## Value
 
@@ -120,6 +129,6 @@ print(result)
 #> • Coverage target: "90%"
 #> • Classes: "A, B, C"
 #> • Training: 150 | Calibration: 150 | Predictions: 50
-#> • Median set size: 3 | Mean set size: 3
+#> • Median set size: 3 | Mean set size: 2.62
 # }
 ```

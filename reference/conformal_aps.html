@@ -13,7 +13,7 @@ the conformal threshold."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,8 @@ the conformal threshold.</p>
 <span>  <span class="va">x_new</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  cal_fraction <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  randomize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  randomize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  allow_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -92,12 +93,21 @@ or a fitted model object that produces class probabilities.</p></dd>
 
 
 <dt id="arg-randomize">randomize<a class="anchor" aria-label="anchor" href="#arg-randomize"></a></dt>
-<dd><p>Logical. If <code>TRUE</code>, uses randomized scores for exact
-coverage (but prediction sets become stochastic). Default <code>FALSE</code>.</p></dd>
+<dd><p>Logical. If <code>TRUE</code> (the default), uses the randomized
+score and set construction of Romano, Sesia and Candes (2020). If
+<code>FALSE</code>, uses the deterministic simplification, which is markedly
+conservative. See Details.</p></dd>
+
+
+<dt id="arg-allow-empty">allow_empty<a class="anchor" aria-label="anchor" href="#arg-allow-empty"></a></dt>
+<dd><p>Logical. If <code>FALSE</code> (the default), an empty prediction
+set is replaced by the single most probable class. This is conservative.
+Set <code>TRUE</code> to return the score inversion exactly.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Optional random seed.</p></dd>
+<dd><p>Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -107,11 +117,20 @@ details. The <code>method</code> component is <code>"aps"</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>When <code>randomize = FALSE</code> (the default), this implementation uses the
-deterministic variant of APS, which provides conservative coverage (at
-least \(1 - \alpha\)). The randomized variant (<code>randomize = TRUE</code>)
-achieves exact \(1 - \alpha\) coverage but produces non-reproducible
-prediction sets.</p>
+    <p><code>randomize = TRUE</code> (the default) is the method as published: the
+nonconformity score carries a uniform random variable \(U\), drawn once
+per observation and shared across classes, and the prediction set is the
+exact inversion of that score. This is what delivers coverage close to
+\(1 - \alpha\) rather than well above it.</p>
+<p><code>randomize = FALSE</code> uses the deterministic simplification \(U = 0\).
+It is reproducible without a seed, but the score then has an atom of
+probability mass at exactly 1, hit whenever the model ranks the true class
+last. Whenever that happens more often than \(\alpha\) of the time the
+conformal quantile is exactly 1 and every prediction set is the full label
+set; the function warns when this occurs. Deterministic scoring is
+materially conservative for small numbers of classes.</p>
+<p>Randomized sets are stochastic: pass <code>seed</code>, or call <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>, for
+reproducible output.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -156,7 +175,7 @@ Classification with valid and adaptive coverage.
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Coverage target: <span style="color: #0000BB;">"90%"</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Classes: <span style="color: #0000BB;">"A, B, C"</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Training: <span style="color: #0000BB;">150</span> | Calibration: <span style="color: #0000BB;">150</span> | Predictions: <span style="color: #0000BB;">50</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Median set size: <span style="color: #0000BB;">3</span> | Mean set size: <span style="color: #0000BB;">3</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Median set size: <span style="color: #0000BB;">3</span> | Mean set size: <span style="color: #0000BB;">2.62</span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
@@ -170,7 +189,7 @@ Classification with valid and adaptive coverage.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

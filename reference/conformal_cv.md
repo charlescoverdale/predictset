@@ -42,8 +42,9 @@ conformal_cv(
   A numeric matrix or data frame of new predictor variables. If `NULL`,
   intervals are computed for the training data using leave-one-fold-out
   predictions. Note: when `x_new = NULL`, prediction intervals for
-  training observations use a self-consistent approximation. For exact
-  CV+ intervals on new data, provide `x_new`.
+  training observations use a self-consistent approximation that does
+  not carry the CV+ coverage guarantee; the returned object records this
+  in `train_approximation`. For exact CV+ intervals, provide `x_new`.
 
 - alpha:
 

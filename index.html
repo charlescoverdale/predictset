@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,7 @@
 </h1></div>
 <p><a href="https://CRAN.R-project.org/package=predictset" class="external-link"><img src="https://www.r-pkg.org/badges/version/predictset" alt="CRAN status"></a> <a href="https://CRAN.R-project.org/package=predictset" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/predictset" alt="CRAN downloads"></a> <a href="https://CRAN.R-project.org/package=predictset" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/predictset" alt="Total Downloads"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a> <a href="https://opensource.org/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a></p>
 <p>A technical working paper for this package can be found <a href="https://charlescoverdale.github.io/files/coverdale_predictset_2026.pdf" class="external-link">here</a>.</p>
-<p><strong>predictset</strong> is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees - no distributional assumptions required. Works with any model: <code>lm</code>, <code>glm</code>, <code>ranger</code>, <code>xgboost</code>, or custom user-defined models via <code><a href="reference/make_model.html">make_model()</a></code>.</p>
+<p><strong>predictset</strong> is an R package for model-agnostic conformal prediction and distribution-free uncertainty quantification. It constructs prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees - no distributional assumptions required. Pass a formula, a fitted <code>lm</code>, <code>glm</code> or <code>ranger</code>, or wrap anything else (xgboost, keras, lightgbm) with <code><a href="reference/make_model.html">make_model()</a></code>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -66,10 +66,56 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://charlescoverdale.github.io/predictset/">predictset</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get 90% prediction intervals around any model - 3 lines of code</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span><span class="op">)</span></span>
+<span><span class="va">x_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 90% prediction intervals around any model</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_split.html">conformal_split</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, x_new <span class="op">=</span> <span class="va">x_new</span>, alpha <span class="op">=</span> <span class="fl">0.10</span><span class="op">)</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">lower</span>  <span class="co"># lower bounds</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">upper</span>  <span class="co"># upper bounds</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level2">
+<h2 id="changes-in-040">Changes in 0.4.0<a class="anchor" aria-label="anchor" href="#changes-in-040"></a>
+</h2>
+<p>This release fixes three defects that changed numerical results. If you have run any of the following on an earlier version, re-run it.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>What changed</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+<code><a href="reference/conformal_aci.html">conformal_aci()</a></code> applied the Gibbs and Candes online update with the operands reversed</td>
+<td>A miscoverage event narrowed the next interval instead of widening it, so <code>alpha</code> ran away to a clip boundary. On a variance-shift benchmark this drove coverage to 0.605 against a 0.90 target.</td>
+</tr>
+<tr>
+<td>
+<code>model</code> was ignored when given as a formula or a fitted object</td>
+<td>
+<code>model = y ~ a</code> silently fitted every column of <code>x</code>; <code>lm(y ~ poly(v1, 3) + v2)</code> came back as <code>y ~ v1 + v2</code>. Both are now honoured.</td>
+</tr>
+<tr>
+<td>
+<code><a href="reference/conformal_aps.html">conformal_aps()</a></code> and <code><a href="reference/conformal_raps.html">conformal_raps()</a></code> could return the full label set for every observation</td>
+<td>With oracle probabilities on a four-class problem, APS returned a mean set size of 3.90 out of 4 at 99.9% coverage. It now returns 2.69 at 88.6%.</td>
+</tr>
+</tbody>
+</table>
+<p>Two defaults changed as a result:</p>
+<ul>
+<li>
+<code>randomize = TRUE</code> is now the default for <code><a href="reference/conformal_aps.html">conformal_aps()</a></code> and <code><a href="reference/conformal_raps.html">conformal_raps()</a></code>, which is the method as published. Pass <code>seed</code> for reproducible sets, or <code>randomize = FALSE</code> for the deterministic (more conservative) variant.</li>
+<li>
+<code><a href="reference/conformal_weighted.html">conformal_weighted()</a></code> takes a new <code>weights_new</code> argument. Supply it for the exact procedure of Tibshirani et al. (2019), in which every test point receives its own conformal quantile.</li>
+</ul>
+<p>Smaller fixes: Jackknife+ and CV+ now return <code>±Inf</code> where the quantile index falls outside <code>1..n</code> rather than clamping to the extreme order statistic; a fitted <code>glm</code> now works with the classification methods; <code><a href="reference/coverage_by_bin.html">coverage_by_bin()</a></code> handles tied predictions; the <code>seed</code> argument no longer leaves the global random stream altered; Mondrian returns an unbounded interval for a group too small to calibrate rather than silently borrowing the pooled quantile. Full detail in <a href="NEWS.html">NEWS.md</a>.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -77,7 +123,7 @@
 </h2>
 <p>Standard machine learning models produce point predictions: a single number for regression, a single class for classification. But in practice, you almost always need to know how uncertain that prediction is. Conformal prediction is a framework for wrapping any model in a layer of calibrated uncertainty quantification. Given a target coverage level (say 90%), it produces prediction intervals or prediction sets that are guaranteed to contain the true value at least 90% of the time, regardless of the underlying model or data distribution.</p>
 <p>The key property is that this guarantee holds in finite samples. It’s not asymptotic, and it doesn’t require distributional assumptions. The only requirement is that the calibration data and test data are exchangeable (roughly: drawn from the same distribution). This makes conformal prediction fundamentally different from parametric confidence intervals, bootstrap intervals, or Bayesian credible intervals, all of which depend on modelling assumptions that may not hold.</p>
-<p><strong>predictset</strong> implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with only two dependencies (<code>cli</code> and <code>stats</code>).</p>
+<p><strong>predictset</strong> implements the main conformal methods from the recent literature (split conformal, Jackknife+, CV+, conformalized quantile regression for regression, and APS, RAPS, and LAC for classification) in a lightweight package with a single non-base dependency (<code>cli</code>; the rest are base R).</p>
 <hr>
 </div>
 <div class="section level2">
@@ -129,7 +175,7 @@
 </tr>
 <tr>
 <td>On CRAN</td>
-<td>Pending</td>
+<td>Yes</td>
 <td>Yes</td>
 <td>No (GitHub only)</td>
 <td>N/A</td>
@@ -174,7 +220,7 @@
 <td>Yes</td>
 <td>No</td>
 <td>No</td>
-<td>No</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td>Conditional diagnostics</td>
@@ -185,17 +231,17 @@
 </tr>
 <tr>
 <td>Dependencies</td>
-<td>2</td>
-<td>14+</td>
+<td>1 (plus base R)</td>
+<td>17</td>
 <td>5</td>
 <td>N/A</td>
 </tr>
 <tr>
 <td>Last updated</td>
 <td>2026</td>
-<td>2024</td>
+<td>2025</td>
 <td>2019</td>
-<td>2024</td>
+<td>2025</td>
 </tr>
 </tbody>
 </table>
@@ -260,10 +306,13 @@
 <span>  type <span class="op">=</span> <span class="st">"classification"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_aps.html">conformal_aps</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">clf</span>, x_new <span class="op">=</span> <span class="va">x_new</span>, alpha <span class="op">=</span> <span class="fl">0.10</span><span class="op">)</span></span>
-<span><span class="va">result</span><span class="op">$</span><span class="va">sets</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>   <span class="co"># prediction set for first observation: e.g. c("A")</span></span>
-<span><span class="va">result</span><span class="op">$</span><span class="va">sets</span><span class="op">[[</span><span class="fl">10</span><span class="op">]</span><span class="op">]</span>  <span class="co"># ambiguous case might include: c("A", "B")</span></span>
+<span><span class="co"># APS is randomised by default (Romano, Sesia &amp; Candes 2020). Pass `seed`, or</span></span>
+<span><span class="co"># call set.seed(), for reproducible sets.</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_aps.html">conformal_aps</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">clf</span>, x_new <span class="op">=</span> <span class="va">x_new</span>, alpha <span class="op">=</span> <span class="fl">0.10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">sets</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>   <span class="co"># prediction set for the first observation, e.g. c("A")</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="reference/set_size.html">set_size</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">)</span>  <span class="co"># distribution of set sizes</span></span></code></pre></div>
+<p>The uniform random variable in the APS score is not an optional refinement. Without it the score has an atom at exactly 1, and whenever the model ranks the true class last more often than <code>alpha</code> of the time the conformal quantile is exactly 1 and every set becomes the full label set. <code>randomize = FALSE</code> is available for deterministic output and warns when this happens.</p>
+<p>Prediction sets are the exact inversion of the calibrated score, which can be empty for a test point the model is confident about. By default an empty set is replaced by the single most probable class. Pass <code>allow_empty = TRUE</code> to <code><a href="reference/conformal_lac.html">conformal_lac()</a></code>, <code><a href="reference/conformal_aps.html">conformal_aps()</a></code>, <code><a href="reference/conformal_raps.html">conformal_raps()</a></code>, or <code><a href="reference/conformal_mondrian_class.html">conformal_mondrian_class()</a></code> to get the inversion untouched: empty sets are the defining feature of LAC in Sadinle, Lei and Wasserman (2019).</p>
 <hr>
 </div>
 </div>
@@ -345,7 +394,7 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_split.html">conformal_split</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">fit</span>, x_new <span class="op">=</span> <span class="va">x_new</span><span class="op">)</span></span></code></pre></div>
-<p>If you’ve already fitted a model and want conformal intervals around its predictions, pass it directly. <strong>predictset</strong> recognises standard R model objects and extracts the training and prediction functions automatically.</p>
+<p>If you’ve already fitted a model, pass it directly. <strong>predictset</strong> reads its formula and its call, then refits <em>that same specification</em> on each conformal training split. This matters: conformal prediction has to retrain on the split, so the object you pass is a template, not the model that ends up being used. Transformations in the formula (<code><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly()</a></code>, <code><a href="https://rdrr.io/r/base/Log.html" class="external-link">log()</a></code>, interactions) and <code>ranger</code> hyperparameters are preserved. Anything predictset cannot refit raises an error pointing you at <code><a href="reference/make_model.html">make_model()</a></code> rather than silently substituting a default.</p>
 <p><strong>3. Custom model</strong> via <code><a href="reference/make_model.html">make_model()</a></code> (works with anything):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xgb_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_model.html">make_model</a></span><span class="op">(</span></span>
@@ -384,7 +433,7 @@
 <td><code><a href="reference/conformal_split.html">conformal_split()</a></code></td>
 <td>Regression</td>
 <td>Split conformal</td>
-<td><a href="https://link.springer.com/book/10.1007/978-3-031-06649-8" class="external-link">Vovk et al. (2005)</a></td>
+<td><a href="https://doi.org/10.1080/01621459.2017.1307116" class="external-link">Lei et al. (2018)</a></td>
 </tr>
 <tr>
 <td><code><a href="reference/conformal_cv.html">conformal_cv()</a></code></td>
@@ -549,7 +598,7 @@
 <h3 id="mondrian-conformal-group-conditional-coverage">Mondrian conformal: group-conditional coverage<a class="anchor" aria-label="anchor" href="#mondrian-conformal-group-conditional-coverage"></a>
 </h3>
 <p>Standard conformal prediction guarantees marginal coverage (across all test points), but coverage can vary wildly across subgroups. Mondrian conformal computes a separate quantile for each group, guaranteeing coverage within each subgroup. This is critical for fairness and regulatory compliance.</p>
-<p>No other R package on CRAN implements Mondrian conformal prediction.</p>
+<p>To our knowledge no actively maintained CRAN package offers Mondrian conformal prediction for both regression and classification. (<code>conformalClassification</code> implemented label-wise Mondrian ICP but was archived from CRAN in May 2026.)</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">600</span></span>
@@ -578,12 +627,17 @@
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">x_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="fl">3</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>  <span class="co"># shifted test data</span></span>
 <span></span>
-<span><span class="co"># Importance weights (likelihood ratio of test vs training distributions)</span></span>
+<span><span class="co"># Importance weights (likelihood ratio of test vs training distributions),</span></span>
+<span><span class="co"># evaluated on both the calibration covariates and the test covariates</span></span>
 <span><span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">weights_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x_new</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x_new</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_weighted.html">conformal_weighted</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, x_new <span class="op">=</span> <span class="va">x_new</span>,</span>
-<span>                              weights <span class="op">=</span> <span class="va">weights</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
+<span>                              weights <span class="op">=</span> <span class="va">weights</span>, weights_new <span class="op">=</span> <span class="va">weights_new</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Each test point gets its own conformal quantile</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">quantile_by_point</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="conformalized-quantile-regression">Conformalized Quantile Regression<a class="anchor" aria-label="anchor" href="#conformalized-quantile-regression"></a>
@@ -616,7 +670,7 @@
 <div class="section level3">
 <h3 id="adaptive-conformal-inference-sequential-prediction">Adaptive Conformal Inference (sequential prediction)<a class="anchor" aria-label="anchor" href="#adaptive-conformal-inference-sequential-prediction"></a>
 </h3>
-<p>ACI adapts the miscoverage level online based on observed coverage, maintaining long-run coverage even under distribution shift. No other R package implements ACI.</p>
+<p>ACI adapts the miscoverage level online based on observed coverage, maintaining long-run coverage even under distribution shift. See also <a href="https://CRAN.R-project.org/package=conformalForecast" class="external-link"><code>conformalForecast</code></a> for adaptive conformal prediction and conformal PID control aimed specifically at multistep time series forecasting, and <a href="https://github.com/herbps10/AdaptiveConformal" class="external-link"><code>AdaptiveConformal</code></a> (GitHub) for a wider family of online conformal algorithms.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
@@ -674,7 +728,7 @@
 <span></span>
 <span><span class="co"># Conformal p-values for outlier detection</span></span>
 <span><span class="va">pvals</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/conformal_pvalue.html">conformal_pvalue</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">scores</span>, <span class="va">new_scores</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/coverage.html">coverage()</a></code> should be close to <code>1 - alpha</code>. If it’s substantially lower, something has gone wrong (likely a violation of exchangeability). <code><a href="reference/interval_width.html">interval_width()</a></code> and <code><a href="reference/set_size.html">set_size()</a></code> measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.</p>
+<p><code><a href="reference/coverage.html">coverage()</a></code> should be close to <code>1 - alpha</code> from either side. Coverage substantially below target usually means exchangeability is violated; coverage far above it means the method is over-covering, which is a real cost, since it buys nothing and widens every interval. <code><a href="reference/interval_width.html">interval_width()</a></code> and <code><a href="reference/set_size.html">set_size()</a></code> measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.</p>
 <p><code><a href="reference/coverage_by_group.html">coverage_by_group()</a></code> and <code><a href="reference/coverage_by_bin.html">coverage_by_bin()</a></code> diagnose conditional coverage. Marginal coverage can mask severe under-coverage in subgroups (e.g. by demographic group or by prediction magnitude). These diagnostics help identify where intervals fail, and are essential for fairness evaluation.</p>
 <hr>
 </div>
@@ -718,6 +772,12 @@
 <strong>The coverage guarantee requires exchangeability.</strong> If the calibration data and test data come from different distributions (for example, if there is temporal drift) the coverage guarantee does not hold. This means conformal prediction is not directly applicable to time series forecasting without modification (e.g. conformal methods for time series exist but are not implemented here).</li>
 <li>
 <strong>Classification methods depend on probability estimates.</strong> APS, RAPS, and LAC require the model to output well-calibrated class probabilities. If the probabilities are poorly calibrated, the prediction sets will still have valid coverage but may be unnecessarily large.</li>
+<li>
+<strong>Small samples give unbounded intervals, by design.</strong> The conformal quantile is the <code>ceiling((n+1)(1-alpha))</code>-th calibration score. When that index exceeds the number of calibration points, the correct bound is infinite, and predictset returns <code>Inf</code> rather than silently substituting the largest observed score. At <code>alpha = 0.10</code> this means fewer than 9 calibration points. The same applies per group in Mondrian conformal.</li>
+<li>
+<strong>Predictors must be numeric.</strong> Encode factors yourself, for example with <code>stats::model.matrix(~ . - 1, data = x)</code>.</li>
+<li>
+<strong>Weighted conformal needs test-point weights.</strong> Supply <code>weights_new</code> to get the exact procedure of Tibshirani et al. (2019), in which each test point receives its own quantile.</li>
 </ul>
 <hr>
 </div>
@@ -817,7 +877,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

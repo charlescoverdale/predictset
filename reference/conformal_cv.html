@@ -13,7 +13,7 @@ guarantees."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,8 +82,10 @@ specification, or a formula (which will fit a linear model).</p></dd>
 <dd><p>A numeric matrix or data frame of new predictor variables.
 If <code>NULL</code>, intervals are computed for the training data using
 leave-one-fold-out predictions. Note: when <code>x_new = NULL</code>, prediction
-intervals for training observations use a self-consistent approximation.
-For exact CV+ intervals on new data, provide <code>x_new</code>.</p></dd>
+intervals for training observations use a self-consistent approximation
+that does not carry the CV+ coverage guarantee; the returned object
+records this in <code>train_approximation</code>. For exact CV+ intervals, provide
+<code>x_new</code>.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -175,7 +177,7 @@ Predictive inference with the Jackknife+.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -24,7 +24,8 @@ predict(object, newdata, ...)
 
   Additional arguments. For Mondrian objects, pass `groups_new` (a
   factor or character vector of group labels for each observation in
-  `newdata`).
+  `newdata`). For weighted conformal objects, pass `weights_new`
+  (importance weights for each row of `newdata`).
 
 ## Value
 

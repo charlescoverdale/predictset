@@ -15,7 +15,8 @@ conformal_aps(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
@@ -52,12 +53,21 @@ conformal_aps(
 
 - randomize:
 
-  Logical. If `TRUE`, uses randomized scores for exact coverage (but
-  prediction sets become stochastic). Default `FALSE`.
+  Logical. If `TRUE` (the default), uses the randomized score and set
+  construction of Romano, Sesia and Candes (2020). If `FALSE`, uses the
+  deterministic simplification, which is markedly conservative. See
+  Details.
+
+- allow_empty:
+
+  Logical. If `FALSE` (the default), an empty prediction set is replaced
+  by the single most probable class. This is conservative. Set `TRUE` to
+  return the score inversion exactly.
 
 - seed:
 
-  Optional random seed.
+  Optional random seed. Set for the duration of the call only; the
+  global random stream is restored on exit.
 
 ## Value
 
@@ -67,11 +77,23 @@ for details. The `method` component is `"aps"`.
 
 ## Details
 
-When `randomize = FALSE` (the default), this implementation uses the
-deterministic variant of APS, which provides conservative coverage (at
-least \\1 - \alpha\\). The randomized variant (`randomize = TRUE`)
-achieves exact \\1 - \alpha\\ coverage but produces non-reproducible
-prediction sets.
+`randomize = TRUE` (the default) is the method as published: the
+nonconformity score carries a uniform random variable \\U\\, drawn once
+per observation and shared across classes, and the prediction set is the
+exact inversion of that score. This is what delivers coverage close to
+\\1 - \alpha\\ rather than well above it.
+
+`randomize = FALSE` uses the deterministic simplification \\U = 0\\. It
+is reproducible without a seed, but the score then has an atom of
+probability mass at exactly 1, hit whenever the model ranks the true
+class last. Whenever that happens more often than \\\alpha\\ of the time
+the conformal quantile is exactly 1 and every prediction set is the full
+label set; the function warns when this occurs. Deterministic scoring is
+materially conservative for small numbers of classes.
+
+Randomized sets are stochastic: pass `seed`, or call
+[`set.seed()`](https://rdrr.io/r/base/Random.html), for reproducible
+output.
 
 ## References
 
@@ -116,6 +138,6 @@ print(result)
 #> • Coverage target: "90%"
 #> • Classes: "A, B, C"
 #> • Training: 150 | Calibration: 150 | Predictions: 50
-#> • Median set size: 3 | Mean set size: 3
+#> • Median set size: 3 | Mean set size: 2.62
 # }
 ```

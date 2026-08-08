@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -161,7 +161,10 @@ ambiguous cases get larger sets.</p>
 <span>  type <span class="op">=</span> <span class="st">"classification"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/conformal_aps.html">conformal_aps</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">clf</span>, x_new <span class="op">=</span> <span class="va">x_new</span>, alpha <span class="op">=</span> <span class="fl">0.10</span><span class="op">)</span></span>
+<span><span class="co"># APS is randomised by default, which is the method as published. Pass `seed`</span></span>
+<span><span class="co"># for reproducible sets; `randomize = FALSE` gives deterministic but materially</span></span>
+<span><span class="co"># more conservative ones.</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/conformal_aps.html">conformal_aps</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">clf</span>, x_new <span class="op">=</span> <span class="va">x_new</span>, alpha <span class="op">=</span> <span class="fl">0.10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Most predictions are a single class; ambiguous ones include 2-3</span></span>
@@ -238,8 +241,8 @@ calibration and efficiency:</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Conformal Method Comparison</span> <span style="color: #00BBBB;">─────────────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="font-weight: bold;">split</span>: coverage = <span style="color: #0000BB;">0.89</span>, mean width = <span style="color: #0000BB;">3.388</span>, time = <span style="color: #0000BB;">0.002</span>s</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="font-weight: bold;">cv</span>: coverage = <span style="color: #0000BB;">0.89</span>, mean width = <span style="color: #0000BB;">3.308</span>, time = <span style="color: #0000BB;">0.037</span>s</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="font-weight: bold;">jackknife</span>: coverage = <span style="color: #0000BB;">0.89</span>, mean width = <span style="color: #0000BB;">3.335</span>, time = <span style="color: #0000BB;">28.364</span>s</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="font-weight: bold;">cv</span>: coverage = <span style="color: #0000BB;">0.89</span>, mean width = <span style="color: #0000BB;">3.308</span>, time = <span style="color: #0000BB;">0.044</span>s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> <span style="font-weight: bold;">jackknife</span>: coverage = <span style="color: #0000BB;">0.89</span>, mean width = <span style="color: #0000BB;">3.335</span>, time = <span style="color: #0000BB;">0.756</span>s</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-method">Choosing a method<a class="anchor" aria-label="anchor" href="#choosing-a-method"></a>
@@ -279,7 +282,7 @@ calibration and efficiency:</p>
 <tr class="even">
 <td>Multi-class classification</td>
 <td><code><a href="../reference/conformal_aps.html">conformal_aps()</a></code></td>
-<td>Adaptive set sizes, well-calibrated</td>
+<td>Adaptive set sizes, randomised by default</td>
 </tr>
 <tr class="odd">
 <td>Classification with many classes</td>
@@ -336,7 +339,7 @@ adaptive coverage</a>. APS for classification.</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

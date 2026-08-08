@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,39 @@
       <small>Source: <a href="https://github.com/charlescoverdale/predictset/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="predictset-040">predictset 0.4.0<a class="anchor" aria-label="anchor" href="#predictset-040"></a></h2>
+<p>This release corrects three defects that affected results, and changes two defaults. Anyone using <code><a href="../reference/conformal_aci.html">conformal_aci()</a></code>, <code><a href="../reference/conformal_aps.html">conformal_aps()</a></code>, <code><a href="../reference/conformal_raps.html">conformal_raps()</a></code>, or passing a formula or fitted model as <code>model</code> should re-run their analysis.</p>
+<div class="section level3">
+<h3 id="bug-fixes-0-4-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-0"></a></h3>
+<ul><li><p><code><a href="../reference/conformal_aci.html">conformal_aci()</a></code> applied the online update with the operands reversed: <code>alpha_t + gamma * (err_t - alpha)</code> instead of <code>alpha_t + gamma * (alpha - err_t)</code> (Gibbs and Candes 2021, Eq. 2). A miscoverage event therefore narrowed the next interval instead of widening it, turning the intended negative feedback into positive feedback, and <code>alpha_t</code> ran away to a clip boundary. Under a variance shift this drove empirical coverage to 0.605 against a 0.90 target.</p></li>
+<li><p>The <code>model</code> argument was discarded whenever it was a formula or a fitted model object, and a plain <code>lm(y ~ .)</code> was fitted in its place. <code>model = y ~ a</code> silently fitted every column of <code>x</code>; <code>lm(y ~ poly(v1, 3) + v2)</code> was refitted as <code>y ~ v1 + v2</code>; <code>ranger</code> hyperparameters were dropped. Formulas and fitted models are now honoured, refitted on each conformal split. Objects that cannot be refitted raise an error naming <code><a href="../reference/make_model.html">make_model()</a></code> instead of silently substituting a default.</p></li>
+<li><p><code><a href="../reference/conformal_aps.html">conformal_aps()</a></code> and <code><a href="../reference/conformal_raps.html">conformal_raps()</a></code> could return the full label set for every observation. The set builder included the class that <em>crossed</em> the threshold rather than inverting the calibrated score, and <code>randomize = TRUE</code> randomised the calibration scores but never the set construction. With oracle probabilities on a four-class problem, APS returned a mean set size of 3.90 out of 4 at 99.9% coverage; it now returns 2.69 at 88.6%.</p></li>
+<li><p><code><a href="../reference/conformal_jackknife.html">conformal_jackknife()</a></code>, <code><a href="../reference/conformal_cv.html">conformal_cv()</a></code>, and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> clamped the interval bounds to the smallest and largest order statistics when the quantile index fell outside <code>1..n</code>. Barber et al. (2021) define those bounds as infinite, which occurs for fewer than 9 observations at <code>alpha = 0.10</code>. They now return <code>-Inf</code> / <code>Inf</code>, matching <code><a href="../reference/conformal_split.html">conformal_split()</a></code>.</p></li>
+<li><p><code><a href="../reference/conformal_weighted.html">conformal_weighted()</a></code> substituted the mean calibration weight for the test-point weight, so every test point received the same quantile. The new <code>weights_new</code> argument gives the exact procedure of Tibshirani et al. (2019), in which each test point receives its own quantile. Omitting it with non-uniform weights now warns.</p></li>
+<li><p>A fitted <code>glm</code> passed to any classification method failed with “missing columns for class levels”, because the internal probability matrix was unnamed.</p></li>
+<li><p><code><a href="../reference/coverage_by_bin.html">coverage_by_bin()</a></code> failed with “‘breaks’ are not unique” whenever predictions contained ties. Duplicate breaks are now collapsed, with a warning reporting the number of bins actually used.</p></li>
+<li><p>Conformal functions called <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> on the global random stream and left it altered. The <code>seed</code> argument now applies for the duration of the call only, and the user’s <code>.Random.seed</code> is restored on exit. Seeded calls remain reproducible.</p></li>
+<li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> failed with “need finite ‘ylim’ values” on unbounded intervals. These are now drawn to the plot edge with a message.</p></li>
+<li><p><code><a href="../reference/conformal_mondrian.html">conformal_mondrian()</a></code> and <code><a href="../reference/conformal_mondrian_class.html">conformal_mondrian_class()</a></code> silently substituted the pooled quantile for groups with fewer than three calibration points, voiding the group-conditional guarantee for exactly the groups that needed it. Such groups now receive an unbounded interval, with a warning naming the number of calibration points required.</p></li>
+<li><p>Data frames containing non-numeric columns produced the misleading error “must not contain NaN or Inf values”. They now name the offending columns and suggest <code><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">stats::model.matrix()</a></code>.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-in-default-behaviour-0-4-0">Changes in default behaviour<a class="anchor" aria-label="anchor" href="#changes-in-default-behaviour-0-4-0"></a></h3>
+<ul><li><p><code><a href="../reference/conformal_aps.html">conformal_aps()</a></code> and <code><a href="../reference/conformal_raps.html">conformal_raps()</a></code> now default to <code>randomize = TRUE</code>, the method as published. Deterministic scoring (<code>randomize = FALSE</code>) remains available and now warns when the conformal quantile saturates at 1. Pass <code>seed</code> for reproducible randomised sets.</p></li>
+<li><p>Prediction sets are now the exact inversion of the calibrated score. New <code>allow_empty</code> argument on <code><a href="../reference/conformal_lac.html">conformal_lac()</a></code>, <code><a href="../reference/conformal_aps.html">conformal_aps()</a></code>, <code><a href="../reference/conformal_raps.html">conformal_raps()</a></code>, <code><a href="../reference/conformal_class_split.html">conformal_class_split()</a></code>, and <code><a href="../reference/conformal_mondrian_class.html">conformal_mondrian_class()</a></code>; the default <code>FALSE</code> keeps the previous behaviour of replacing an empty set with the most probable class.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="other-changes-0-4-0">Other changes<a class="anchor" aria-label="anchor" href="#other-changes-0-4-0"></a></h3>
+<ul><li><p><code><a href="../reference/conformal_cqr.html">conformal_cqr()</a></code>’s <code>quantiles</code> argument previously had no effect. It is now validated, recorded on the returned object, and checked for consistency with <code>alpha</code>.</p></li>
+<li><p><code><a href="../reference/conformal_cv.html">conformal_cv()</a></code> and <code><a href="../reference/conformal_jackknife.html">conformal_jackknife()</a></code> now validate that <code>x_new</code> has the same number of columns as <code>x</code>.</p></li>
+<li><p>Jackknife+ prediction makes one call to <code>predict_fun</code> per leave-one-out model rather than one per (model, test point) pair.</p></li>
+<li><p><code>conformal_cv(x_new = NULL)</code> records <code>train_approximation = TRUE</code>, and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> states that those intervals do not carry the CV+ guarantee.</p></li>
+<li><p><code>inst/CITATION</code> now reports the installed version rather than a hardcoded one.</p></li>
+<li><p><code>paper/</code>, <code>Makefile</code>, and <code>llms*.txt</code> are excluded from the source tarball, which removes an <code>R CMD check</code> WARNING about GNU extensions in <code>paper/slides/Makefile</code> and cuts the tarball from 4.2 MB.</p></li>
+<li><p>README and the accompanying paper: corrected the CRAN status, dependency count, and competitor versions, and softened the Mondrian and ACI exclusivity claims (see <code>conformalForecast</code> and <code>AdaptiveConformal</code>).</p></li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.2" id="predictset-032">predictset 0.3.2<a class="anchor" aria-label="anchor" href="#predictset-032"></a></h2>
 <ul><li>Fixed <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> for LAC and Mondrian classification objects: <code>randomize</code> field now defaults to <code>FALSE</code> when not set by the fitting method.</li>
@@ -98,7 +131,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

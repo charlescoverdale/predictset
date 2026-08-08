@@ -16,6 +16,7 @@ conformal_mondrian_class(
   groups_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
@@ -60,9 +61,15 @@ conformal_mondrian_class(
 
   Fraction of data used for calibration. Default `0.5`.
 
+- allow_empty:
+
+  Logical. If `FALSE` (the default), an empty prediction set is replaced
+  by the single most probable class.
+
 - seed:
 
-  Optional random seed.
+  Optional random seed. Set for the duration of the call only; the
+  global random stream is restored on exit.
 
 ## Value
 

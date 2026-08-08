@@ -11,7 +11,7 @@ intervals with finite-sample coverage guarantees."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,6 +118,11 @@ residuals.</p>
 \(1 - \alpha\) (Barber et al. 2021, Theorem 1). This is weaker than
 split conformal's \(1 - \alpha\) guarantee. In practice, Jackknife+
 coverage is typically much closer to \(1 - \alpha\).</p>
+<p>The interval bounds are the \(\lfloor \alpha (n+1) \rfloor\)-th and
+\(\lceil (1-\alpha)(n+1) \rceil\)-th smallest values. When an index falls
+outside \(1, \ldots, n\) the corresponding bound is infinite, which
+happens for \(n &lt; 1/\alpha - 1\) (fewer than 9 observations at
+<code>alpha = 0.10</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -166,7 +171,7 @@ Predictive inference with the jackknife+.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

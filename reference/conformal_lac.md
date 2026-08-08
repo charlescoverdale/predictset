@@ -8,7 +8,16 @@ scores.
 ## Usage
 
 ``` r
-conformal_lac(x, y, model, x_new, alpha = 0.1, cal_fraction = 0.5, seed = NULL)
+conformal_lac(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  allow_empty = FALSE,
+  seed = NULL
+)
 ```
 
 ## Arguments
@@ -41,9 +50,17 @@ conformal_lac(x, y, model, x_new, alpha = 0.1, cal_fraction = 0.5, seed = NULL)
 
   Fraction of data used for calibration. Default `0.5`.
 
+- allow_empty:
+
+  Logical. If `FALSE` (the default), an empty prediction set is replaced
+  by the single most probable class. LAC admits empty sets by design
+  (Sadinle, Lei and Wasserman 2019); set `TRUE` to return them.
+  Suppressing empty sets is conservative, never anti-conservative.
+
 - seed:
 
-  Optional random seed.
+  Optional random seed. Set for the duration of the call only; the
+  global random stream is restored on exit.
 
 ## Value
 

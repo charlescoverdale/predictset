@@ -62,6 +62,16 @@ not the finite-sample guarantees of split conformal prediction. The
 long-run average coverage converges to \\1 - \alpha\\ as the sequence
 length grows (Gibbs and Candes, 2021).
 
+The miscoverage level is updated online as \\\alpha\_{t+1} = \alpha_t +
+\gamma(\alpha - \mathrm{err}\_t)\\, where \\\mathrm{err}\_t\\ indicates
+that \\Y_t\\ fell outside the interval. A miss lowers \\\alpha_t\\ and
+so widens the next interval.
+
+Results are sensitive to \\\gamma\\: too small and the method cannot
+track a shift, too large and \\\alpha_t\\ becomes volatile. Gibbs and
+Candes (2024) remove this tuning problem by aggregating over a set of
+learning rates; that extension is not implemented here.
+
 ## References
 
 Gibbs, I. and Candes, E. (2021). Adaptive conformal inference under
@@ -88,5 +98,5 @@ y_pred <- c(0, y_true[-n])  # naive lag-1 prediction
 
 result <- conformal_aci(y_pred, y_true, alpha = 0.10, gamma = 0.01)
 print(result$coverage)
-#> [1] 0.99
+#> [1] 0.91
 ```

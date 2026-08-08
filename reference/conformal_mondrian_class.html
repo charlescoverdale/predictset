@@ -9,7 +9,7 @@ classification. Uses LAC-style scoring with per-group conformal quantiles."></he
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,6 +52,7 @@ classification. Uses LAC-style scoring with per-group conformal quantiles.</p>
 <span>  <span class="va">groups_new</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  cal_fraction <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  allow_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -96,8 +97,14 @@ observation in <code>x_new</code>.</p></dd>
 <dd><p>Fraction of data used for calibration. Default <code>0.5</code>.</p></dd>
 
 
+<dt id="arg-allow-empty">allow_empty<a class="anchor" aria-label="anchor" href="#arg-allow-empty"></a></dt>
+<dd><p>Logical. If <code>FALSE</code> (the default), an empty prediction
+set is replaced by the single most probable class.</p></dd>
+
+
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Optional random seed.</p></dd>
+<dd><p>Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -161,7 +168,7 @@ include <code>groups_new</code> and <code>group_quantiles</code>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

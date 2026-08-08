@@ -57,7 +57,11 @@ conformal_cqr(
 
 - quantiles:
 
-  The target quantiles. Default `c(0.05, 0.95)`.
+  The nominal lower and upper quantiles targeted by `model_lower` and
+  `model_upper`. Default `c(0.05, 0.95)`. These are recorded on the
+  returned object and checked for consistency with `alpha`: CQR is most
+  efficient when `quantiles` spans `1 - alpha`. The models themselves
+  are supplied by the user, so this argument does not fit them.
 
 - seed:
 
@@ -67,7 +71,8 @@ conformal_cqr(
 
 A `predictset_reg` object. See
 [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md)
-for details. The `method` component is `"cqr"`.
+for details. The `method` component is `"cqr"` and `quantiles` records
+the nominal quantiles.
 
 ## Details
 

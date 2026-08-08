@@ -18,8 +18,8 @@ A technical working paper for this package can be found
 and distribution-free uncertainty quantification. It constructs
 prediction intervals (regression) and prediction sets (classification)
 with finite-sample coverage guarantees - no distributional assumptions
-required. Works with any model: `lm`, `glm`, `ranger`, `xgboost`, or
-custom user-defined models via
+required. Pass a formula, a fitted `lm`, `glm` or `ranger`, or wrap
+anything else (xgboost, keras, lightgbm) with
 [`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.md).
 
 ## Installation
@@ -38,11 +38,52 @@ devtools::install_github("charlescoverdale/predictset")
 
 library(predictset)
 
-# Get 90% prediction intervals around any model - 3 lines of code
+x <- matrix(rnorm(500 * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(500)
+x_new <- matrix(rnorm(50 * 3), ncol = 3)
+
+# 90% prediction intervals around any model
 result <- conformal_split(x, y, model = y ~ ., x_new = x_new, alpha = 0.10)
 result$lower  # lower bounds
 result$upper  # upper bounds
 ```
+
+------------------------------------------------------------------------
+
+## Changes in 0.4.0
+
+This release fixes three defects that changed numerical results. If you
+have run any of the following on an earlier version, re-run it.
+
+| What changed | Effect |
+|----|----|
+| [`conformal_aci()`](https://charlescoverdale.github.io/predictset/reference/conformal_aci.md) applied the Gibbs and Candes online update with the operands reversed | A miscoverage event narrowed the next interval instead of widening it, so `alpha` ran away to a clip boundary. On a variance-shift benchmark this drove coverage to 0.605 against a 0.90 target. |
+| `model` was ignored when given as a formula or a fitted object | `model = y ~ a` silently fitted every column of `x`; `lm(y ~ poly(v1, 3) + v2)` came back as `y ~ v1 + v2`. Both are now honoured. |
+| [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md) and [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md) could return the full label set for every observation | With oracle probabilities on a four-class problem, APS returned a mean set size of 3.90 out of 4 at 99.9% coverage. It now returns 2.69 at 88.6%. |
+
+Two defaults changed as a result:
+
+- `randomize = TRUE` is now the default for
+  [`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md)
+  and
+  [`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md),
+  which is the method as published. Pass `seed` for reproducible sets,
+  or `randomize = FALSE` for the deterministic (more conservative)
+  variant.
+- [`conformal_weighted()`](https://charlescoverdale.github.io/predictset/reference/conformal_weighted.md)
+  takes a new `weights_new` argument. Supply it for the exact procedure
+  of Tibshirani et al. (2019), in which every test point receives its
+  own conformal quantile.
+
+Smaller fixes: Jackknife+ and CV+ now return `±Inf` where the quantile
+index falls outside `1..n` rather than clamping to the extreme order
+statistic; a fitted `glm` now works with the classification methods;
+[`coverage_by_bin()`](https://charlescoverdale.github.io/predictset/reference/coverage_by_bin.md)
+handles tied predictions; the `seed` argument no longer leaves the
+global random stream altered; Mondrian returns an unbounded interval for
+a group too small to calibrate rather than silently borrowing the pooled
+quantile. Full detail in
+[NEWS.md](https://charlescoverdale.github.io/predictset/NEWS.md).
 
 ------------------------------------------------------------------------
 
@@ -68,7 +109,8 @@ which depend on modelling assumptions that may not hold.
 **predictset** implements the main conformal methods from the recent
 literature (split conformal, Jackknife+, CV+, conformalized quantile
 regression for regression, and APS, RAPS, and LAC for classification) in
-a lightweight package with only two dependencies (`cli` and `stats`).
+a lightweight package with a single non-base dependency (`cli`; the rest
+are base R).
 
 ------------------------------------------------------------------------
 
@@ -80,16 +122,16 @@ a lightweight package with only two dependencies (`cli` and `stats`).
 | Regression | Yes | Yes | Yes | Yes |
 | Classification | Yes | No | No | Yes |
 | Model-agnostic | Yes | tidymodels only | Yes | scikit-learn only |
-| On CRAN | Pending | Yes | No (GitHub only) | N/A |
+| On CRAN | Yes | Yes | No (GitHub only) | N/A |
 | Jackknife+ / CV+ | Yes | No | Yes | Yes |
 | CQR | Yes | Yes | Yes | Yes |
 | APS / RAPS | Yes | No | No | Yes |
 | Mondrian CP | Yes | No | No | Yes |
 | Weighted CP | Yes | No | No | Yes |
-| Adaptive CI | Yes | No | No | No |
+| Adaptive CI | Yes | No | No | Yes |
 | Conditional diagnostics | Yes | No | No | Partial |
-| Dependencies | 2 | 14+ | 5 | N/A |
-| Last updated | 2026 | 2024 | 2019 | 2024 |
+| Dependencies | 1 (plus base R) | 17 | 5 | N/A |
+| Last updated | 2026 | 2025 | 2019 | 2025 |
 
 **predictset** is designed to complement rather than compete with
 `probably`. If you’re working in the tidymodels ecosystem and only need
@@ -161,11 +203,31 @@ clf <- make_model(
   type = "classification"
 )
 
-result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10)
-result$sets[[1]]   # prediction set for first observation: e.g. c("A")
-result$sets[[10]]  # ambiguous case might include: c("A", "B")
+# APS is randomised by default (Romano, Sesia & Candes 2020). Pass `seed`, or
+# call set.seed(), for reproducible sets.
+result <- conformal_aps(x, y, model = clf, x_new = x_new, alpha = 0.10, seed = 1)
+result$sets[[1]]   # prediction set for the first observation, e.g. c("A")
 table(set_size(result))  # distribution of set sizes
 ```
+
+The uniform random variable in the APS score is not an optional
+refinement. Without it the score has an atom at exactly 1, and whenever
+the model ranks the true class last more often than `alpha` of the time
+the conformal quantile is exactly 1 and every set becomes the full label
+set. `randomize = FALSE` is available for deterministic output and warns
+when this happens.
+
+Prediction sets are the exact inversion of the calibrated score, which
+can be empty for a test point the model is confident about. By default
+an empty set is replaced by the single most probable class. Pass
+`allow_empty = TRUE` to
+[`conformal_lac()`](https://charlescoverdale.github.io/predictset/reference/conformal_lac.md),
+[`conformal_aps()`](https://charlescoverdale.github.io/predictset/reference/conformal_aps.md),
+[`conformal_raps()`](https://charlescoverdale.github.io/predictset/reference/conformal_raps.md),
+or
+[`conformal_mondrian_class()`](https://charlescoverdale.github.io/predictset/reference/conformal_mondrian_class.md)
+to get the inversion untouched: empty sets are the defining feature of
+LAC in Sadinle, Lei and Wasserman (2019).
 
 ------------------------------------------------------------------------
 
@@ -213,10 +275,17 @@ fit <- lm(y ~ ., data = data.frame(y = y, x))
 result <- conformal_split(x, y, model = fit, x_new = x_new)
 ```
 
-If you’ve already fitted a model and want conformal intervals around its
-predictions, pass it directly. **predictset** recognises standard R
-model objects and extracts the training and prediction functions
-automatically.
+If you’ve already fitted a model, pass it directly. **predictset** reads
+its formula and its call, then refits *that same specification* on each
+conformal training split. This matters: conformal prediction has to
+retrain on the split, so the object you pass is a template, not the
+model that ends up being used. Transformations in the formula
+([`poly()`](https://rdrr.io/r/stats/poly.html),
+[`log()`](https://rdrr.io/r/base/Log.html), interactions) and `ranger`
+hyperparameters are preserved. Anything predictset cannot refit raises
+an error pointing you at
+[`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.md)
+rather than silently substituting a default.
 
 **3. Custom model** via
 [`make_model()`](https://charlescoverdale.github.io/predictset/reference/make_model.md)
@@ -249,7 +318,7 @@ prediction with xgboost, keras, lightgbm, or any other model.
 
 | Function | Type | Method | Reference |
 |----|----|----|----|
-| [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md) | Regression | Split conformal | [Vovk et al. (2005)](https://link.springer.com/book/10.1007/978-3-031-06649-8) |
+| [`conformal_split()`](https://charlescoverdale.github.io/predictset/reference/conformal_split.md) | Regression | Split conformal | [Lei et al. (2018)](https://doi.org/10.1080/01621459.2017.1307116) |
 | [`conformal_cv()`](https://charlescoverdale.github.io/predictset/reference/conformal_cv.md) | Regression | CV+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
 | [`conformal_jackknife()`](https://charlescoverdale.github.io/predictset/reference/conformal_jackknife.md) | Regression | Jackknife+ | [Barber et al. (2021)](https://doi.org/10.1214/20-AOS1965) |
 | [`conformal_cqr()`](https://charlescoverdale.github.io/predictset/reference/conformal_cqr.md) | Regression | Conformalized Quantile Regression | [Romano et al. (2019)](https://arxiv.org/abs/1905.03222) |
@@ -336,7 +405,10 @@ conformal computes a separate quantile for each group, guaranteeing
 coverage within each subgroup. This is critical for fairness and
 regulatory compliance.
 
-No other R package on CRAN implements Mondrian conformal prediction.
+To our knowledge no actively maintained CRAN package offers Mondrian
+conformal prediction for both regression and classification.
+(`conformalClassification` implemented label-wise Mondrian ICP but was
+archived from CRAN in May 2026.)
 
 ``` r
 
@@ -372,12 +444,17 @@ x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] * 2 + rnorm(n)
 x_new <- matrix(rnorm(100 * 3, mean = 1), ncol = 3)  # shifted test data
 
-# Importance weights (likelihood ratio of test vs training distributions)
+# Importance weights (likelihood ratio of test vs training distributions),
+# evaluated on both the calibration covariates and the test covariates
 weights <- dnorm(x[, 1], mean = 1) / dnorm(x[, 1], mean = 0)
+weights_new <- dnorm(x_new[, 1], mean = 1) / dnorm(x_new[, 1], mean = 0)
 
 result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
-                              weights = weights)
+                              weights = weights, weights_new = weights_new)
 print(result)
+
+# Each test point gets its own conformal quantile
+summary(result$quantile_by_point)
 ```
 
 ### Conformalized Quantile Regression
@@ -416,8 +493,12 @@ plot(result)
 ### Adaptive Conformal Inference (sequential prediction)
 
 ACI adapts the miscoverage level online based on observed coverage,
-maintaining long-run coverage even under distribution shift. No other R
-package implements ACI.
+maintaining long-run coverage even under distribution shift. See also
+[`conformalForecast`](https://CRAN.R-project.org/package=conformalForecast)
+for adaptive conformal prediction and conformal PID control aimed
+specifically at multistep time series forecasting, and
+[`AdaptiveConformal`](https://github.com/herbps10/AdaptiveConformal)
+(GitHub) for a wider family of online conformal algorithms.
 
 ``` r
 
@@ -485,8 +566,10 @@ pvals <- conformal_pvalue(result$scores, new_scores)
 ```
 
 [`coverage()`](https://charlescoverdale.github.io/predictset/reference/coverage.md)
-should be close to `1 - alpha`. If it’s substantially lower, something
-has gone wrong (likely a violation of exchangeability).
+should be close to `1 - alpha` from either side. Coverage substantially
+below target usually means exchangeability is violated; coverage far
+above it means the method is over-covering, which is a real cost, since
+it buys nothing and widens every interval.
 [`interval_width()`](https://charlescoverdale.github.io/predictset/reference/interval_width.md)
 and
 [`set_size()`](https://charlescoverdale.github.io/predictset/reference/set_size.md)
@@ -609,6 +692,18 @@ Quantification](https://arxiv.org/abs/2107.07511).
   probabilities. If the probabilities are poorly calibrated, the
   prediction sets will still have valid coverage but may be
   unnecessarily large.
+- **Small samples give unbounded intervals, by design.** The conformal
+  quantile is the `ceiling((n+1)(1-alpha))`-th calibration score. When
+  that index exceeds the number of calibration points, the correct bound
+  is infinite, and predictset returns `Inf` rather than silently
+  substituting the largest observed score. At `alpha = 0.10` this means
+  fewer than 9 calibration points. The same applies per group in
+  Mondrian conformal.
+- **Predictors must be numeric.** Encode factors yourself, for example
+  with `stats::model.matrix(~ . - 1, data = x)`.
+- **Weighted conformal needs test-point weights.** Supply `weights_new`
+  to get the exact procedure of Tibshirani et al. (2019), in which each
+  test point receives its own quantile.
 
 ------------------------------------------------------------------------
 

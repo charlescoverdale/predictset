@@ -13,7 +13,7 @@ calibration scores to account for this shift."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">predictset</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,6 +55,7 @@ calibration scores to account for this shift.</p>
 <span>  <span class="va">model</span>,</span>
 <span>  <span class="va">x_new</span>,</span>
 <span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  weights_new <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  cal_fraction <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -89,6 +90,15 @@ If <code>NULL</code>, uniform weights are used (equivalent to standard split
 conformal).</p></dd>
 
 
+<dt id="arg-weights-new">weights_new<a class="anchor" aria-label="anchor" href="#arg-weights-new"></a></dt>
+<dd><p>A numeric vector of importance weights for each
+observation in <code>x_new</code>, with length equal to <code>nrow(x_new)</code>. Supplying
+these gives the exact procedure of Tibshirani et al. (2019), in which
+each test point receives its own conformal quantile. If <code>NULL</code>, the mean
+calibration weight is substituted for every test point, which is an
+approximation (see Details).</p></dd>
+
+
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>Miscoverage level. Default <code>0.10</code>.</p></dd>
 
@@ -98,25 +108,43 @@ conformal).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Optional random seed.</p></dd>
+<dd><p>Optional random seed. Set for the duration of the call only;
+the global random stream is restored on exit.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>predictset_reg</code> object. See <code><a href="conformal_split.html">conformal_split()</a></code> for details.
-The <code>method</code> component is <code>"weighted"</code>.</p>
+The <code>method</code> component is <code>"weighted"</code>. The <code>quantile</code> component is the
+median conformal quantile across test points; <code>quantile_by_point</code> holds
+the full vector.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The test-point weight \(w_{n+1}\) is set to the mean of calibration
-weights, following standard practice when the true test weight is unknown.
-See Tibshirani et al. (2019), Equation 5.</p>
+    <p>Tibshirani et al. (2019), Equation 5, defines the weighted conformal
+quantile using the test-point weight \(w(X_{n+1})\), which is known at
+test time. Each test point therefore receives a different quantile, and
+that per-point adaptation is the mechanism by which the method corrects for
+covariate shift. Supply <code>weights_new</code> to obtain it.</p>
+<p>A test point whose weight is large relative to the calibration weights
+receives an infinite quantile: the point mass at \(+\infty\) carries more
+than \(\alpha\) of the weighted distribution, so no finite interval is
+justified there. That is the correct answer, and it flags test covariates
+the calibration set cannot support.</p>
+<p>When <code>weights_new</code> is <code>NULL</code> the mean calibration weight is used for every
+test point. This yields a single constant-width interval and does not carry
+the finite-sample guarantee; it is offered only as a fallback for when the
+likelihood ratio cannot be evaluated on the test covariates.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Tibshirani, R.J., Barber, R.F., Candes, E.J. and Ramdas, A. (2019).
 Conformal prediction under covariate shift.
 <em>Advances in Neural Information Processing Systems</em>, 32.</p>
+<p>Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2023).
+Conformal prediction beyond exchangeability.
+<em>Annals of Statistics</em>, 51(2), 816-845.
+<a href="https://doi.org/10.1214/23-AOS2276" class="external-link">doi:10.1214/23-AOS2276</a></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -136,18 +164,21 @@ Conformal prediction under covariate shift.
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">x_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span> <span class="op">*</span> <span class="fl">3</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Likelihood ratio of the test density to the training density</span></span></span>
+<span class="r-in"><span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">w_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x_new</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x_new</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">conformal_weighted</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, model <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, x_new <span class="op">=</span> <span class="va">x_new</span>,</span></span>
-<span class="r-in"><span>                              weights <span class="op">=</span> <span class="va">weights</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                              weights <span class="op">=</span> <span class="va">w</span>, weights_new <span class="op">=</span> <span class="va">w_new</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Conformal Prediction Intervals (Weighted Conformal)</span> <span style="color: #00BBBB;">─────────────────────────</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Coverage target: <span style="color: #0000BB;">"90%"</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Training: <span style="color: #0000BB;">200</span> | Calibration: <span style="color: #0000BB;">200</span> | Predictions: <span style="color: #0000BB;">50</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Conformal quantile: <span style="color: #0000BB;">1.648</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Median interval width: <span style="color: #0000BB;">3.296</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Conformal quantile: <span style="color: #0000BB;">1.5614</span> to <span style="color: #0000BB;">1.9626</span> across test points (median <span style="color: #0000BB;">1.5614</span>)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Median interval width: <span style="color: #0000BB;">3.1229</span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
@@ -161,7 +192,7 @@ Conformal prediction under covariate shift.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

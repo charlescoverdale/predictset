@@ -82,6 +82,12 @@ The Jackknife+ theoretical coverage guarantee is \\1 - 2\alpha\\, not
 split conformal's \\1 - \alpha\\ guarantee. In practice, Jackknife+
 coverage is typically much closer to \\1 - \alpha\\.
 
+The interval bounds are the \\\lfloor \alpha (n+1) \rfloor\\-th and
+\\\lceil (1-\alpha)(n+1) \rceil\\-th smallest values. When an index
+falls outside \\1, \ldots, n\\ the corresponding bound is infinite,
+which happens for \\n \< 1/\alpha - 1\\ (fewer than 9 observations at
+`alpha = 0.10`).
+
 ## References
 
 Barber, R.F., Candes, E.J., Ramdas, A. and Tibshirani, R.J. (2021).
