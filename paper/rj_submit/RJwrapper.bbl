@@ -1,0 +1,80 @@
+\begin{thebibliography}{12}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Angelopoulos and Bates(2023)]{angelopoulos2023gentle}
+A.~N. Angelopoulos and S.~Bates.
+\newblock A gentle introduction to conformal prediction and distribution-free uncertainty quantification.
+\newblock \emph{Foundations and Trends in Machine Learning}, 16\penalty0 (4):\penalty0 494--591, 2023.
+\newblock \doi{10.1561/2200000101}.
+
+\bibitem[Angelopoulos et~al.(2021)Angelopoulos, Bates, Malik, and Jordan]{angelopoulos2021uncertainty}
+A.~N. Angelopoulos, S.~Bates, J.~Malik, and M.~I. Jordan.
+\newblock Uncertainty sets for image classifiers using conformal prediction.
+\newblock \emph{International Conference on Learning Representations}, 2021.
+\newblock \doi{10.48550/arXiv.2009.14193}.
+
+\bibitem[Angwin et~al.(2016)Angwin, Larson, Mattu, and Kirchner]{angwin2016machine}
+J.~Angwin, J.~Larson, S.~Mattu, and L.~Kirchner.
+\newblock Machine bias: There's software used across the country to predict future criminals. and it's biased against blacks.
+\newblock ProPublica, 2016.
+\newblock URL \url{https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing}.
+
+\bibitem[Barber et~al.(2021)Barber, Candes, Ramdas, and Tibshirani]{barber2021predictive}
+R.~F. Barber, E.~J. Candes, A.~Ramdas, and R.~J. Tibshirani.
+\newblock Predictive inference with the jackknife+.
+\newblock \emph{Annals of Statistics}, 49\penalty0 (1):\penalty0 486--507, 2021.
+\newblock \doi{10.1214/20-AOS1965}.
+
+\bibitem[Gibbs and Candes(2021)]{gibbs2021adaptive}
+I.~Gibbs and E.~J. Candes.
+\newblock Adaptive conformal inference under distribution shift.
+\newblock \emph{Advances in Neural Information Processing Systems}, 34, 2021.
+\newblock \doi{10.48550/arXiv.2106.00170}.
+
+\bibitem[Lei et~al.(2018)Lei, G'Sell, Rinaldo, Tibshirani, and Wasserman]{lei2018distribution}
+J.~Lei, M.~G'Sell, A.~Rinaldo, R.~J. Tibshirani, and L.~Wasserman.
+\newblock Distribution-free predictive inference for regression.
+\newblock \emph{Journal of the American Statistical Association}, 113\penalty0 (523):\penalty0 1094--1111, 2018.
+\newblock \doi{10.1080/01621459.2017.1307116}.
+
+\bibitem[Romano et~al.(2019)Romano, Patterson, and Candes]{romano2019conformalized}
+Y.~Romano, E.~Patterson, and E.~J. Candes.
+\newblock Conformalized quantile regression.
+\newblock \emph{Advances in Neural Information Processing Systems}, 32, 2019.
+\newblock \doi{10.48550/arXiv.1905.03222}.
+
+\bibitem[Romano et~al.(2020{\natexlab{a}})Romano, Barber, Sabatti, and Candes]{romano2020malice}
+Y.~Romano, R.~F. Barber, C.~Sabatti, and E.~J. Candes.
+\newblock With malice toward none: Assessing uncertainty via equalized coverage.
+\newblock \emph{Harvard Data Science Review}, 2\penalty0 (2), 2020{\natexlab{a}}.
+\newblock \doi{10.1162/99608f92.03f00592}.
+
+\bibitem[Romano et~al.(2020{\natexlab{b}})Romano, Sesia, and Candes]{romano2020classification}
+Y.~Romano, M.~Sesia, and E.~J. Candes.
+\newblock Classification with valid and adaptive coverage.
+\newblock \emph{Advances in Neural Information Processing Systems}, 33, 2020{\natexlab{b}}.
+\newblock \doi{10.48550/arXiv.2006.02544}.
+
+\bibitem[Sadinle et~al.(2019)Sadinle, Lei, and Wasserman]{sadinle2019least}
+M.~Sadinle, J.~Lei, and L.~Wasserman.
+\newblock Least ambiguous set-valued classifiers with bounded error levels.
+\newblock \emph{Journal of the American Statistical Association}, 114\penalty0 (525):\penalty0 223--234, 2019.
+\newblock \doi{10.1080/01621459.2017.1395341}.
+
+\bibitem[Tibshirani et~al.(2019)Tibshirani, Barber, Candes, and Ramdas]{tibshirani2019conformal}
+R.~J. Tibshirani, R.~F. Barber, E.~J. Candes, and A.~Ramdas.
+\newblock Conformal prediction under covariate shift.
+\newblock \emph{Advances in Neural Information Processing Systems}, 32, 2019.
+\newblock \doi{10.48550/arXiv.1904.06019}.
+
+\bibitem[Vovk et~al.(2005)Vovk, Gammerman, and Shafer]{vovk2005algorithmic}
+V.~Vovk, A.~Gammerman, and G.~Shafer.
+\newblock \emph{Algorithmic Learning in a Random World}.
+\newblock Springer, New York, 2005.
+\newblock \doi{10.1007/b106715}.
+
+\end{thebibliography}

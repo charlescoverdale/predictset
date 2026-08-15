@@ -1,0 +1,120 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\bibstyle{abbrvnat}
+\citation{vovk2005algorithmic}
+\citation{barber2021predictive}
+\citation{romano2019conformalized}
+\citation{romano2020classification}
+\citation{lei2018distribution}
+\citation{lei2018distribution}
+\citation{barber2021predictive}
+\citation{romano2019conformalized}
+\citation{romano2020classification}
+\citation{angelopoulos2021uncertainty}
+\citation{sadinle2019least}
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}predictset: Conformal Prediction and Uncertainty Quantification in R}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{1}{section.2.1}\protected@file@percent }
+\newlabel{introduction}{{2.1}{1}{Introduction}{section.2.1}{}}
+\@writefile{brf}{\backcite{vovk2005algorithmic}{{1}{2.1}{section.2.1}}}
+\@writefile{brf}{\backcite{barber2021predictive}{{1}{2.1}{section.2.1}}}
+\@writefile{brf}{\backcite{romano2019conformalized}{{1}{2.1}{section.2.1}}}
+\@writefile{brf}{\backcite{romano2020classification}{{1}{2.1}{section.2.1}}}
+\@writefile{brf}{\backcite{lei2018distribution}{{1}{2.1}{section.2.1}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}Background}{1}{section.2.2}\protected@file@percent }
+\newlabel{background}{{2.2}{1}{Background}{section.2.2}{}}
+\@writefile{brf}{\backcite{lei2018distribution}{{1}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{barber2021predictive}{{1}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{romano2019conformalized}{{1}{2.2}{section.2.2}}}
+\citation{vovk2005algorithmic}
+\citation{tibshirani2019conformal}
+\citation{gibbs2021adaptive}
+\citation{angelopoulos2023gentle}
+\@writefile{brf}{\backcite{romano2020classification}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{angelopoulos2021uncertainty}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{sadinle2019least}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{vovk2005algorithmic}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{tibshirani2019conformal}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{gibbs2021adaptive}{{2}{2.2}{section.2.2}}}
+\@writefile{brf}{\backcite{angelopoulos2023gentle}{{2}{2.2}{section.2.2}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Package design}{2}{section.2.3}\protected@file@percent }
+\newlabel{package-design}{{2.3}{2}{Package design}{section.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Architecture and dependencies}{2}{subsection.2.3.1}\protected@file@percent }
+\newlabel{architecture-and-dependencies}{{2.3.1}{2}{Architecture and dependencies}{subsection.2.3.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}The three-tier model interface}{2}{subsection.2.3.2}\protected@file@percent }
+\newlabel{the-three-tier-model-interface}{{2.3.2}{2}{The three-tier model interface}{subsection.2.3.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Score functions}{2}{subsection.2.3.3}\protected@file@percent }
+\newlabel{score-functions}{{2.3.3}{2}{Score functions}{subsection.2.3.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}S3 classes and methods}{2}{subsection.2.3.4}\protected@file@percent }
+\newlabel{s3-classes-and-methods}{{2.3.4}{2}{S3 classes and methods}{subsection.2.3.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.5}Reproducibility}{2}{subsection.2.3.5}\protected@file@percent }
+\newlabel{reproducibility}{{2.3.5}{2}{Reproducibility}{subsection.2.3.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Empirical coverage and mean interval width across three regression methods on a common sample. Synthetic data with 500 training points, 400 test points, and Gaussian noise with unit standard deviation. Target coverage 0.90. The CV+ variant is fit with ten folds; Jackknife+ is leave-one-out. All three methods reach target coverage; the cross-validated variants achieve meaningfully tighter intervals.}}{3}{table.caption.3}\protected@file@percent }
+\newlabel{tab:compare}{{1}{3}{Empirical coverage and mean interval width across three regression methods on a common sample. Synthetic data with 500 training points, 400 test points, and Gaussian noise with unit standard deviation. Target coverage 0.90. The CV+ variant is fit with ten folds; Jackknife+ is leave-one-out. All three methods reach target coverage; the cross-validated variants achieve meaningfully tighter intervals}{table.caption.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Regression methods}{3}{section.2.4}\protected@file@percent }
+\newlabel{regression-methods}{{2.4}{3}{Regression methods}{section.2.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Split-conformal prediction intervals on a one-dimensional heteroscedastic problem at target coverage 0.90. Grey points show 400 training observations drawn from a sine signal with heteroscedastic Gaussian noise. Shaded bands are 200 test-point intervals from \texttt  {conformal\_split()} with \texttt  {score\_type = "absolute"} (left, empirical coverage 0.890, mean width 5.45) and \texttt  {score\_type = "normalized"} (right, empirical coverage 0.905, mean width 5.34). The normalised scoring produces narrower intervals where noise is low without losing coverage.}}{3}{figure.caption.2}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:hetero}{{1}{3}{Split-conformal prediction intervals on a one-dimensional heteroscedastic problem at target coverage 0.90. Grey points show 400 training observations drawn from a sine signal with heteroscedastic Gaussian noise. Shaded bands are 200 test-point intervals from \texttt {conformal\_split()} with \texttt {score\_type = "absolute"} (left, empirical coverage 0.890, mean width 5.45) and \texttt {score\_type = "normalized"} (right, empirical coverage 0.905, mean width 5.34). The normalised scoring produces narrower intervals where noise is low without losing coverage}{figure.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Mean prediction-interval width across split, CV+, and Jackknife+ on a common regression task. Bars show mean width; text above each bar reports empirical coverage on a 400-point held-out test set. Target coverage is 0.90. CV+ and Jackknife+ recover roughly 9 per cent width relative to split conformal by using all training data for both fitting and calibration.}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:compare}{{2}{4}{Mean prediction-interval width across split, CV+, and Jackknife+ on a common regression task. Bars show mean width; text above each bar reports empirical coverage on a 400-point held-out test set. Target coverage is 0.90. CV+ and Jackknife+ recover roughly 9 per cent width relative to split conformal by using all training data for both fitting and calibration}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Classification methods}{4}{section.2.5}\protected@file@percent }
+\newlabel{classification-methods}{{2.5}{4}{Classification methods}{section.2.5}{}}
+\citation{angelopoulos2021uncertainty}
+\citation{sadinle2019least}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \texttt  {conformal\_aps()} wrapping a 200-tree \texttt  {ranger} classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises with entropy, from 1.00 in the lowest decile to 1.83 in the highest, against a mean of 1.36 overall and a maximum possible size of three.}}{5}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:aps}{{3}{5}{Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \texttt {conformal\_aps()} wrapping a 200-tree \texttt {ranger} classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises with entropy, from 1.00 in the lowest decile to 1.83 in the highest, against a mean of 1.36 overall and a maximum possible size of three}{figure.caption.5}{}}
+\@writefile{brf}{\backcite{angelopoulos2021uncertainty}{{5}{2.5}{figure.caption.5}}}
+\@writefile{brf}{\backcite{sadinle2019least}{{5}{2.5}{figure.caption.5}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Beyond marginal coverage}{5}{section.2.6}\protected@file@percent }
+\newlabel{beyond-marginal-coverage}{{2.6}{5}{Beyond marginal coverage}{section.2.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.1}Mondrian conformal prediction}{5}{subsection.2.6.1}\protected@file@percent }
+\newlabel{mondrian-conformal-prediction}{{2.6.1}{5}{Mondrian conformal prediction}{subsection.2.6.1}{}}
+\citation{tibshirani2019conformal}
+\citation{gibbs2021adaptive}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Group-conditional empirical coverage on a two-group heteroscedastic regression task, target 0.90. Training set 1200 points, test set 400 points, conditional standard deviation 3 for the high-noise group and 0.75 for the low-noise group. Dashed line marks target coverage. Split conformal (orange) achieves marginal coverage by under-covering the high-noise group. Mondrian (blue) computes calibration quantiles per group and delivers the target within each subgroup.}}{6}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:mond}{{4}{6}{Group-conditional empirical coverage on a two-group heteroscedastic regression task, target 0.90. Training set 1200 points, test set 400 points, conditional standard deviation 3 for the high-noise group and 0.75 for the low-noise group. Dashed line marks target coverage. Split conformal (orange) achieves marginal coverage by under-covering the high-noise group. Mondrian (blue) computes calibration quantiles per group and delivers the target within each subgroup}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.2}Weighted conformal for covariate shift}{6}{subsection.2.6.2}\protected@file@percent }
+\newlabel{weighted-conformal-for-covariate-shift}{{2.6.2}{6}{Weighted conformal for covariate shift}{subsection.2.6.2}{}}
+\@writefile{brf}{\backcite{tibshirani2019conformal}{{6}{2.6.2}{subsection.2.6.2}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Empirical coverage on a shifted test set at target 0.90. Training covariates standard normal; test covariates normal with mean 1.5. Outcome is a linear signal with heteroscedastic noise. Under this covariate shift, standard split conformal loses coverage by more than ten percentage points; weighted conformal using the exact likelihood-ratio weights recovers close to target coverage.}}{6}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:weighted}{{5}{6}{Empirical coverage on a shifted test set at target 0.90. Training covariates standard normal; test covariates normal with mean 1.5. Outcome is a linear signal with heteroscedastic noise. Under this covariate shift, standard split conformal loses coverage by more than ten percentage points; weighted conformal using the exact likelihood-ratio weights recovers close to target coverage}{figure.caption.7}{}}
+\citation{romano2020malice}
+\citation{angwin2016machine}
+\citation{angwin2016machine}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.3}Adaptive conformal inference}{7}{subsection.2.6.3}\protected@file@percent }
+\newlabel{adaptive-conformal-inference}{{2.6.3}{7}{Adaptive conformal inference}{subsection.2.6.3}{}}
+\@writefile{brf}{\backcite{gibbs2021adaptive}{{7}{2.6.3}{subsection.2.6.3}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.7}Diagnostics}{7}{section.2.7}\protected@file@percent }
+\newlabel{diagnostics}{{2.7}{7}{Diagnostics}{section.2.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.8}Replication}{7}{section.2.8}\protected@file@percent }
+\newlabel{replication}{{2.8}{7}{Replication}{section.2.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.9}A case study in fairness via group-conditional coverage}{7}{section.2.9}\protected@file@percent }
+\newlabel{a-case-study-in-fairness-via-group-conditional-coverage}{{2.9}{7}{A case study in fairness via group-conditional coverage}{section.2.9}{}}
+\@writefile{brf}{\backcite{romano2020malice}{{7}{2.9}{section.2.9}}}
+\@writefile{brf}{\backcite{angwin2016machine}{{7}{2.9}{section.2.9}}}
+\@writefile{brf}{\backcite{angwin2016machine}{{7}{2.9}{section.2.9}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS realises 0.910 (Caucasian) and 0.917 (African-American); Mondrian APS, which computes a separate calibration quantile per group, realises 0.912 and 0.891. Both procedures track the target closely on this dataset, because the calibration distributions of the two groups are similar; Mondrian secures per-group coverage by construction rather than by that similarity.}}{8}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:compas}{{6}{8}{Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS realises 0.910 (Caucasian) and 0.917 (African-American); Mondrian APS, which computes a separate calibration quantile per group, realises 0.912 and 0.891. Both procedures track the target closely on this dataset, because the calibration distributions of the two groups are similar; Mondrian secures per-group coverage by construction rather than by that similarity}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.10}Limitations}{8}{section.2.10}\protected@file@percent }
+\newlabel{limitations}{{2.10}{8}{Limitations}{section.2.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.11}Conclusion}{8}{section.2.11}\protected@file@percent }
+\newlabel{conclusion}{{2.11}{8}{Conclusion}{section.2.11}{}}
+\bibdata{RJreferences.bib}
+\bibcite{angelopoulos2023gentle}{{1}{2023}{{Angelopoulos and Bates}}{{}}}
+\bibcite{angelopoulos2021uncertainty}{{2}{2021}{{Angelopoulos et~al.}}{{Angelopoulos, Bates, Malik, and Jordan}}}
+\bibcite{angwin2016machine}{{3}{2016}{{Angwin et~al.}}{{Angwin, Larson, Mattu, and Kirchner}}}
+\bibcite{barber2021predictive}{{4}{2021}{{Barber et~al.}}{{Barber, Candes, Ramdas, and Tibshirani}}}
+\bibcite{gibbs2021adaptive}{{5}{2021}{{Gibbs and Candes}}{{}}}
+\bibcite{lei2018distribution}{{6}{2018}{{Lei et~al.}}{{Lei, G'Sell, Rinaldo, Tibshirani, and Wasserman}}}
+\bibcite{romano2019conformalized}{{7}{2019}{{Romano et~al.}}{{Romano, Patterson, and Candes}}}
+\bibcite{romano2020malice}{{8}{2020{a}}{{Romano et~al.}}{{Romano, Barber, Sabatti, and Candes}}}
+\bibcite{romano2020classification}{{9}{2020{b}}{{Romano et~al.}}{{Romano, Sesia, and Candes}}}
+\bibcite{sadinle2019least}{{10}{2019}{{Sadinle et~al.}}{{Sadinle, Lei, and Wasserman}}}
+\bibcite{tibshirani2019conformal}{{11}{2019}{{Tibshirani et~al.}}{{Tibshirani, Barber, Candes, and Ramdas}}}
+\bibcite{vovk2005algorithmic}{{12}{2005}{{Vovk et~al.}}{{Vovk, Gammerman, and Shafer}}}
+\newlabel{acknowledgements}{{2.11}{9}{}{section.2.11}{}}
+\@writefile{toc}{\contentsline {section}{Acknowledgements}{9}{section.2.11}\protected@file@percent }
+\ttl@finishall
+\gdef \@abspage@last{9}

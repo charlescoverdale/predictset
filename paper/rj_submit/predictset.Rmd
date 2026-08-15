@@ -1,5 +1,5 @@
 ---
-title: "Predictset: Conformal Prediction and Uncertainty Quantification in R"
+title: "predictset: Conformal Prediction and Uncertainty Quantification in R"
 date: "2026-04-19"
 abstract: >
   The predictset package implements model-agnostic conformal prediction
@@ -253,7 +253,7 @@ larger prediction sets; confident predictions receive single-class sets.
 This is the central advantage of APS over a fixed top-$k$ rule: set size
 scales with model uncertainty.
 
-```{r aps, fig.cap = "Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \\texttt{conformal\\_aps()} wrapping a 200-tree \\texttt{ranger} classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises monotonically with entropy, from near one in the easy deciles to near three at the decision boundary.", fig.alt = "A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at just above one for the lowest-entropy decile, rises gradually across the middle deciles, and reaches close to three for the highest-entropy decile. The monotonic rise shows APS producing larger sets for harder, higher-entropy test points."}
+```{r aps, fig.cap = "Mean APS prediction-set size grouped by predictive entropy decile, three-class synthetic task, target coverage 0.90. Training set of 600 observations with three classes separable up to an overlap region around the decision boundary; 300 test points scored by \\texttt{conformal\\_aps()} wrapping a 200-tree \\texttt{ranger} classifier. Difficulty deciles are computed from the entropy of the classifier softmax output. Mean set size rises with entropy, from 1.00 in the lowest decile to 1.83 in the highest, against a mean of 1.36 overall and a maximum possible size of three.", fig.alt = "A bar chart with ten bars, one per entropy decile. Mean prediction-set size starts at 1.00 for the lowest-entropy decile and rises across the deciles to 1.83 for the highest, with a small dip at the ninth decile. The upward trend shows APS producing larger sets for harder, higher-entropy test points."}
 knitr::include_graphics("figures/fig3_aps_sets.pdf")
 ```
 
@@ -385,17 +385,24 @@ coverage 0.90; \code{conformal\_mondrian\_class()} produces
 group-conditional prediction sets with race (African-American vs
 Caucasian) as the group variable.
 \code{coverage\_by\_group()} reports the realised coverage per
-group. With only two outcome classes, marginal APS over-covers
-(producing both-class sets frequently enough to reach 100 per cent
-empirical coverage in each group), which satisfies the marginal
-guarantee but is uninformative. Mondrian APS recovers close to the
-90 per cent target per group, with smaller prediction sets on
-average. On real deployment data, users should audit the realised
-per-group coverage after deployment, since the finite-sample
-guarantee holds only within each subgroup conditional on the group
-assignment being fixed and exchangeable.
+group. Marginal APS lands at 0.910 for Caucasian defendants and
+0.917 for African-American defendants, close to the 0.90 target in
+both groups; Mondrian APS returns 0.912 and 0.891. On this dataset
+the two procedures are therefore near-indistinguishable in realised
+coverage, which is the expected outcome when the calibration
+distribution is similar across groups: the marginal quantile is
+already close to the quantile each group would receive on its own.
+The case for Mondrian here is not a correction to a visible failure
+but a guarantee that does not depend on that similarity holding.
+Marginal coverage is an average over groups, so it can mask
+offsetting over- and under-coverage whenever subgroups differ in
+difficulty or sample size, and nothing in the marginal guarantee
+rules that out. Users should audit the realised per-group coverage
+on their own data rather than assuming the balance seen here, since
+the finite-sample guarantee holds only within each subgroup
+conditional on the group assignment being fixed and exchangeable.
 
-```{r compas, fig.cap = "Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS over-covers both groups by including both outcome classes in the prediction set frequently enough to hit 100 per cent empirically. Mondrian APS computes a separate calibration quantile per group and tracks the 0.90 target more tightly on each.", fig.alt = "A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. The marginal APS bars reach 1.00 in both groups, over-covering. The Mondrian APS bars sit close to the dashed line at 0.90 in both groups, showing tight tracking of the target within each subgroup."}
+```{r compas, fig.cap = "Empirical per-race coverage from marginal APS and Mondrian APS on COMPAS two-year recidivism, target 0.90. Data: ProPublica COMPAS dataset (6167 defendants after standard ProPublica screening). Caucasian and African-American subgroups shown. Dashed line at 0.90 marks target coverage. Marginal APS realises 0.910 (Caucasian) and 0.917 (African-American); Mondrian APS, which computes a separate calibration quantile per group, realises 0.912 and 0.891. Both procedures track the target closely on this dataset, because the calibration distributions of the two groups are similar; Mondrian secures per-group coverage by construction rather than by that similarity.", fig.alt = "A grouped bar chart with two groups on the horizontal axis (Caucasian and African-American) and two bars per group (marginal APS and Mondrian APS). A horizontal dashed line at 0.90 marks target coverage. All four bars sit close to the dashed line: marginal APS at 0.910 and 0.917, Mondrian APS at 0.912 and 0.891. No bar departs from the target by more than about one percentage point."}
 knitr::include_graphics("figures/fig6_compas.pdf")
 ```
 
@@ -432,10 +439,10 @@ classification, sequential prediction, group-conditional coverage, and
 covariate shift, several of which have had no prior implementation on
 CRAN. The same three-line interface carries across every method, so the
 cost of switching from split conformal to Jackknife+, Mondrian, or
-weighted conformal is a single function name. Planned additions for
-version 0.4 include conformal procedures for dependent data beyond
-ACI, helpers for estimating likelihood-ratio weights under covariate
-shift, and tighter integration with \CRANpkg{tidymodels} workflows.
+weighted conformal is a single function name. Planned additions include conformal procedures for dependent data
+beyond ACI, helpers for estimating likelihood-ratio weights under
+covariate shift, and tighter integration with \CRANpkg{tidymodels}
+workflows.
 
 # Acknowledgements {-}
 
