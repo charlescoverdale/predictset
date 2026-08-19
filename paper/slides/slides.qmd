@@ -1,0 +1,378 @@
+---
+title: "predictset"
+subtitle: "Conformal prediction and uncertainty quantification in R"
+author: "Charles Coverdale"
+institute: "London, United Kingdom"
+date: "2026-04-01"
+date-format: "MMMM YYYY"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    navigation: empty
+    theme: default
+    colortheme: default
+    fonttheme: default
+    pdf-engine: xelatex
+    include-in-header: header.tex
+    slide-level: 2
+    keep-tex: false
+    fig-align: center
+    classoption:
+      - t
+---
+
+
+## The question
+
+\vspace{1.5em}
+
+\begin{center}
+\Large\bfseries\color{econblue}
+How do we attach finite-sample, distribution-free\\[0.1em]
+coverage guarantees to any fitted model in R?
+\end{center}
+
+\vspace{1em}
+
+\begin{center}
+\normalsize\itshape
+Eleven methods, one model-agnostic interface, any learner from \texttt{lm} to \texttt{xgboost}.
+\end{center}
+
+::: notes
+Open with the question, not the package. Predictive intervals in R
+are usually parametric or bootstrap. Both assume correct specification
+or asymptotics. Conformal prediction asks the analyst for neither.
+:::
+
+
+## Why it matters
+
+- **Regulators** (EU AI Act, FDA SaMD) now require calibrated uncertainty alongside point predictions
+- **Clinical prediction** needs per-patient intervals that are valid without model assumptions
+- **Credit and insurance** need group-conditional coverage that a marginal guarantee cannot deliver
+- **Operations research** needs sequential intervals that adapt when the data-generating process drifts
+
+::: notes
+Four distinct stakeholder groups, four live use cases. Point at the
+regulatory angle: AI Act and FDA both now treat calibrated uncertainty
+as a first-class requirement. 60 seconds.
+:::
+
+
+
+## What is already out there
+
+- **`probably`** (tidymodels): regression only, no classification, no Jackknife+ or CV+\footnote{\scriptsize Kuhn \& Vaughan (2023), \textit{probably: Tools for Post-Processing Class Probability Estimates}, R package.}
+- **`conformalInference`** (GitHub only): research code, not on CRAN, unmaintained since 2019
+- **Classification, Mondrian, weighted, ACI**: no prior CRAN implementation at all
+- **Bespoke scripts**: most practitioners roll their own, with no shared test harness
+
+\vspace{0.5em}
+
+The gap: **no single CRAN package covers the standard conformal workflow end to end**.
+
+::: notes
+Respect existing packages. probably covers a narrow slice well; the
+research code is stale. predictset fills the vacuum for classification
+and the conditional-coverage variants. 45 seconds.
+:::
+
+
+
+## What predictset offers
+
+1. **Coverage**: 11 methods spanning split, CV+, Jackknife+, CQR, APS, RAPS, LAC, Mondrian, weighted, ACI, conformal p-values
+2. **Interface**: every method takes a formula, a fitted model, or a user-defined train/predict pair; same three-line call across regression and classification
+3. **Provenance**: pure R, no compiled code, four runtime imports, 318 tests, CRAN since March 2026
+
+\vspace{0.5em}
+
+Methods follow @angelopoulos2023gentle and the primary sources cited per function\footnote{\scriptsize Angelopoulos \& Bates (2023), \textit{Conformal Prediction: A Gentle Introduction}, Foundations and Trends in Machine Learning 16(4).}.
+
+::: notes
+Three bullets, three selling points. Emphasise the unified interface:
+switching from split conformal to Mondrian is a one-word change. CRAN
+presence signals maturity. 45 seconds.
+:::
+
+
+
+## Regression: split conformal prediction intervals
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.65\textheight]{figures/fig1_heteroscedastic.pdf}
+\end{center}
+
+\vspace{-0.4em}
+
+{\footnotesize\itshape Split conformal gives constant-width bands; normalised scores scale with local variance.}
+```
+
+::: notes
+First family. Regression intervals. Absolute-residual split gives
+constant width; normalised and CQR adapt to local variance. 25 seconds.
+:::
+
+
+## Classification: adaptive prediction sets (APS)
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.65\textheight]{figures/fig3_aps_sets.pdf}
+\end{center}
+
+\vspace{-0.4em}
+
+{\footnotesize\itshape APS set size grows with per-instance uncertainty while holding marginal coverage at the target.}
+```
+
+::: notes
+Second family. Classification. APS yields variable-size sets that
+expand on hard examples and contract on easy ones. 25 seconds.
+:::
+
+
+## Mondrian: group-conditional coverage
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.65\textheight]{figures/fig4_mondrian.pdf}
+\end{center}
+
+\vspace{-0.4em}
+
+{\footnotesize\itshape Mondrian calibrates a separate quantile per group, recovering the target within each subgroup.}
+```
+
+::: notes
+Third family. Group-conditional. The fairness workhorse: equalised
+coverage across protected groups, regression or classification. 25 seconds.
+:::
+
+
+## Weighted conformal and adaptive (ACI)
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.65\textheight]{figures/fig5_weighted.pdf}
+\end{center}
+
+\vspace{-0.4em}
+
+{\footnotesize\itshape Weighted reweights scores by a density ratio for covariate shift; ACI updates target level online under drift.}
+```
+
+::: notes
+Fourth family. Distribution-shift tooling. Weighted conformal for known
+likelihood ratios; ACI for online adaptation under drift. 25 seconds.
+:::
+
+
+## Central formulas
+
+\vspace{0.3em}
+
+\textbf{Nonconformity score} (absolute residual form):
+\begin{equation}
+s_i = |y_i - \hat{f}(x_i)|, \qquad i \in \mathcal{I}_{\mathrm{cal}}
+\end{equation}
+
+\textbf{Conformal quantile} (calibration order statistic):
+\begin{equation}
+\hat{q}_\alpha = s_{\left(\lceil (n_{\mathrm{cal}} + 1)(1 - \alpha) \rceil\right)}
+\end{equation}
+
+\textbf{Coverage guarantee} (Vovk et al.\ 2005; Lei et al.\ 2018):
+\begin{equation}
+\mathbb{P}\!\left\{Y_{n+1} \in \hat{C}(X_{n+1})\right\} \;\geq\; 1 - \alpha
+\end{equation}
+
+::: notes
+Three equations, one idea each. Do not read them aloud. Point at the
+order-statistic index and the coverage inequality. The guarantee holds
+finite-sample under exchangeability, no model assumptions needed.
+60 seconds.
+:::
+
+
+
+## Package at a glance
+
+::: columns
+::: {.column width="58%"}
+
+Function families:
+
+- **Regression**: `conformal_split`, `conformal_cv`, `conformal_jackknife`, `conformal_cqr`
+- **Classification**: `conformal_aps`, `conformal_raps`, `conformal_lac`
+- **Conditional / adaptive**: `conformal_mondrian`, `conformal_mondrian_class`, `conformal_weighted`, `conformal_aci`
+- **Diagnostics**: `coverage`, `coverage_by_group`, `coverage_by_bin`, `interval_width`, `set_size`, `conformal_compare`
+
+Deps: `cli`, `grDevices`, `graphics`, `stats`. R $\geq$ 4.1.0.
+
+:::
+::: {.column width="40%"}
+
+\begin{block}{Three-tier model interface}
+Every method accepts:
+
+1. A formula \texttt{y \~{} .}
+2. A fitted \texttt{lm}, \texttt{glm}, \texttt{ranger}
+3. A \texttt{make\_model()} wrapper for \texttt{xgboost}, custom learners
+\end{block}
+
+:::
+:::
+
+::: notes
+Two columns. Left lists the 22 exported functions grouped by family.
+Right highlights the model interface in the blue block. The three-tier
+design is the pitch: no dispatch adaptors, no subclassing. 45 seconds.
+:::
+
+
+
+## Minimal working example
+
+```r
+library(predictset)
+
+# Fit, calibrate, predict: any model, any method, three lines
+fit  <- conformal_split(y ~ ., data = train,
+                        x_new = x_test, alpha = 0.10)
+cov  <- coverage(fit, y_test)
+new  <- predict(fit, newdata = future_data)
+
+# Swap method: same call, change one word
+fit2 <- conformal_jackknife(y ~ ., data = train,
+                            x_new = x_test, alpha = 0.10)
+```
+
+\footnotesize
+The conformal object caches the fitted model and calibration quantile,
+so new data is scored without refitting.
+
+::: notes
+Live-read the code. The value is the symmetry: changing from split to
+Jackknife+ means replacing one function name. No new arguments, no
+separate wrapper. 60 seconds.
+:::
+
+
+
+## Case study: fairness via group-conditional coverage
+
+**Data.** ProPublica COMPAS recidivism dataset, 6167 defendants in Broward County, Florida, screened 2013-14\footnote{\scriptsize Angwin et al.\ (2016), \textit{Machine Bias}, ProPublica.}.
+
+**Question.** *Can conformal prediction deliver equalised per-group coverage where a marginal guarantee cannot?*
+
+**Why this case.** Canonical benchmark in algorithmic-fairness literature. A 90 per cent marginal guarantee is consistent with 99 per cent coverage on one subgroup and 60 per cent on another. @romano2020malice treat equalised coverage as a minimum fairness standard.
+
+::: notes
+Setup only. No results on this slide. Point forward: hero figure
+is next. Name the data source, the target, and why Mondrian is the
+right tool. 45 seconds.
+:::
+
+
+
+## COMPAS: Mondrian APS equalises per-race coverage
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.68\textheight]{figures/hero_figure.pdf}
+\end{center}
+
+\vspace{-0.4em}
+
+{\footnotesize\itshape Per-race coverage on COMPAS two-year recidivism at target $1 - \alpha = 0.90$. Marginal APS over-covers both subgroups; Mondrian APS tracks the target per group.}
+```
+
+::: notes
+The money slide. Ninety seconds. Walk the audience through the two
+panels: marginal APS hits the marginal guarantee by over-covering in
+both groups; Mondrian APS recovers the per-group target with smaller
+sets. This is the single most important fairness property conformal
+prediction delivers. Pause before moving on.
+:::
+
+
+
+## CV+ and Jackknife+ recover width without losing coverage
+
+```{=latex}
+\begin{center}
+\includegraphics[height=0.68\textheight]{figures/fig2_compare.pdf}
+\end{center}
+
+\vspace{-0.5em}
+
+{\footnotesize\itshape Mean interval width at target coverage $0.90$. CV+ and Jackknife+ reclaim roughly 9 per cent of the width that split conformal sacrifices by halving the training data.}
+```
+
+::: notes
+One operational example of the efficiency frontier. Split conformal is
+fast but inefficient on small samples. CV+ and Jackknife+ pay model
+fits for width. The package prints per-method wall-clock time via
+\texttt{conformal\_compare()} so users can make the trade-off
+explicitly. 60 seconds.
+:::
+
+
+## What predictset does not yet do
+
+- **No parametric or Bayesian intervals**: use `rstanarm`, `brms`, or base `predict()` for those
+- **Time-series dependence**: only ACI is implemented; full sequential-data conformal methods are pending
+- **Weighted conformal requires user-supplied weights**: no bundled density-ratio estimator
+- **Classification set size depends on base calibration**: miscalibrated probabilities yield larger sets
+
+\vspace{0.5em}
+
+**v0.4.0 roadmap**: conformal procedures for dependent data beyond ACI, likelihood-ratio estimators for weighted conformal, tighter `tidymodels` integration.
+
+::: notes
+Honest limitations. Name each one. Frame v0.4.0 as a commitment, not a
+vague plan. Users who want Bayesian intervals are already well served
+elsewhere; predictset is deliberately not that package. 45 seconds.
+:::
+
+
+
+## Contact, code, paper
+
+::: columns
+::: {.column width="62%"}
+
+```{=latex}
+{\large\bfseries Charles Coverdale\par}
+\vspace{0.5em}
+\texttt{charles.f.coverdale@gmail.com}\\
+\texttt{github.com/charlescoverdale/predictset}\\
+\texttt{charlescoverdale.github.io/publications}
+\vspace{0.9em}
+
+\textbf{Acknowledgements.} COMPAS data: ProPublica (public release). Thanks to the conformal-prediction community, in particular the work of Vovk, Lei, Romano, Barber, Candes, Angelopoulos, and Tibshirani, CRAN maintainers, and reviewers of \emph{predictset} v0.3.0.
+```
+
+:::
+::: {.column width="35%"}
+
+\begin{center}
+\includegraphics[width=0.85\linewidth]{figures/qrcode_paper.png}
+
+\vspace{0.3em}
+
+{\footnotesize\itshape Scan for paper PDF}
+\end{center}
+
+:::
+:::
+
+::: notes
+Close cleanly. Name, email, GitHub, publications. Point at the QR
+code. Acknowledge the conformal-prediction community. Open for
+questions.
+:::

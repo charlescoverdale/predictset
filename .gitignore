@@ -4,3 +4,11 @@
 .Ruserdata
 inst/doc
 tests/testthat/Rplots.pdf
+
+# LaTeX byproducts from the working paper build (paper/rj_submit/ is the
+# frozen submission bundle and stays tracked)
+paper/rj/*.aux
+paper/rj/*.bbl
+paper/rj/*.blg
+paper/rj/*.out
+paper/rj_submit/predictset.log
