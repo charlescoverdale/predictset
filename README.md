@@ -33,7 +33,7 @@ result$upper  # upper bounds
 
 ## Changes in 0.4.0
 
-This release fixes three defects that changed numerical results. If you have run any of the following on an earlier version, re-run it.
+This release fixes six defects that changed numerical results. The three in the table below are the ones most likely to have affected your work; the other three are under smaller fixes. If you have run any of them on an earlier version, re-run it.
 
 | What changed | Effect |
 |---|---|
@@ -41,7 +41,7 @@ This release fixes three defects that changed numerical results. If you have run
 | `model` was ignored when given as a formula or a fitted object | `model = y ~ a` silently fitted every column of `x`; `lm(y ~ poly(v1, 3) + v2)` came back as `y ~ v1 + v2`. Both are now honoured. |
 | `conformal_aps()` and `conformal_raps()` could return the full label set for every observation | With oracle probabilities on a four-class problem, APS returned a mean set size of 3.90 out of 4 at 99.9% coverage. It now returns 2.69 at 88.6%. |
 
-Two defaults changed as a result:
+Two changes that may need action on your side:
 
 - `randomize = TRUE` is now the default for `conformal_aps()` and `conformal_raps()`, which is the method as published. Pass `seed` for reproducible sets, or `randomize = FALSE` for the deterministic (more conservative) variant.
 - `conformal_weighted()` takes a new `weights_new` argument. Supply it for the exact procedure of Tibshirani et al. (2019), in which every test point receives its own conformal quantile.
