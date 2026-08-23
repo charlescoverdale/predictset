@@ -79,7 +79,7 @@
 <div class="section level2">
 <h2 id="changes-in-040">Changes in 0.4.0<a class="anchor" aria-label="anchor" href="#changes-in-040"></a>
 </h2>
-<p>This release fixes three defects that changed numerical results. If you have run any of the following on an earlier version, re-run it.</p>
+<p>This release fixes six defects that changed numerical results. The three in the table below are the ones most likely to have affected your work; the other three are under smaller fixes. If you have run any of them on an earlier version, re-run it.</p>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -108,7 +108,7 @@
 </tr>
 </tbody>
 </table>
-<p>Two defaults changed as a result:</p>
+<p>Two changes that may need action on your side:</p>
 <ul>
 <li>
 <code>randomize = TRUE</code> is now the default for <code><a href="reference/conformal_aps.html">conformal_aps()</a></code> and <code><a href="reference/conformal_raps.html">conformal_raps()</a></code>, which is the method as published. Pass <code>seed</code> for reproducible sets, or <code>randomize = FALSE</code> for the deterministic (more conservative) variant.</li>

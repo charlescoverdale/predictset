@@ -199,7 +199,7 @@ print(comp)
 #> 
 #> • split: coverage = 0.89, mean width = 3.388, time = 0.002s
 #> • cv: coverage = 0.89, mean width = 3.308, time = 0.047s
-#> • jackknife: coverage = 0.89, mean width = 3.335, time = 0.861s
+#> • jackknife: coverage = 0.89, mean width = 3.335, time = 0.853s
 ```
 
 ## Choosing a method
