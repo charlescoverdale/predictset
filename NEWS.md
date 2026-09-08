@@ -1,7 +1,9 @@
 # predictset 0.4.0
 
-This release corrects three defects that affected results, and changes two
-defaults. Anyone using `conformal_aci()`, `conformal_aps()`, `conformal_raps()`,
+This release corrects six defects that affected results, and changes two
+defaults. The three headline defects are listed first; the weighted,
+Mondrian and Jackknife+/CV+ fixes further down also change what you get
+back. Anyone using `conformal_aci()`, `conformal_aps()`, `conformal_raps()`,
 or passing a formula or fitted model as `model` should re-run their analysis.
 
 ## Bug fixes
