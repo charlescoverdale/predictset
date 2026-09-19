@@ -1,8 +1,8 @@
-# predictset — full API reference
+# predictset: full API reference
 
 > Implements conformal prediction methods for constructing prediction intervals (regression) and prediction sets (classification) with finite-sample coverage guarantees.
 
-- Version: 0.3.2
+- Version: 0.4.0
 - Install: `install.packages("predictset")`
 - CRAN: https://CRAN.R-project.org/package=predictset
 - GitHub: https://github.com/charlescoverdale/predictset
@@ -27,10 +27,10 @@ conformal_aci(y_pred, y_true, alpha = 0.1, gamma = 0.005)
 
 **Arguments**
 
-- `y_pred` — A numeric vector of point predictions (sequential).
-- `y_true` — A numeric vector of true values (sequential).
-- `alpha` — Target miscoverage level. Default `0.10`.
-- `gamma` — Learning rate for alpha adjustment. Default `0.005`. Larger values adapt faster but are less stable.
+- `y_pred`: A numeric vector of point predictions (sequential).
+- `y_true`: A numeric vector of true values (sequential).
+- `alpha`: Target miscoverage level. Default `0.10`.
+- `gamma`: Learning rate for alpha adjustment. Default `0.005`. Larger values adapt faster but are less stable.
 
 **Returns**
 
@@ -66,21 +66,23 @@ conformal_aps(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A factor (or character/integer vector coerced to factor) of class labels.
-- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `randomize` — Logical. If `TRUE`, uses randomized scores for exact coverage (but prediction sets become stochastic). Default `FALSE`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A factor (or character/integer vector coerced to factor) of class labels.
+- `model`: A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `randomize`: Logical. If `TRUE` (the default), uses the randomized score and set construction of Romano, Sesia and Candes (2020). If `FALSE`, uses the deterministic simplification, which is markedly conservative. See Details.
+- `allow_empty`: Logical. If `FALSE` (the default), an empty prediction set is replaced by the single most probable class. This is conservative. Set `TRUE` to return the score inversion exactly.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -130,19 +132,21 @@ conformal_class_split(
   x_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A factor (or character/integer vector coerced to factor) of class labels.
-- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A factor (or character/integer vector coerced to factor) of class labels.
+- `model`: A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `allow_empty`: Logical. If `FALSE` (the default), an empty prediction set is replaced by the single most probable class. LAC admits empty sets by design (Sadinle, Lei and Wasserman 2019); set `TRUE` to return them. Suppressing empty sets is conservative, never anti-conservative.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -202,14 +206,14 @@ conformal_compare(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object, a `make_model()` specification, or a formula.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `y_new` — A numeric vector of true response values for `x_new`, used to compute empirical coverage.
-- `methods` — Character vector of method names to compare. Default `c("split", "cv")`. Available methods: `"split"`, `"cv"`, `"jackknife"`, `"jackknife_basic"`.
-- `alpha` — Miscoverage level. Default `0.10`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object, a `make_model()` specification, or a formula.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `y_new`: A numeric vector of true response values for `x_new`, used to compute empirical coverage.
+- `methods`: Character vector of method names to compare. Default `c("split", "cv")`. Available methods: `"split"`, `"cv"`, `"jackknife"`, `"jackknife_basic"`.
+- `alpha`: Miscoverage level. Default `0.10`.
+- `seed`: Optional random seed.
 
 **Returns**
 
@@ -257,19 +261,19 @@ conformal_cqr(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model_lower` — A `make_model()` specification for the lower quantile model.
-- `model_upper` — A `make_model()` specification for the upper quantile model.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `alpha` — Miscoverage level. Default `0.10`.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `quantiles` — The target quantiles. Default `c(0.05, 0.95)`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model_lower`: A `make_model()` specification for the lower quantile model.
+- `model_upper`: A `make_model()` specification for the upper quantile model.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `alpha`: Miscoverage level. Default `0.10`.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `quantiles`: The nominal lower and upper quantiles targeted by `model_lower` and `model_upper`. Default `c(0.05, 0.95)`. These are recorded on the returned object and checked for consistency with `alpha`: CQR is most efficient when `quantiles` spans `1 - alpha`. The models themselves are supplied by the user, so this argument does not fit them.
+- `seed`: Optional random seed.
 
 **Returns**
 
-A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"cqr"`.
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"cqr"` and `quantiles` records the nominal quantiles.
 
 **Example**
 
@@ -327,14 +331,14 @@ conformal_cv(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
-- `x_new` — A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data using leave-one-fold-out predictions. Note: when `x_new = NULL`, prediction intervals for training observations use a self-consistent approximation. For exact CV+ intervals on new data, provide `x_new`.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
-- `n_folds` — Number of cross-validation folds. Default `10`.
-- `verbose` — Logical. If `TRUE`, shows a progress bar during fold fitting. Default `FALSE`.
-- `seed` — Optional random seed for reproducible data splitting.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new`: A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data using leave-one-fold-out predictions. Note: when `x_new = NULL`, prediction intervals for training observations use a self-consistent approximation that does not carry the CV+ coverage guarantee; the returned object records this in `train_approximation`. For exact CV+ intervals, provide `x_new`.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `n_folds`: Number of cross-validation folds. Default `10`.
+- `verbose`: Logical. If `TRUE`, shows a progress bar during fold fitting. Default `FALSE`.
+- `seed`: Optional random seed for reproducible data splitting.
 
 **Returns**
 
@@ -379,14 +383,14 @@ conformal_jackknife(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
-- `x_new` — A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
-- `plus` — Logical. If `TRUE` (default), uses the Jackknife+ method. If `FALSE`, uses the basic jackknife.
-- `verbose` — Logical. If `TRUE`, shows a progress bar during LOO fitting. Default `FALSE`.
-- `seed` — Optional random seed for reproducible data splitting.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new`: A numeric matrix or data frame of new predictor variables. If `NULL`, intervals are computed for the training data.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `plus`: Logical. If `TRUE` (default), uses the Jackknife+ method. If `FALSE`, uses the basic jackknife.
+- `verbose`: Logical. If `TRUE`, shows a progress bar during LOO fitting. Default `FALSE`.
+- `seed`: Optional random seed for reproducible data splitting.
 
 **Returns**
 
@@ -417,18 +421,28 @@ Constructs prediction sets using the Least Ambiguous Classifier (LAC) method. In
 **Usage**
 
 ```r
-conformal_lac(x, y, model, x_new, alpha = 0.1, cal_fraction = 0.5, seed = NULL)
+conformal_lac(
+  x,
+  y,
+  model,
+  x_new,
+  alpha = 0.1,
+  cal_fraction = 0.5,
+  allow_empty = FALSE,
+  seed = NULL
+)
 ```
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A factor (or character/integer vector coerced to factor) of class labels.
-- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A factor (or character/integer vector coerced to factor) of class labels.
+- `model`: A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `allow_empty`: Logical. If `FALSE` (the default), an empty prediction set is replaced by the single most probable class. LAC admits empty sets by design (Sadinle, Lei and Wasserman 2019); set `TRUE` to return them. Suppressing empty sets is conservative, never anti-conservative.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -485,15 +499,15 @@ conformal_mondrian(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object, a `make_model()` specification, or a formula.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `groups` — A factor or character vector of group labels for each observation in `x`, with length equal to `nrow(x)`.
-- `groups_new` — A factor or character vector of group labels for each observation in `x_new`, with length equal to `nrow(x_new)`.
-- `alpha` — Miscoverage level. Default `0.10`.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object, a `make_model()` specification, or a formula.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `groups`: A factor or character vector of group labels for each observation in `x`, with length equal to `nrow(x)`.
+- `groups_new`: A factor or character vector of group labels for each observation in `x_new`, with length equal to `nrow(x_new)`.
+- `alpha`: Miscoverage level. Default `0.10`.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `seed`: Optional random seed.
 
 **Returns**
 
@@ -536,21 +550,23 @@ conformal_mondrian_class(
   groups_new,
   alpha = 0.1,
   cal_fraction = 0.5,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A factor (or character/integer vector coerced to factor) of class labels.
-- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `groups` — A factor or character vector of group labels for each observation in `x`.
-- `groups_new` — A factor or character vector of group labels for each observation in `x_new`.
-- `alpha` — Miscoverage level. Default `0.10`.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A factor (or character/integer vector coerced to factor) of class labels.
+- `model`: A `make_model()` specification with `type = "classification"`, or a fitted model object.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `groups`: A factor or character vector of group labels for each observation in `x`.
+- `groups_new`: A factor or character vector of group labels for each observation in `x_new`.
+- `alpha`: Miscoverage level. Default `0.10`.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `allow_empty`: Logical. If `FALSE` (the default), an empty prediction set is replaced by the single most probable class.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -601,8 +617,8 @@ conformal_pvalue(scores, new_scores)
 
 **Arguments**
 
-- `scores` — A numeric vector of calibration nonconformity scores.
-- `new_scores` — A numeric vector of nonconformity scores for new observations.
+- `scores`: A numeric vector of calibration nonconformity scores.
+- `new_scores`: A numeric vector of nonconformity scores for new observations.
 
 **Returns**
 
@@ -640,23 +656,25 @@ conformal_raps(
   cal_fraction = 0.5,
   k_reg = 1,
   lambda = 0.01,
-  randomize = FALSE,
+  randomize = TRUE,
+  allow_empty = FALSE,
   seed = NULL
 )
 ```
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A factor (or character/integer vector coerced to factor) of class labels.
-- `model` — A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction sets.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `k_reg` — Regularization parameter controlling the number of classes exempt from the penalty. Default `1` (only the top class is unpenalized).
-- `lambda` — Regularization strength. Default `0.01`. Larger values produce smaller prediction sets at the potential cost of coverage.
-- `randomize` — Logical. If `TRUE`, uses randomized scores for exact coverage (but prediction sets become stochastic). Default `FALSE`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A factor (or character/integer vector coerced to factor) of class labels.
+- `model`: A `make_model()` specification with `type = "classification"`, or a fitted model object that produces class probabilities.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction sets.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `k_reg`: Regularization parameter controlling the number of classes exempt from the penalty. Default `1` (only the top class is unpenalized).
+- `lambda`: Regularization strength. Default `0.01`. Larger values produce smaller prediction sets at the potential cost of coverage.
+- `randomize`: Logical. If `TRUE` (the default), uses the randomized score and set construction. If `FALSE`, uses the deterministic simplification, which is markedly conservative. See `conformal_aps()`.
+- `allow_empty`: Logical. If `FALSE` (the default), an empty prediction set is replaced by the single most probable class.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -715,15 +733,15 @@ conformal_split(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
-- `x_new` — A numeric matrix or data frame of new predictor variables for which to compute prediction intervals.
-- `alpha` — Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `score_type` — Type of nonconformity score. `"absolute"` (default) uses absolute residuals and produces constant-width intervals. `"normalized"` divides residuals by a local scale estimate from `scale_model`, producing locally-adaptive interval widths.
-- `scale_model` — A `make_model()` specification for predicting absolute residuals (used only when `score_type = "normalized"`). Must return positive predictions. If `NULL` and `score_type = "normalized"`, a default model is fitted using `lm()` on absolute residuals.
-- `seed` — Optional random seed for reproducible data splitting.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object (e.g., from `lm()`), a `make_model()` specification, or a formula (which will fit a linear model).
+- `x_new`: A numeric matrix or data frame of new predictor variables for which to compute prediction intervals.
+- `alpha`: Miscoverage level. Default `0.10` gives 90 percent prediction intervals.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `score_type`: Type of nonconformity score. `"absolute"` (default) uses absolute residuals and produces constant-width intervals. `"normalized"` divides residuals by a local scale estimate from `scale_model`, producing locally-adaptive interval widths.
+- `scale_model`: A `make_model()` specification for predicting absolute residuals (used only when `score_type = "normalized"`). Must return positive predictions. If `NULL` and `score_type = "normalized"`, a default model is fitted using `lm()` on absolute residuals.
+- `seed`: Optional random seed for reproducible data splitting. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
@@ -759,6 +777,7 @@ conformal_weighted(
   model,
   x_new,
   weights = NULL,
+  weights_new = NULL,
   alpha = 0.1,
   cal_fraction = 0.5,
   seed = NULL
@@ -767,18 +786,19 @@ conformal_weighted(
 
 **Arguments**
 
-- `x` — A numeric matrix or data frame of predictor variables.
-- `y` — A numeric vector of response values.
-- `model` — A fitted model object, a `make_model()` specification, or a formula.
-- `x_new` — A numeric matrix or data frame of new predictor variables.
-- `weights` — A numeric vector of importance weights for each observation in `x`, with length equal to `nrow(x)`. Weights must be non-negative. If `NULL`, uniform weights are used (equivalent to standard split conformal).
-- `alpha` — Miscoverage level. Default `0.10`.
-- `cal_fraction` — Fraction of data used for calibration. Default `0.5`.
-- `seed` — Optional random seed.
+- `x`: A numeric matrix or data frame of predictor variables.
+- `y`: A numeric vector of response values.
+- `model`: A fitted model object, a `make_model()` specification, or a formula.
+- `x_new`: A numeric matrix or data frame of new predictor variables.
+- `weights`: A numeric vector of importance weights for each observation in `x`, with length equal to `nrow(x)`. Weights must be non-negative. If `NULL`, uniform weights are used (equivalent to standard split conformal).
+- `weights_new`: A numeric vector of importance weights for each observation in `x_new`, with length equal to `nrow(x_new)`. Supplying these gives the exact procedure of Tibshirani et al. (2019), in which each test point receives its own conformal quantile. If `NULL`, the mean calibration weight is substituted for every test point, which is an approximation (see Details).
+- `alpha`: Miscoverage level. Default `0.10`.
+- `cal_fraction`: Fraction of data used for calibration. Default `0.5`.
+- `seed`: Optional random seed. Set for the duration of the call only; the global random stream is restored on exit.
 
 **Returns**
 
-A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"weighted"`.
+A `predictset_reg` object. See `conformal_split()` for details. The `method` component is `"weighted"`. The `quantile` component is the median conformal quantile across test points; `quantile_by_point` holds the full vector.
 
 **Example**
 
@@ -788,11 +808,14 @@ n <- 400
 x <- matrix(rnorm(n * 3), ncol = 3)
 y <- x[, 1] * 2 + rnorm(n)
 x_new <- matrix(rnorm(50 * 3, mean = 1), ncol = 3)
-weights <- rep(1, n)
+
+# Likelihood ratio of the test density to the training density
+w <- dnorm(x[, 1], mean = 1) / dnorm(x[, 1], mean = 0)
+w_new <- dnorm(x_new[, 1], mean = 1) / dnorm(x_new[, 1], mean = 0)
 
 
 result <- conformal_weighted(x, y, model = y ~ ., x_new = x_new,
-                              weights = weights)
+                              weights = w, weights_new = w_new)
 print(result)
 ```
 
@@ -816,8 +839,8 @@ coveragepredictset_class(object, y_true)
 
 **Arguments**
 
-- `object` — A `predictset_reg` or `predictset_class` object.
-- `y_true` — A numeric vector (regression) or factor/character vector (classification) of true values, with the same length as the number of predictions.
+- `object`: A `predictset_reg` or `predictset_class` object.
+- `y_true`: A numeric vector (regression) or factor/character vector (classification) of true values, with the same length as the number of predictions.
 
 **Returns**
 
@@ -853,9 +876,9 @@ coverage_by_bin(object, y_true, bins = 10)
 
 **Arguments**
 
-- `object` — A `predictset_reg` object.
-- `y_true` — A numeric vector of true response values.
-- `bins` — Number of bins. Default `10`.
+- `object`: A `predictset_reg` object.
+- `y_true`: A numeric vector of true response values.
+- `bins`: Number of bins. Default `10`.
 
 **Returns**
 
@@ -891,9 +914,9 @@ coverage_by_group(object, y_true, groups)
 
 **Arguments**
 
-- `object` — A `predictset_reg` or `predictset_class` object.
-- `y_true` — True values (numeric for regression, factor/character for classification).
-- `groups` — A factor or character vector of group labels with the same length as the number of predictions.
+- `object`: A `predictset_reg` or `predictset_class` object.
+- `y_true`: True values (numeric for regression, factor/character for classification).
+- `groups`: A factor or character vector of group labels with the same length as the number of predictions.
 
 **Returns**
 
@@ -930,7 +953,7 @@ interval_width(object)
 
 **Arguments**
 
-- `object` — A `predictset_reg` object.
+- `object`: A `predictset_reg` object.
 
 **Returns**
 
@@ -965,9 +988,9 @@ make_model(train_fun, predict_fun, type = c("regression", "classification"))
 
 **Arguments**
 
-- `train_fun` — A function with signature function(x, y) that takes a numeric matrix `x` and response `y` (numeric for regression, factor for classification) and returns a fitted model object.
-- `predict_fun` — A function with signature function(object, x_new) that takes a fitted model object and a numeric matrix `x_new` and returns predictions. For regression, must return a numeric vector. For classification, must return a probability matrix with columns named by class labels.
-- `type` — Character string, either `"regression"` or `"classification"`.
+- `train_fun`: A function with signature function(x, y) that takes a numeric matrix `x` and response `y` (numeric for regression, factor for classification) and returns a fitted model object.
+- `predict_fun`: A function with signature function(object, x_new) that takes a fitted model object and a numeric matrix `x_new` and returns predictions. For regression, must return a numeric vector. For classification, must return a probability matrix with columns named by class labels.
+- `type`: Character string, either `"regression"` or `"classification"`.
 
 **Returns**
 
@@ -1001,7 +1024,7 @@ set_size(object)
 
 **Arguments**
 
-- `object` — A `predictset_class` object.
+- `object`: A `predictset_class` object.
 
 **Returns**
 
