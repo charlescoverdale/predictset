@@ -2,6 +2,8 @@
 
 ## predictset 0.4.0
 
+CRAN release: 2026-09-08
+
 This release corrects six defects that affected results, and changes two
 defaults. The three headline defects are listed first; the weighted,
 Mondrian and Jackknife+/CV+ fixes further down also change what you get
