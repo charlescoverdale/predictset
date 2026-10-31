@@ -477,6 +477,7 @@ For an accessible introduction to the field, see [Angelopoulos](https://scholar.
 | [`inflationkit`](https://github.com/charlescoverdale/inflationkit) | Inflation analysis and forecast evaluation |
 | [`probably`](https://probably.tidymodels.org/) | Conformal regression within the tidymodels ecosystem |
 | [`conformalInference`](https://github.com/ryantibs/conformal) | Research code by Tibshirani et al. (2019, GitHub only) |
+| [`evaluatellm`](https://github.com/charlescoverdale/evaluatellm) | Statistical inference for LLM evaluations (clustered SEs, paired comparisons, prediction-powered inference) |
 
 ---
 
