@@ -400,34 +400,42 @@ print(comp)
 
 ## Diagnostics
 
-After producing predictions, use the diagnostic functions to evaluate calibration and efficiency.
+After producing predictions, use the diagnostic functions to evaluate calibration and efficiency. Hold out data with known outcomes to check against:
 
 ```r
-# Suppose y_test contains the true values for x_new
+set.seed(42)
+x <- matrix(rnorm(1000 * 3), ncol = 3)
+y <- x[, 1] * 2 + rnorm(1000)
+train <- 1:500
+test <- 501:1000
+
+result <- conformal_split(x[train, ], y[train], model = y ~ ., x_new = x[test, ], alpha = 0.10)
+y_test <- y[test]
+
+# Marginal coverage (target 0.90) and average interval width
 coverage(result, y_test)
-#> [1] 0.91
-
-# Average interval width (regression)
+#> [1] 0.888
 mean(interval_width(result))
-#> [1] 3.42
-
-# Prediction set sizes (classification)
-table(set_size(result))
-#>  1  2  3
-#> 74 21  5
+#> [1] 3.183424
 
 # Coverage within subgroups
+groups_test <- ifelse(x[test, 2] > 0, "high", "low")
 coverage_by_group(result, y_test, groups = groups_test)
-#>   group coverage   n target
-#> 1  high    0.920  98    0.9
-#> 2   low    0.891 102    0.9
+#>   group  coverage   n target
+#> 1  high 0.8784314 255    0.9
+#> 2   low 0.8979592 245    0.9
 
 # Coverage by prediction quantile bin
 coverage_by_bin(result, y_test, bins = 5)
-
-# Conformal p-values for outlier detection
-pvals <- conformal_pvalue(result$scores, new_scores)
+#>   bin coverage   n mean_width
+#> 1   1     0.88 100   3.183424
+#> 2   2     0.86 100   3.183424
+#> 3   3     0.88 100   3.183424
+#> 4   4     0.90 100   3.183424
+#> 5   5     0.92 100   3.183424
 ```
+
+For classification results, `set_size()` gives the size of each prediction set. `conformal_pvalue(scores, new_scores)` turns calibration and new nonconformity scores into conformal p-values, for outlier detection.
 
 `coverage()` should be close to `1 - alpha` from either side. Coverage substantially below target usually means exchangeability is violated; coverage far above it means the method is over-covering, which is a real cost, since it buys nothing and widens every interval. `interval_width()` and `set_size()` measure efficiency: narrower intervals and smaller sets are better, conditional on achieving the target coverage.
 
