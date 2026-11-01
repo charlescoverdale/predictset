@@ -1,3 +1,8 @@
+# predictset (development version)
+
+* `print()` and `summary()` list the class labels as values
+  (`"a", "b" and "c"`) rather than as one quoted string.
+
 # predictset 0.4.0
 
 This release corrects six defects that affected results, and changes two
