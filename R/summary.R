@@ -70,7 +70,7 @@ summary.predictset_class <- function(object, ...) {
   cli_h1("Summary: {method_names[object$method]}")
   cli_bullets(c(
     "*" = "Coverage target: {.val {(1 - object$alpha) * 100}%}",
-    "*" = "Classes: {.val {paste(object$classes, collapse = ', ')}}",
+    "*" = "Classes: {.val {object$classes}}",
     "*" = "Number of predictions: {.val {length(object$sets)}}",
     "*" = "Training observations: {.val {object$n_train}}",
     "*" = "Calibration observations: {.val {object$n_cal}}"

@@ -80,7 +80,7 @@ print.predictset_class <- function(x, ...) {
   cli_h1("Conformal Prediction Sets ({method_label})")
   cli_bullets(c(
     "*" = "Coverage target: {.val {(1 - x$alpha) * 100}%}",
-    "*" = "Classes: {.val {paste(x$classes, collapse = ', ')}}",
+    "*" = "Classes: {.val {x$classes}}",
     "*" = "Training: {.val {x$n_train}} | Calibration: {.val {x$n_cal}} | Predictions: {.val {length(x$sets)}}",
     "*" = "Median set size: {.val {median(sizes)}} | Mean set size: {.val {round(mean(sizes), 2)}}"
   ))
