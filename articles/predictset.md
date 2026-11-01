@@ -197,9 +197,9 @@ print(comp)
 #> 
 #> ── Conformal Method Comparison ─────────────────────────────────────────────────
 #> 
-#> • split: coverage = 0.89, mean width = 3.388, time = 0.002s
-#> • cv: coverage = 0.89, mean width = 3.308, time = 0.046s
-#> • jackknife: coverage = 0.89, mean width = 3.335, time = 0.861s
+#> • split: coverage = 0.89, mean width = 3.388, time = 0.001s
+#> • cv: coverage = 0.89, mean width = 3.308, time = 0.035s
+#> • jackknife: coverage = 0.89, mean width = 3.335, time = 0.62s
 ```
 
 ## Choosing a method

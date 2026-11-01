@@ -1,5 +1,12 @@
 # Changelog
 
+## predictset (development version)
+
+- [`print()`](https://rdrr.io/r/base/print.html) and
+  [`summary()`](https://rdrr.io/r/base/summary.html) list the class
+  labels as values (`"a", "b" and "c"`) rather than as one quoted
+  string.
+
 ## predictset 0.4.0
 
 CRAN release: 2026-09-08

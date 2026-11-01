@@ -153,7 +153,7 @@ print(result)
 #> 
 #> ── Conformal Prediction Sets (Least Ambiguous Classifier) ──────────────────────
 #> • Coverage target: "90%"
-#> • Classes: "A, B"
+#> • Classes: "A" and "B"
 #> • Training: 150 | Calibration: 150 | Predictions: 50
 #> • Median set size: 1 | Mean set size: 1
 ```

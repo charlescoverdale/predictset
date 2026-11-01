@@ -136,7 +136,7 @@ print(result)
 #> 
 #> ── Conformal Prediction Sets (Adaptive Prediction Sets) ────────────────────────
 #> • Coverage target: "90%"
-#> • Classes: "A, B, C"
+#> • Classes: "A", "B", and "C"
 #> • Training: 150 | Calibration: 150 | Predictions: 50
 #> • Median set size: 3 | Mean set size: 2.62
 # }

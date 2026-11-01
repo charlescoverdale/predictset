@@ -117,7 +117,7 @@ print(result)
 #> 
 #> ── Conformal Prediction Sets (Mondrian (Group-Conditional)) ────────────────────
 #> • Coverage target: "90%"
-#> • Classes: "A, B"
+#> • Classes: "A" and "B"
 #> • Training: 200 | Calibration: 200 | Predictions: 50
 #> • Median set size: 1 | Mean set size: 1
 # }
